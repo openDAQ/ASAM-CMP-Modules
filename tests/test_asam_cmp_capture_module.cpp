@@ -85,42 +85,26 @@ TEST_F(AsamCmpCapturModuleTest, AcceptsConnectionStringInvalid)
     ASSERT_FALSE(accepts);
 }
 
-//TODO: reserved as reference once function blocks are implemented
-// TEST_F(AsamCmpCapturModuleTest, GetAvailableComponentTypes)
-// {
-//     const auto module = CreateModule();
+ TEST_F(AsamCmpCapturModuleTest, GetAvailableComponentTypes)
+ {
+     const auto module = CreateModule();
 
-//     DictPtr<IString, IDeviceType> deviceTypes;
-//     ASSERT_NO_THROW(deviceTypes = module.getAvailableDeviceTypes());
-//     ASSERT_EQ(deviceTypes.getCount(), 0u);
+     DictPtr<IString, IDeviceType> deviceTypes;
+     ASSERT_NO_THROW(deviceTypes = module.getAvailableDeviceTypes());
+     ASSERT_EQ(deviceTypes.getCount(), 0u);
 
-//     DictPtr<IString, IServerType> serverTypes;
-//     ASSERT_NO_THROW(serverTypes = module.getAvailableServerTypes());
-//     ASSERT_EQ(serverTypes.getCount(), 0u);
+     DictPtr<IString, IServerType> serverTypes;
+     ASSERT_NO_THROW(serverTypes = module.getAvailableServerTypes());
+     ASSERT_EQ(serverTypes.getCount(), 0u);
 
-//     DictPtr<IString, IFunctionBlockType> functionBlockTypes;
-//     ASSERT_NO_THROW(functionBlockTypes = module.getAvailableFunctionBlockTypes());
-//     ASSERT_TRUE(functionBlockTypes.assigned());
-//     ASSERT_EQ(functionBlockTypes.getCount(), 7u);
+     DictPtr<IString, IFunctionBlockType> functionBlockTypes;
+     ASSERT_NO_THROW(functionBlockTypes = module.getAvailableFunctionBlockTypes());
+     ASSERT_TRUE(functionBlockTypes.assigned());
+     ASSERT_EQ(functionBlockTypes.getCount(), 1u);
 
-//     ASSERT_TRUE(functionBlockTypes.hasKey("ref_fb_module_renderer"));
-//     ASSERT_EQ("ref_fb_module_renderer", functionBlockTypes.get("ref_fb_module_renderer").getId());
-
-//     ASSERT_TRUE(functionBlockTypes.hasKey("ref_fb_module_statistics"));
-//     ASSERT_EQ("ref_fb_module_statistics", functionBlockTypes.get("ref_fb_module_statistics").getId());
-
-//     ASSERT_TRUE(functionBlockTypes.hasKey("ref_fb_module_power"));
-//     ASSERT_EQ("ref_fb_module_power", functionBlockTypes.get("ref_fb_module_power").getId());
-
-//     ASSERT_TRUE(functionBlockTypes.hasKey("ref_fb_module_scaling"));
-//     ASSERT_EQ("ref_fb_module_scaling", functionBlockTypes.get("ref_fb_module_scaling").getId());
-
-//     ASSERT_TRUE(functionBlockTypes.hasKey("ref_fb_module_classifier"));
-//     ASSERT_EQ("ref_fb_module_classifier", functionBlockTypes.get("ref_fb_module_classifier").getId());
-
-//     ASSERT_TRUE(functionBlockTypes.hasKey("ref_fb_module_trigger"));
-//     ASSERT_EQ("ref_fb_module_trigger", functionBlockTypes.get("ref_fb_module_trigger").getId());
-// }
+     ASSERT_TRUE(functionBlockTypes.hasKey("asam_cmp_capture_module"));
+     ASSERT_EQ("asam_cmp_capture_module", functionBlockTypes.get("asam_cmp_capture_module").getId());
+ }
 
 TEST_F(AsamCmpCapturModuleTest, CreateFunctionBlockNotFound)
 {
@@ -129,7 +113,10 @@ TEST_F(AsamCmpCapturModuleTest, CreateFunctionBlockNotFound)
     ASSERT_THROW(module.createFunctionBlock("test", nullptr, "id"), NotFoundException);
 }
 
-// TODO: reserved as reference once function blocks are implemented
-// TEST_F(AsamCmpCapturModuleTest, CreateFunctionBlockStatistics)
-// {
-//     const auto module = CreateModule();
+TEST_F(AsamCmpCapturModuleTest, DISABLED_CreateFunctionBlockRenderer)
+{
+    const auto module = CreateModule();
+
+    auto fb = module.createFunctionBlock("asam_cmp_capture_module", nullptr, "id");
+    ASSERT_TRUE(fb.assigned());
+}

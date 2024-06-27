@@ -5,18 +5,22 @@ set(MODULE_BINARY_HEADER_DIR ${CMAKE_CURRENT_BINARY_DIR}/../include/${TARGET_FOL
 set(SRC_Include common.h
                 module_dll.h
                 asam_cmp_capture_module_impl.h
+                asam_cmp_capture_module_fb_impl.h
 )
 
 set(SRC_Srcs module_dll.cpp
              asam_cmp_capture_module_impl.cpp
+             asam_cmp_capture_module_fb_impl.cpp
 )
 
 prepend_include(${TARGET_FOLDER_NAME} SRC_Include)
 
 set(MODULE_FILES ${MODULE_HEADERS_DIR}/module_dll.h
                  ${MODULE_HEADERS_DIR}/asam_cmp_capture_module_impl.h
+                 ${MODULE_HEADERS_DIR}/asam_cmp_capture_module_fb_impl.h
                  module_dll.cpp
                  asam_cmp_capture_module_impl.cpp
+                 asam_cmp_capture_module_fb_impl.cpp
 )
 
 source_group("asam_cmp_capture_module" FILES ${MODULE_FILES})
@@ -29,6 +33,7 @@ add_library(${LIB_NAME} SHARED ${SRC_Include}
 add_library(${SDK_TARGET_NAMESPACE}::${LIB_NAME} ALIAS ${LIB_NAME})
 
 target_link_libraries(${LIB_NAME} PUBLIC daq::opendaq
+                                         AsamCmpLib
 )
 
 

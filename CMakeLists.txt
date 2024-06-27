@@ -48,6 +48,19 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(openDAQ)
 
+FetchContent_Declare(
+    AsamCmpLib
+    GIT_REPOSITORY git@github.com:openDAQ/ASAM-CMP-Library.git
+    GIT_TAG        1a1d3cc217fd49f6fe3cb6873047e78e597125c7
+)
+FetchContent_MakeAvailable(AsamCmpLib)
+
+# FetchContent_GetProperties(counterlib)
+# if (NOT counterlib_POPULATED)
+#   FetchContent_Populate(counterlib)
+#   add_subdirectory(${counterlib_SOURCE_DIR} ${counterlib_BINARY_DIR})
+# endif()
+
 set(TARGET_FOLDER_NAME asam_cmp_capture_module)
 add_subdirectory(src)
 

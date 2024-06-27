@@ -2,6 +2,7 @@
 #include <opendaq/custom_log.h>
 #include <asam_cmp_capture_module/asam_cmp_capture_module_impl.h>
 #include <asam_cmp_capture_module/version.h>
+#include <asam_cmp_capture_module/asam_cmp_capture_module_fb_impl.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
@@ -17,9 +18,8 @@ DictPtr<IString, IFunctionBlockType> AsamCmpCaptureModule::onGetAvailableFunctio
 {
     auto types = Dict<IString, IFunctionBlockType>();
 
-    //TODO: reserved as a get fb type reference
-    //auto typeStatistics = Statistics::StatisticsFbImpl::CreateType();
-    //types.set(typeStatistics.getId(), typeStatistics);
+    auto typeStatistics = AsamCmpCaptureModuleFbImpl::CreateType();
+    types.set(typeStatistics.getId(), typeStatistics);
 
     return types;
 }
@@ -29,14 +29,11 @@ FunctionBlockPtr AsamCmpCaptureModule::onCreateFunctionBlock(const StringPtr& id
                                                              const StringPtr& localId,
                                                              const PropertyObjectPtr& config)
 {
-    //TODO: reserved asd reference
-    // if (id == Statistics::StatisticsFbImpl::CreateType().getId())
-    // {
-    //     FunctionBlockPtr fb = createWithImplementation<IFunctionBlock, Statistics::StatisticsFbImpl>(context, parent, localId, config);
-    //     return fb;
-    // }
-    
-
+    if (id == AsamCmpCaptureModuleFbImpl::CreateType().getId())
+    {
+        FunctionBlockPtr fb = createWithImplementation<IFunctionBlock, AsamCmpCaptureModuleFbImpl>(context, parent, localId);
+        return fb;
+    }
 
     LOG_W("Function block \"{}\" not found", id);
     throw NotFoundException("Function block not found");
