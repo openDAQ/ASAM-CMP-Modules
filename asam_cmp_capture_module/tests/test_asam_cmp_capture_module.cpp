@@ -113,7 +113,7 @@ TEST_F(AsamCmpCapturModuleTest, CreateFunctionBlockNotFound)
     ASSERT_THROW(module.createFunctionBlock("test", nullptr, "id"), NotFoundException);
 }
 
-TEST_F(AsamCmpCapturModuleTest, DISABLED_CreateFunctionBlockRenderer)
+TEST_F(AsamCmpCapturModuleTest, CreateFunctionBlockCaptureModule)
 {
     const auto module = CreateModule();
 

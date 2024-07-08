@@ -1,6 +1,4 @@
-set(MODULE_NAME asam_cmp_capture_module)
-set(MODULE_SOURCE_DIR ../src/)
-set(TEST_APP test_${MODULE_NAME})
+set(TEST_APP test_${REPO_NAME})
 
 set(TEST_SOURCES test_asam_cmp_capture_module.cpp
                  test_app.cpp
@@ -10,7 +8,7 @@ add_executable(${TEST_APP} ${TEST_SOURCES}
 )
 
 target_link_libraries(${TEST_APP} PRIVATE daq::test_utils
-                                          asam_cmp_capture_module
+                                          ${REPO_NAME}
 )
 
 add_test(NAME ${TEST_APP}
