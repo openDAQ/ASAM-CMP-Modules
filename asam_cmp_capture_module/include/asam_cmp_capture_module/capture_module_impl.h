@@ -15,28 +15,22 @@
  */
 
 #pragma once
-#include <asam_cmp/encoder.h>
-#include <asam_cmp_capture_module/common.h>
-#include <opendaq/context_factory.h>
 #include <opendaq/function_block_impl.h>
+
+#include <asam_cmp_capture_module/common.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-class AsamCmpCaptureImpl final : public FunctionBlock
+class CaptureModuleImpl final : public FunctionBlock
 {
 public:
-    explicit AsamCmpCaptureImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
-    ~AsamCmpCaptureImpl() override = default;
+    explicit CaptureModuleImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
+    ~CaptureModuleImpl() override = default;
 
     static FunctionBlockTypePtr CreateType();
 
 private:
     void initProperties();
-    void createFbs();
-
-private:
-    FunctionBlockPtr captureModule;
 };
-
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

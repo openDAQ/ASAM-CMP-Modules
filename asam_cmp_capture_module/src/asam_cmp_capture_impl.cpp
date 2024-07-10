@@ -1,4 +1,5 @@
 #include <asam_cmp_capture_module/asam_cmp_capture_impl.h>
+#include <asam_cmp_capture_module/capture_module_impl.h>
 #include <string_view>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
@@ -7,6 +8,7 @@ AsamCmpCaptureImpl::AsamCmpCaptureImpl(const ContextPtr& ctx, const ComponentPtr
     : FunctionBlock(CreateType(), ctx, parent, localId)
 {
     initProperties();
+    createFbs();
 }
 
 FunctionBlockTypePtr AsamCmpCaptureImpl::CreateType()
@@ -21,9 +23,9 @@ void AsamCmpCaptureImpl::initProperties()
 
 void AsamCmpCaptureImpl::createFbs()
 {
-    // const StringPtr dataSinkId = "asam_cmp_data_sink";
-    // auto newFb = createWithImplementation<IFunctionBlock, CaptureModuleFbImpl>(context, functionBlocks, dataSinkId);
-    // functionBlocks.addItem(newFb);
+    const StringPtr captureModuleId = "capture_module";
+    auto newFb = createWithImplementation<IFunctionBlock, CaptureModuleImpl>(context, functionBlocks, captureModuleId);
+    functionBlocks.addItem(newFb);
 }
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
