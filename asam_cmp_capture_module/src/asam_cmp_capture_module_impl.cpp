@@ -2,7 +2,7 @@
 #include <opendaq/custom_log.h>
 #include <asam_cmp_capture_module/asam_cmp_capture_module_impl.h>
 #include <asam_cmp_capture_module/version.h>
-#include <asam_cmp_capture_module/asam_cmp_capture_module_fb_impl.h>
+#include <asam_cmp_capture_module/asam_cmp_capture_impl.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
@@ -18,7 +18,7 @@ DictPtr<IString, IFunctionBlockType> AsamCmpCaptureModule::onGetAvailableFunctio
 {
     auto types = Dict<IString, IFunctionBlockType>();
 
-    auto typeStatistics = AsamCmpCaptureModuleFbImpl::CreateType();
+    auto typeStatistics = AsamCmpCaptureImpl::CreateType();
     types.set(typeStatistics.getId(), typeStatistics);
 
     return types;
@@ -29,9 +29,9 @@ FunctionBlockPtr AsamCmpCaptureModule::onCreateFunctionBlock(const StringPtr& id
                                                              const StringPtr& localId,
                                                              const PropertyObjectPtr& config)
 {
-    if (id == AsamCmpCaptureModuleFbImpl::CreateType().getId())
+    if (id == AsamCmpCaptureImpl::CreateType().getId())
     {
-        FunctionBlockPtr fb = createWithImplementation<IFunctionBlock, AsamCmpCaptureModuleFbImpl>(context, parent, localId);
+        FunctionBlockPtr fb = createWithImplementation<IFunctionBlock, AsamCmpCaptureImpl>(context, parent, localId);
         return fb;
     }
 

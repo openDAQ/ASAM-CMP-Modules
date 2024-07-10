@@ -102,8 +102,8 @@ TEST_F(AsamCmpCapturModuleTest, AcceptsConnectionStringInvalid)
      ASSERT_TRUE(functionBlockTypes.assigned());
      ASSERT_EQ(functionBlockTypes.getCount(), 1u);
 
-     ASSERT_TRUE(functionBlockTypes.hasKey("asam_cmp_capture_module"));
-     ASSERT_EQ("asam_cmp_capture_module", functionBlockTypes.get("asam_cmp_capture_module").getId());
+     ASSERT_TRUE(functionBlockTypes.hasKey("asam_cmp_capture"));
+     ASSERT_EQ("asam_cmp_capture", functionBlockTypes.get("asam_cmp_capture").getId());
  }
 
 TEST_F(AsamCmpCapturModuleTest, CreateFunctionBlockNotFound)
@@ -117,6 +117,6 @@ TEST_F(AsamCmpCapturModuleTest, CreateFunctionBlockCaptureModule)
 {
     const auto module = CreateModule();
 
-    auto fb = module.createFunctionBlock("asam_cmp_capture_module", nullptr, "id");
+    auto fb = module.createFunctionBlock("asam_cmp_capture", nullptr, "id");
     ASSERT_TRUE(fb.assigned());
 }

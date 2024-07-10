@@ -22,16 +22,17 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-class AsamCmpCaptureModuleFbImpl final : public FunctionBlock
+class AsamCmpCaptureImpl final : public FunctionBlock
 {
 public:
-    explicit AsamCmpCaptureModuleFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
-    ~AsamCmpCaptureModuleFbImpl() override = default;
+    explicit AsamCmpCaptureImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
+    ~AsamCmpCaptureImpl() override = default;
 
     static FunctionBlockTypePtr CreateType();
 
 private:
     void initProperties();
+    void createFbs();
 
     // TODO: not sure fb itself has an input port
     //  void onPacketReceived(const InputPortPtr& port) override;
@@ -39,6 +40,8 @@ private:
 
     // void initStatuses();
     // void setInputStatus(const StringPtr& value);
+private:
+    FunctionBlockPtr captureModuleFb;
 };
 
 
