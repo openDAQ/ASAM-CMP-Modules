@@ -15,12 +15,24 @@ static FunctionBlockPtr createAsamCmpCapture()
     createModule(&module, Context(Scheduler(logger), logger, nullptr, nullptr, nullptr));
 
     auto fb = module.createFunctionBlock("asam_cmp_capture", nullptr, "id");
+    auto captureModule = fb.getFunctionBlocks().getItemAt(0);
 
-    return fb;
+
+    return captureModule;
 }
 
 TEST_F(CaptureModuleTest, CreateCaptureModule)
 {
     auto asamCmpCapture = createAsamCmpCapture();
     ASSERT_NE(asamCmpCapture, nullptr);
+}
+
+TEST_F(CaptureModuleTest, CaptureModuleProperties)
+{
+    auto asamCmpCapture = createAsamCmpCapture();
+
+    ASSERT_TRUE(asamCmpCapture.hasProperty("DeviceId"));
+    ASSERT_TRUE(asamCmpCapture.hasProperty("AddInterface"));
+    ASSERT_TRUE(asamCmpCapture.hasProperty("RemoveInterface"));
+    ASSERT_TRUE(asamCmpCapture.hasProperty("InterfacesList"));
 }

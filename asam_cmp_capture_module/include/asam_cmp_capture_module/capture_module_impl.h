@@ -31,6 +31,7 @@ public:
 
 private:
     void initProperties();
+
 };
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
