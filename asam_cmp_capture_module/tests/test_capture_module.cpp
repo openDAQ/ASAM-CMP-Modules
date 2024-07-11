@@ -34,5 +34,25 @@ TEST_F(CaptureModuleTest, CaptureModuleProperties)
     ASSERT_TRUE(asamCmpCapture.hasProperty("DeviceId"));
     ASSERT_TRUE(asamCmpCapture.hasProperty("AddInterface"));
     ASSERT_TRUE(asamCmpCapture.hasProperty("RemoveInterface"));
-    ASSERT_TRUE(asamCmpCapture.hasProperty("InterfacesList"));
+}
+
+TEST_F(CaptureModuleTest, TestCreateInterface)
+{
+    auto asamCmpCapture = createAsamCmpCapture();
+
+    ProcedurePtr createProc = asamCmpCapture.getPropertyValue("AddInterface");
+
+    ASSERT_EQ(asamCmpCapture.getFunctionBlocks().getCount(), 0);
+    createProc();
+    createProc();
+    ASSERT_EQ(asamCmpCapture.getFunctionBlocks().getCount(), 2);
+
+    int lstId = asamCmpCapture.getFunctionBlocks().getItemAt(1).getPropertyValue("InterfaceId");
+
+    ProcedurePtr removeProc = asamCmpCapture.getPropertyValue("RemoveInterface");
+    removeProc(0);
+
+    ASSERT_EQ(asamCmpCapture.getFunctionBlocks().getCount(), 1);
+    ASSERT_EQ(asamCmpCapture.getFunctionBlocks().getItemAt(0).getPropertyValue("InterfaceId"), lstId);
+
 }
