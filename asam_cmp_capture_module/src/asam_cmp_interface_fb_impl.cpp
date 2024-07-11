@@ -5,8 +5,13 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-AsamCmpInterfaceFbImpl::AsamCmpInterfaceFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId)
+AsamCmpInterfaceFbImpl::AsamCmpInterfaceFbImpl(const ContextPtr& ctx,
+                                               const ComponentPtr& parent,
+                                               const StringPtr& localId,
+                                               const AsamCmpInterfaceInit& init)
     : FunctionBlock(CreateType(), ctx, parent, localId)
+    , interfaceIdValidator(init.validator)
+    , lastId(init.id)
 {
     initProperties();
 }
@@ -19,23 +24,17 @@ FunctionBlockTypePtr AsamCmpInterfaceFbImpl::CreateType()
 void AsamCmpInterfaceFbImpl::initProperties()
 {
     StringPtr propName = "InterfaceId";
-    auto prop = IntPropertyBuilder(propName, 0).build();
+    auto prop = IntPropertyBuilder(propName, lastId).build();
     objPtr.addProperty(prop);
+    objPtr.getOnPropertyValueWrite(propName) +=
+        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateInterfaceIdInternal(); };
+
 
     propName = "PayloadType";
     ListPtr<StringPtr> payloadTypes{"UNDEFINED",
                                     "CAN",
                                     "CAN_FD",
-                                    "LIN",
-                                    "FLEXRAY",
-                                    "DIGITAL",
-                                    "UART_RS-232",
-                                    "ANALOG",
-                                    "ETHERNET",
-                                    "SPI",
-                                    "I2C",
-                                    "GIGE_VISION",
-                                    "MIPI_CSI-2_D-PHY"
+                                    "ANALOG"
     };
     prop = SelectionPropertyBuilder(propName, payloadTypes, 0).build();
 
@@ -50,6 +49,20 @@ void AsamCmpInterfaceFbImpl::initProperties()
     objPtr.addProperty(prop);
     objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue(
         propName, Procedure([this](int nInd) { throw DaqException::exception("Not implemented"); }));
+}
+
+void AsamCmpInterfaceFbImpl::updateInterfaceIdInternal()
+{
+    Int newId = objPtr.getPropertyValue("InterfaceId");
+
+    if (newId < 0 || newId > std::numeric_limits<uint32_t>::max() || !interfaceIdValidator.call(newId))
+    {
+        objPtr.setPropertyValue("InterfaceId", lastId);
+    }
+    else
+    {
+        lastId = newId;
+    }
 }
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

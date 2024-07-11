@@ -1,6 +1,5 @@
 #include <asam_cmp_capture_module/asam_cmp_capture_impl.h>
 #include <asam_cmp_capture_module/capture_module_impl.h>
-#include <string_view>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 

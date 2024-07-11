@@ -23,19 +23,32 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
+struct AsamCmpInterfaceInit
+{
+    const uint32_t id;
+    const FunctionPtr validator;
+};
+
 class AsamCmpInterfaceFbImpl final : public FunctionBlock
 {
 public:
-    explicit AsamCmpInterfaceFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
+    explicit AsamCmpInterfaceFbImpl(const ContextPtr& ctx,
+                                    const ComponentPtr& parent,
+                                    const StringPtr& localId,
+                                    const AsamCmpInterfaceInit& init);
     ~AsamCmpInterfaceFbImpl() override = default;
-
     static FunctionBlockTypePtr CreateType();
 
 private:
     void initProperties();
 
+    void updateInterfaceIdInternal();
+
 private:
-    FunctionBlockPtr captureModule;
+    const FunctionPtr interfaceIdValidator;
+    uint32_t lastId;
+
+    inline static size_t createdInterfaces = 0;
 };
 
 

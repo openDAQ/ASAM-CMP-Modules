@@ -32,6 +32,13 @@ public:
 private:
     void initProperties();
 
+    void addInterfaceInternal();
+    void removeInterfaceInternal(size_t nInd);
+
+    bool isInterfaceIdUnique(size_t id);
+
+private:
+    inline static uint32_t interfacesCreated = 0;
 };
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
