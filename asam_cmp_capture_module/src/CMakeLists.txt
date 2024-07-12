@@ -2,6 +2,7 @@ set(SRC_Cpp module_dll.cpp
     asam_cmp_capture_impl.cpp
     asam_cmp_capture_module_impl.cpp
     asam_cmp_interface_fb_impl.cpp
+    asam_cmp_stream_fb_impl.cpp
     capture_module_impl.cpp
 )
 
@@ -9,6 +10,7 @@ set(SRC_PublicHeaders module_dll.h
     asam_cmp_capture_impl.h
     asam_cmp_capture_module_impl.h
     asam_cmp_interface_fb_impl.h
+    asam_cmp_stream_fb_impl.h
     capture_module_impl.h
 )
 

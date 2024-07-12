@@ -19,44 +19,42 @@
 #include <asam_cmp_capture_module/common.h>
 #include <opendaq/context_factory.h>
 #include <opendaq/function_block_impl.h>
-#include <asam_cmp_capture_module/common.h>
+#include <asam_cmp/payload_type.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-struct AsamCmpInterfaceInit
+struct AsamCmpStreamInit
 {
     const uint32_t id;
-    const FunctionPtr validator;
+    const ASAM::CMP::PayloadType& payloadType;
 };
 
-class AsamCmpInterfaceFbImpl final : public FunctionBlock
+class AsamCmpStreamFbImpl final : public FunctionBlock
 {
 public:
-    explicit AsamCmpInterfaceFbImpl(const ContextPtr& ctx,
+    explicit AsamCmpStreamFbImpl(const ContextPtr& ctx,
                                     const ComponentPtr& parent,
                                     const StringPtr& localId,
-                                    const AsamCmpInterfaceInit& init);
-    ~AsamCmpInterfaceFbImpl() override = default;
+                                    const AsamCmpStreamInit& init);
+    ~AsamCmpStreamFbImpl() override = default;
     static FunctionBlockTypePtr CreateType();
 
 private:
     void initProperties();
 
-    void updateInterfaceIdInternal();
-    void updatePayloadTypeInternal();
-    void addStreamInternal();
-    void removeStreamInternal(size_t nInd);
+    void updateStreamIdInternal();
+    void createInputPort();
 
 private:
-    const FunctionPtr interfaceIdValidator;
+    const ASAM::CMP::PayloadType& payloadType;
     uint32_t id;
-    ASAM::CMP::PayloadType payloadType;
+
+    InputPortPtr inputPort;
+    DataDescriptorPtr inputDataDescriptor;
+    DataDescriptorPtr inputDomainDataDescriptor;
+    SampleType inputSampleType;
 
     inline static size_t createdStreams = 0;
-    //temporary solution once not full list of types is immplemented
-    inline static std::map<int, int> payloadTypeToAsamPayloadType = {{0, 0}, {1, 1}, {2, 2}, {3, 7}};
-    inline static std::map<int, int> asamPayloadTypeToPayloadType = {{0, 0}, {1, 1}, {2, 2}, {7, 3}};
 };
-
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

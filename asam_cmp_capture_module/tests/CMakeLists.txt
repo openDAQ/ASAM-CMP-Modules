@@ -2,6 +2,7 @@ set(TEST_APP test_${REPO_NAME})
 
 set(TEST_SOURCES test_asam_cmp_capture_module.cpp
                  test_asam_cmp_interface.cpp
+                 test_asam_cmp_stream.cpp
                  test_capture_module.cpp
                  test_app.cpp
 )

@@ -34,6 +34,7 @@ TEST_F(AsamCmpInterfaceTest, CaptureModuleProperties)
     auto asamCmpCapture = createAsamCmpInterface();
 
     ASSERT_TRUE(asamCmpCapture.hasProperty("InterfaceId"));
+    ASSERT_TRUE(asamCmpCapture.hasProperty("PayloadType"));
     ASSERT_TRUE(asamCmpCapture.hasProperty("AddStream"));
     ASSERT_TRUE(asamCmpCapture.hasProperty("RemoveStream"));
 }
