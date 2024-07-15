@@ -15,6 +15,7 @@ AsamCmpInterfaceFbImpl::AsamCmpInterfaceFbImpl(const ContextPtr& ctx,
     : FunctionBlock(CreateType(), ctx, parent, localId)
     , interfaceIdManager(init.interfaceIdManager)
     , streamIdManager(init.streamIdManager)
+    , encoders(init.encoders)
     , id(init.id)
     , payloadType(0)
 {
@@ -61,6 +62,9 @@ void AsamCmpInterfaceFbImpl::initProperties()
 void AsamCmpInterfaceFbImpl::updateInterfaceIdInternal()
 {
     Int newId = objPtr.getPropertyValue("InterfaceId");
+
+    if (newId == id)
+        return;
 
     if (interfaceIdManager->isValidId(newId))
     {

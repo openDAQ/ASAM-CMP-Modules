@@ -18,6 +18,7 @@
 #include <asam_cmp/encoder.h>
 #include <asam_cmp_capture_module/common.h>
 #include <asam_cmp_capture_module/asam_cmp_id_manager.h>
+#include <asam_cmp_capture_module/asam_cmp_encoder_bank.h>
 #include <opendaq/context_factory.h>
 #include <opendaq/function_block_impl.h>
 #include <asam_cmp_capture_module/common.h>
@@ -29,6 +30,7 @@ struct AsamCmpInterfaceInit
     const uint32_t id;
     AsamCmpInterfaceIdManagerPtr interfaceIdManager;
     AsamCmpStreamIdManagerPtr streamIdManager;
+    AsamCmpEncoderBankPtr encoders;
 };
 
 class AsamCmpInterfaceFbImpl final : public FunctionBlock
@@ -52,6 +54,7 @@ private:
 private:
     AsamCmpInterfaceIdManagerPtr interfaceIdManager;
     AsamCmpStreamIdManagerPtr streamIdManager;
+    AsamCmpEncoderBankPtr encoders;
     uint32_t id;
     ASAM::CMP::PayloadType payloadType;
 

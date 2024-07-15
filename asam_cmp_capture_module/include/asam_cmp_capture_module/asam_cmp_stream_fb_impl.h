@@ -18,6 +18,7 @@
 #include <asam_cmp/encoder.h>
 #include <asam_cmp_capture_module/common.h>
 #include <asam_cmp_capture_module/asam_cmp_id_manager.h>
+#include <asam_cmp_capture_module/asam_cmp_encoder_bank.h>
 #include <opendaq/context_factory.h>
 #include <opendaq/function_block_impl.h>
 #include <asam_cmp/payload_type.h>
@@ -49,7 +50,10 @@ private:
 
 private:
     AsamCmpStreamIdManagerPtr streamIdManager;
+    AsamCmpEncoderBankPtr encoders;
+    ASAM::CMP::Encoder* encoder;
     const ASAM::CMP::PayloadType& payloadType;
+
     uint32_t id;
 
     InputPortPtr inputPort;

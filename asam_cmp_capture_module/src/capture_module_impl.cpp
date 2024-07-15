@@ -9,8 +9,19 @@ BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
 CaptureModuleImpl::CaptureModuleImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId)
     : FunctionBlock(CreateType(), ctx, parent, localId)
+    , deviceId(0)
 {
     initProperties();
+    initEncoders();
+}
+
+void CaptureModuleImpl::initEncoders()
+{
+    for (int i = 0; i < encoders.size(); ++i)
+    {
+        encoders[i].setDeviceId(deviceId);
+        encoders[i].setStreamId(i);
+    }
 }
 
 FunctionBlockTypePtr CaptureModuleImpl::CreateType()
@@ -21,8 +32,10 @@ FunctionBlockTypePtr CaptureModuleImpl::CreateType()
 void CaptureModuleImpl::initProperties()
 {
     StringPtr propName = "DeviceId";
-    auto prop = IntPropertyBuilder(propName, 0).build();
+    auto prop = IntPropertyBuilder(propName, deviceId).build();
     objPtr.addProperty(prop);
+    objPtr.getOnPropertyValueWrite(propName) +=
+        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateDeviceId(); };
 
     propName = "AddInterface";
     prop = FunctionPropertyBuilder(propName, ProcedureInfo(List<IArgumentInfo>())).setReadOnly(true).build();
@@ -36,9 +49,30 @@ void CaptureModuleImpl::initProperties()
                                                                        Procedure([this](IntPtr nInd) { removeInterfaceInternal(nInd); }));
 }
 
+void CaptureModuleImpl::updateDeviceId()
+{
+    Int newDeviceId = objPtr.getPropertyValue("DeviceId");
+
+    if (newDeviceId == deviceId)
+        return;
+
+    if (newDeviceId >= 0 && newDeviceId <= std::numeric_limits<uint16_t>::max())
+    {
+        deviceId = newDeviceId;
+        initEncoders();
+    }
+    else
+    {
+        objPtr.setPropertyValue("DeviceId", deviceId);
+    }
+}
+
 void CaptureModuleImpl::addInterfaceInternal(){
     auto newId = interfaceIdManager.getFirstUnusedId();
-    AsamCmpInterfaceInit init{newId, &interfaceIdManager, &streamIdManager};
+    AsamCmpInterfaceInit init
+    {
+        newId, &interfaceIdManager, &streamIdManager, &encoders
+    };
 
     StringPtr fbId = fmt::format("asam_cmp_interface_{}", newId);
     functionBlocks.addItem(createWithImplementation<IFunctionBlock, AsamCmpInterfaceFbImpl>(context, functionBlocks, fbId, init));
@@ -50,4 +84,5 @@ void CaptureModuleImpl::removeInterfaceInternal(size_t nInd)
     interfaceIdManager.removeId(functionBlocks.getItems().getItemAt(nInd).getPropertyValue("InterfaceId"));
     functionBlocks.removeItem(functionBlocks.getItems().getItemAt(nInd));
 }
+
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

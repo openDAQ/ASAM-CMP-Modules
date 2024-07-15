@@ -15,6 +15,7 @@ AsamCmpStreamFbImpl::AsamCmpStreamFbImpl(const ContextPtr& ctx,
     , payloadType(init.payloadType)
 {
     initProperties();
+    encoder = &(*encoders)[id];
     createInputPort();
 }
 
@@ -41,10 +42,14 @@ void AsamCmpStreamFbImpl::updateStreamIdInternal()
 {
     Int newId = objPtr.getPropertyValue("InterfaceId");
 
+    if (newId == id)
+        return;
+
     if (streamIdManager->isValidId(newId))
     {
         streamIdManager->removeId(id);
         id = newId;
+        encoder = &(*encoders)[id];
         streamIdManager->addId(id);
     }
     else
