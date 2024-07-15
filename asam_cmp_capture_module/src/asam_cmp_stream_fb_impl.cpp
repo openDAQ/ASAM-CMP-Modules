@@ -10,6 +10,7 @@ AsamCmpStreamFbImpl::AsamCmpStreamFbImpl(const ContextPtr& ctx,
                                                const StringPtr& localId,
                                                const AsamCmpStreamInit& init)
     : FunctionBlock(CreateType(), ctx, parent, localId)
+    , streamIdManager(init.streamIdManager)
     , id(init.id)
     , payloadType(init.payloadType)
 {
@@ -38,15 +39,17 @@ void AsamCmpStreamFbImpl::createInputPort()
 
 void AsamCmpStreamFbImpl::updateStreamIdInternal()
 {
-    Int newId = objPtr.getPropertyValue("StreamId");
+    Int newId = objPtr.getPropertyValue("InterfaceId");
 
-    if (newId < 0 || newId > std::numeric_limits<uint8_t>::max())
+    if (streamIdManager->isValidId(newId))
     {
-        objPtr.setPropertyValue("StreamId", id);
+        streamIdManager->removeId(id);
+        id = newId;
+        streamIdManager->addId(id);
     }
     else
     {
-        id = newId;
+        objPtr.setPropertyValue("InterfaceId", id);
     }
 }
 

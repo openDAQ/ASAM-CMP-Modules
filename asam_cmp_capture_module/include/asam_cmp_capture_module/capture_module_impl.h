@@ -16,6 +16,7 @@
 
 #pragma once
 #include <opendaq/function_block_impl.h>
+#include <asam_cmp_capture_module/asam_cmp_id_manager.h>
 
 #include <asam_cmp_capture_module/common.h>
 
@@ -35,10 +36,9 @@ private:
     void addInterfaceInternal();
     void removeInterfaceInternal(size_t nInd);
 
-    bool isInterfaceIdUnique(size_t id);
-
 private:
-    inline static uint32_t interfacesCreated = 0;
+    AsamCmpInterfaceIdManager interfaceIdManager;
+    AsamCmpStreamIdManager streamIdManager;
 };
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

@@ -13,7 +13,8 @@ AsamCmpInterfaceFbImpl::AsamCmpInterfaceFbImpl(const ContextPtr& ctx,
                                                const StringPtr& localId,
                                                const AsamCmpInterfaceInit& init)
     : FunctionBlock(CreateType(), ctx, parent, localId)
-    , interfaceIdValidator(init.validator)
+    , interfaceIdManager(init.interfaceIdManager)
+    , streamIdManager(init.streamIdManager)
     , id(init.id)
     , payloadType(0)
 {
@@ -61,13 +62,15 @@ void AsamCmpInterfaceFbImpl::updateInterfaceIdInternal()
 {
     Int newId = objPtr.getPropertyValue("InterfaceId");
 
-    if (newId < 0 || newId > std::numeric_limits<uint32_t>::max() || !interfaceIdValidator.call(newId))
+    if (interfaceIdManager->isValidId(newId))
     {
-        objPtr.setPropertyValue("InterfaceId", id);
+        interfaceIdManager->removeId(id);
+        id = newId;
+        interfaceIdManager->addId(id);
     }
     else
     {
-        id = newId;
+        objPtr.setPropertyValue("InterfaceId", id);
     }
 }
 
@@ -89,7 +92,8 @@ void AsamCmpInterfaceFbImpl::addStreamInternal()
 {
     std::cout << objPtr.getPropertyValue("PayloadType") << std::endl;
     AsamCmpStreamInit init{createdStreams,
-                           payloadType};
+                           payloadType,
+                           streamIdManager};
 
     StringPtr fbId = fmt::format("asam_cmp_stream_{}", createdStreams++);
     functionBlocks.addItem(createWithImplementation<IFunctionBlock, AsamCmpStreamFbImpl>(context, functionBlocks, fbId, init));

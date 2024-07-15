@@ -17,6 +17,7 @@
 #pragma once
 #include <asam_cmp/encoder.h>
 #include <asam_cmp_capture_module/common.h>
+#include <asam_cmp_capture_module/asam_cmp_id_manager.h>
 #include <opendaq/context_factory.h>
 #include <opendaq/function_block_impl.h>
 #include <asam_cmp_capture_module/common.h>
@@ -26,7 +27,8 @@ BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 struct AsamCmpInterfaceInit
 {
     const uint32_t id;
-    const FunctionPtr validator;
+    AsamCmpInterfaceIdManagerPtr interfaceIdManager;
+    AsamCmpStreamIdManagerPtr streamIdManager;
 };
 
 class AsamCmpInterfaceFbImpl final : public FunctionBlock
@@ -48,7 +50,8 @@ private:
     void removeStreamInternal(size_t nInd);
 
 private:
-    const FunctionPtr interfaceIdValidator;
+    AsamCmpInterfaceIdManagerPtr interfaceIdManager;
+    AsamCmpStreamIdManagerPtr streamIdManager;
     uint32_t id;
     ASAM::CMP::PayloadType payloadType;
 

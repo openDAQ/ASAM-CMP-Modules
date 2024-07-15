@@ -15,6 +15,7 @@ set(SRC_PublicHeaders module_dll.h
 )
 
 set(SRC_PrivateHeaders
+    asam_cmp_id_manager.h
 )
 
 prepend_include(${TARGET_FOLDER_NAME} SRC_PrivateHeaders)

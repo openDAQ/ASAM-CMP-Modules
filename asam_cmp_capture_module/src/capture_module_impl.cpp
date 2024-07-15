@@ -37,23 +37,17 @@ void CaptureModuleImpl::initProperties()
 }
 
 void CaptureModuleImpl::addInterfaceInternal(){
-    AsamCmpInterfaceInit init{interfacesCreated, FunctionPtr([this](uint32_t id) { return this->isInterfaceIdUnique(id); })};
+    auto newId = interfaceIdManager.getFirstUnusedId();
+    AsamCmpInterfaceInit init{newId, &interfaceIdManager, &streamIdManager};
 
-    StringPtr fbId = fmt::format("asam_cmp_interface_{}", interfacesCreated++);
+    StringPtr fbId = fmt::format("asam_cmp_interface_{}", newId);
     functionBlocks.addItem(createWithImplementation<IFunctionBlock, AsamCmpInterfaceFbImpl>(context, functionBlocks, fbId, init));
+    interfaceIdManager.addId(newId);
 }
 
 void CaptureModuleImpl::removeInterfaceInternal(size_t nInd)
 {
+    interfaceIdManager.removeId(functionBlocks.getItems().getItemAt(nInd).getPropertyValue("InterfaceId"));
     functionBlocks.removeItem(functionBlocks.getItems().getItemAt(nInd));
-}
-
-bool CaptureModuleImpl::isInterfaceIdUnique(size_t id)
-{
-    int cnt = 0;
-    for (const auto& itf : functionBlocks.getItems())
-        cnt += (itf.getPropertyValue("InterfaceId") == id);
-
-    return cnt == 1;
 }
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
