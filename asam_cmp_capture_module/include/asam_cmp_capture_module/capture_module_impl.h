@@ -15,35 +15,30 @@
  */
 
 #pragma once
-#include <opendaq/function_block_impl.h>
-#include <asam_cmp_capture_module/asam_cmp_id_manager.h>
 #include <asam_cmp_capture_module/asam_cmp_encoder_bank.h>
+#include <asam_cmp_capture_module/asam_cmp_id_manager.h>
+#include <asam_cmp_capture_module/capture_module_common_impl.h>
 #include <asam_cmp_capture_module/common.h>
+
+#include <opendaq/function_block_impl.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-class CaptureModuleImpl final : public FunctionBlock
+class CaptureModuleImpl final : public CaptureModuleCommonImpl
 {
 public:
     explicit CaptureModuleImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
     ~CaptureModuleImpl() override = default;
 
-    static FunctionBlockTypePtr CreateType();
+protected:
+    void updateDeviceId() override;
+    void addInterfaceInternal() override;
 
 private:
-    void initProperties();
     void initEncoders();
-
-    void addInterfaceInternal();
-    void removeInterfaceInternal(size_t nInd);
-    void updateDeviceId();
-
 
 private:
     AsamCmpEncoderBank encoders;
-    AsamCmpInterfaceIdManager interfaceIdManager;
-    AsamCmpStreamIdManager streamIdManager;
-    uint16_t deviceId;
 };
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

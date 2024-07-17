@@ -16,45 +16,34 @@
 
 #pragma once
 #include <asam_cmp/encoder.h>
-#include <asam_cmp_capture_module/common.h>
-#include <asam_cmp_capture_module/asam_cmp_id_manager.h>
+#include <asam_cmp/payload_type.h>
 #include <asam_cmp_capture_module/asam_cmp_encoder_bank.h>
+#include <asam_cmp_capture_module/asam_cmp_id_manager.h>
+#include <asam_cmp_capture_module/common.h>
+#include <asam_cmp_capture_module/stream_common_fb_impl.h>
+
 #include <opendaq/context_factory.h>
 #include <opendaq/function_block_impl.h>
-#include <asam_cmp/payload_type.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-struct AsamCmpStreamInit
-{
-    const uint32_t id;
-    const ASAM::CMP::PayloadType& payloadType;
-    const AsamCmpStreamIdManagerPtr streamIdManager;
-};
-
-class AsamCmpStreamFbImpl final : public FunctionBlock
+class AsamCmpStreamFbImpl final : public StreamCommonFbImpl
 {
 public:
     explicit AsamCmpStreamFbImpl(const ContextPtr& ctx,
-                                    const ComponentPtr& parent,
-                                    const StringPtr& localId,
-                                    const AsamCmpStreamInit& init);
+                                 const ComponentPtr& parent,
+                                 const StringPtr& localId,
+                                 const AsamCmpStreamCommonInit& init);
     ~AsamCmpStreamFbImpl() override = default;
     static FunctionBlockTypePtr CreateType();
 
 private:
-    void initProperties();
-
-    void updateStreamIdInternal();
+    void updateStreamIdInternal() override;
     void createInputPort();
 
 private:
-    AsamCmpStreamIdManagerPtr streamIdManager;
     AsamCmpEncoderBankPtr encoders;
     ASAM::CMP::Encoder* encoder;
-    const ASAM::CMP::PayloadType& payloadType;
-
-    uint32_t id;
 
     InputPortPtr inputPort;
     DataDescriptorPtr inputDataDescriptor;

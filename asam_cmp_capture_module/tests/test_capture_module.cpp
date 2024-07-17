@@ -1,9 +1,10 @@
 #include <asam_cmp_capture_module/common.h>
 #include <asam_cmp_capture_module/module_dll.h>
+#include <gtest/gtest.h>
 #include <opendaq/context_factory.h>
 #include <opendaq/module_ptr.h>
 #include <opendaq/scheduler_factory.h>
-#include <gtest/gtest.h>
+#include <opendaq/search_filter_factory.h>
 
 using CaptureModuleTest = testing::Test;
 using namespace daq;
@@ -14,9 +15,20 @@ static FunctionBlockPtr createAsamCmpCapture()
     auto logger = Logger();
     createModule(&module, Context(Scheduler(logger), logger, nullptr, nullptr, nullptr));
 
-    auto fb = module.createFunctionBlock("asam_cmp_capture", nullptr, "id");
-    auto captureModule = fb.getFunctionBlocks().getItemAt(0);
+    FunctionBlockPtr captureModule, fb;
+    auto fbs = module.getAvailableFunctionBlockTypes();
+    if (fbs.hasKey("asam_cmp_capture"))
+    {
+        fb = module.createFunctionBlock("asam_cmp_capture", nullptr, "id");
+    }
+    else
+    {
+        fb = module.createFunctionBlock("asam_cmp_data_sink_module", nullptr, "id");
+        auto dataSink = fb.getFunctionBlocks(search::Recursive(search::LocalId("asam_cmp_data_sink")))[0];
+        dataSink.getPropertyValue("AddCaptureModuleEmpty").execute();
+    }
 
+    captureModule = fb.getFunctionBlocks(search::Recursive(search::LocalId("capture_module")))[0];
 
     return captureModule;
 }
@@ -54,5 +66,4 @@ TEST_F(CaptureModuleTest, TestCreateInterface)
 
     ASSERT_EQ(asamCmpCapture.getFunctionBlocks().getCount(), 1);
     ASSERT_EQ(asamCmpCapture.getFunctionBlocks().getItemAt(0).getPropertyValue("InterfaceId"), lstId);
-
 }

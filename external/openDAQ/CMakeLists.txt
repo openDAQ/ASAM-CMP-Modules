@@ -1,3 +1,5 @@
+set(OPENDAQ_ENABLE_TESTS false)
+
 FetchContent_Declare(
     openDAQ
     GIT_REPOSITORY ssh://git@gitlab.dewesoft.com:2345/Blueberry/openDAQ.git

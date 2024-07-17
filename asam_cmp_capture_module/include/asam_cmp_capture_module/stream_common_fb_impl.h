@@ -16,30 +16,43 @@
 
 #pragma once
 #include <asam_cmp/encoder.h>
-#include <asam_cmp_capture_module/asam_cmp_encoder_bank.h>
+#include <asam_cmp/payload_type.h>
 #include <asam_cmp_capture_module/asam_cmp_id_manager.h>
 #include <asam_cmp_capture_module/common.h>
-#include <asam_cmp_capture_module/interface_common_fb_impl.h>
 #include <opendaq/context_factory.h>
 #include <opendaq/function_block_impl.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-class AsamCmpInterfaceFbImpl final : public InterfaceCommonFbImpl
+struct AsamCmpStreamCommonInit
+{
+    const uint32_t id;
+    const ASAM::CMP::PayloadType& payloadType;
+    const AsamCmpStreamIdManagerPtr streamIdManager;
+};
+
+class StreamCommonFbImpl : public FunctionBlock
 {
 public:
-    explicit AsamCmpInterfaceFbImpl(const ContextPtr& ctx,
-                                    const ComponentPtr& parent,
-                                    const StringPtr& localId,
-                                    const AsamCmpInterfaceCommonInit& init,
-                                    AsamCmpEncoderBankPtr encoders);
-    ~AsamCmpInterfaceFbImpl() override = default;
+    explicit StreamCommonFbImpl(const ContextPtr& ctx,
+                                const ComponentPtr& parent,
+                                const StringPtr& localId,
+                                const AsamCmpStreamCommonInit& init);
+    ~StreamCommonFbImpl() override = default;
+    static FunctionBlockTypePtr CreateType();
 
 protected:
-    void addStreamInternal();
+    virtual void updateStreamIdInternal();
 
 private:
-    AsamCmpEncoderBankPtr encoders;
+    void initProperties();
+
+protected:
+    uint32_t id;
+
+private:
+    AsamCmpStreamIdManagerPtr streamIdManager;
+    const ASAM::CMP::PayloadType& payloadType;
 };
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

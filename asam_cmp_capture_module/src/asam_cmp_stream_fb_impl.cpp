@@ -8,29 +8,11 @@ BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 AsamCmpStreamFbImpl::AsamCmpStreamFbImpl(const ContextPtr& ctx,
                                                const ComponentPtr& parent,
                                                const StringPtr& localId,
-                                               const AsamCmpStreamInit& init)
-    : FunctionBlock(CreateType(), ctx, parent, localId)
-    , streamIdManager(init.streamIdManager)
-    , id(init.id)
-    , payloadType(init.payloadType)
+                                               const AsamCmpStreamCommonInit& init)
+    : StreamCommonFbImpl(ctx, parent, localId, init)
 {
-    initProperties();
     encoder = &(*encoders)[id];
     createInputPort();
-}
-
-FunctionBlockTypePtr AsamCmpStreamFbImpl::CreateType()
-{
-    return FunctionBlockType("asam_cmp_stream", "AsamCmpStream", "Asam CMP Stream");
-}
-
-void AsamCmpStreamFbImpl::initProperties()
-{
-    StringPtr propName = "StreamId";
-    auto prop = IntPropertyBuilder(propName, id).build();
-    objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) +=
-        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateStreamIdInternal(); };
 }
 
 void AsamCmpStreamFbImpl::createInputPort()
@@ -40,22 +22,9 @@ void AsamCmpStreamFbImpl::createInputPort()
 
 void AsamCmpStreamFbImpl::updateStreamIdInternal()
 {
-    Int newId = objPtr.getPropertyValue("InterfaceId");
+    StreamCommonFbImpl::updateStreamIdInternal();
 
-    if (newId == id)
-        return;
-
-    if (streamIdManager->isValidId(newId))
-    {
-        streamIdManager->removeId(id);
-        id = newId;
-        encoder = &(*encoders)[id];
-        streamIdManager->addId(id);
-    }
-    else
-    {
-        objPtr.setPropertyValue("InterfaceId", id);
-    }
+    encoder = &(*encoders)[id];
 }
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
