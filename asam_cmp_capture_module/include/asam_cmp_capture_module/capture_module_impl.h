@@ -19,6 +19,7 @@
 #include <asam_cmp_capture_module/asam_cmp_id_manager.h>
 #include <asam_cmp_capture_module/asam_cmp_encoder_bank.h>
 #include <asam_cmp_capture_module/common.h>
+#include <asam_cmp_capture_module/asam_cmp_ethernet_pcpp_impl.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
@@ -44,6 +45,8 @@ private:
     AsamCmpInterfaceIdManager interfaceIdManager;
     AsamCmpStreamIdManager streamIdManager;
     uint16_t deviceId;
+
+    AsamCmpEthernetPcppImpl ethernetImpl;
 };
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

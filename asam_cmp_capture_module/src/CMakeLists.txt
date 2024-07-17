@@ -4,6 +4,7 @@ set(SRC_Cpp module_dll.cpp
     asam_cmp_interface_fb_impl.cpp
     asam_cmp_stream_fb_impl.cpp
     capture_module_impl.cpp
+    asam_cmp_ethernet_pcpp_impl.cpp
 )
 
 set(SRC_PublicHeaders module_dll.h
@@ -12,11 +13,13 @@ set(SRC_PublicHeaders module_dll.h
     asam_cmp_interface_fb_impl.h
     asam_cmp_stream_fb_impl.h
     capture_module_impl.h
+    asam_cmp_ethernet_itf.h
 )
 
 set(SRC_PrivateHeaders
     asam_cmp_id_manager.h
     asam_cmp_encoder_bank.h
+    asam_cmp_ethernet_pcpp_impl.h
 )
 
 prepend_include(${TARGET_FOLDER_NAME} SRC_PrivateHeaders)
