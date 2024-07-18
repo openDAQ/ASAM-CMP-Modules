@@ -9,16 +9,27 @@
 #include <thread>
 #include <gtest/gtest.h>
 
-using AsamCmpCaptureModuleTest = testing::Test;
 using namespace daq;
 
-static ModulePtr CreateModule()
+class AsamCmpCaptureModuleTest : public testing::Test
 {
+protected:
+    AsamCmpCaptureModuleTest()
+    {
+        logger = Logger();
+        createModule(&module, Context(Scheduler(logger), logger, nullptr, nullptr, nullptr));
+    }
+
+    ModulePtr getModule()
+    {
+        return module;
+    }
+
+private:
+    LoggerPtr logger;
     ModulePtr module;
-    auto logger = Logger();
-    createModule(&module, Context(Scheduler(logger), logger, nullptr, nullptr, nullptr));
-    return module;
-}
+
+};
 
 TEST_F(AsamCmpCaptureModuleTest, CreateModule)
 {
@@ -32,19 +43,19 @@ TEST_F(AsamCmpCaptureModuleTest, CreateModule)
 
 TEST_F(AsamCmpCaptureModuleTest, ModuleName)
 {
-    auto module = CreateModule();
+    auto module = getModule();
     ASSERT_EQ(module.getName(), "ASAM CMP CaptureModule");
 }
 
 TEST_F(AsamCmpCaptureModuleTest, VersionAvailable)
 {
-    auto module = CreateModule();
+    auto module = getModule();
     ASSERT_TRUE(module.getVersionInfo().assigned());
 }
 
 TEST_F(AsamCmpCaptureModuleTest, VersionCorrect)
 {
-    auto module = CreateModule();
+    auto module = getModule();
     auto version = module.getVersionInfo();
 
     ASSERT_EQ(version.getMajor(), ASAM_CMP_CAPTURE_MODULE_MAJOR_VERSION);
@@ -54,7 +65,7 @@ TEST_F(AsamCmpCaptureModuleTest, VersionCorrect)
 
 TEST_F(AsamCmpCaptureModuleTest, EnumerateDevices)
 {
-    auto module = CreateModule();
+    auto module = getModule();
 
     ListPtr<IDeviceInfo> deviceInfoDict;
     ASSERT_NO_THROW(deviceInfoDict = module.getAvailableDevices());
@@ -63,13 +74,13 @@ TEST_F(AsamCmpCaptureModuleTest, EnumerateDevices)
 
 TEST_F(AsamCmpCaptureModuleTest, AcceptsConnectionStringNull)
 {
-    auto module = CreateModule();
+    auto module = getModule();
     ASSERT_THROW(module.acceptsConnectionParameters(nullptr), ArgumentNullException);
 }
 
 TEST_F(AsamCmpCaptureModuleTest, AcceptsConnectionStringEmpty)
 {
-    auto module = CreateModule();
+    auto module = getModule();
 
     bool accepts = true;
     ASSERT_NO_THROW(accepts = module.acceptsConnectionParameters(""));
@@ -78,7 +89,7 @@ TEST_F(AsamCmpCaptureModuleTest, AcceptsConnectionStringEmpty)
 
 TEST_F(AsamCmpCaptureModuleTest, AcceptsConnectionStringInvalid)
 {
-    auto module = CreateModule();
+    auto module = getModule();
 
     bool accepts = true;
     ASSERT_NO_THROW(accepts = module.acceptsConnectionParameters("drfrfgt"));
@@ -87,7 +98,7 @@ TEST_F(AsamCmpCaptureModuleTest, AcceptsConnectionStringInvalid)
 
  TEST_F(AsamCmpCaptureModuleTest, GetAvailableComponentTypes)
  {
-     const auto module = CreateModule();
+     const auto module = getModule();
 
      DictPtr<IString, IDeviceType> deviceTypes;
      ASSERT_NO_THROW(deviceTypes = module.getAvailableDeviceTypes());
@@ -108,14 +119,14 @@ TEST_F(AsamCmpCaptureModuleTest, AcceptsConnectionStringInvalid)
 
 TEST_F(AsamCmpCaptureModuleTest, CreateFunctionBlockNotFound)
 {
-    const auto module = CreateModule();
+    const auto module = getModule();
 
     ASSERT_THROW(module.createFunctionBlock("test", nullptr, "id"), NotFoundException);
 }
 
 TEST_F(AsamCmpCaptureModuleTest, CreateFunctionBlockCaptureModule)
 {
-    const auto module = CreateModule();
+    const auto module = getModule();
 
     auto fb = module.createFunctionBlock("asam_cmp_capture", nullptr, "id");
     ASSERT_TRUE(fb.assigned());

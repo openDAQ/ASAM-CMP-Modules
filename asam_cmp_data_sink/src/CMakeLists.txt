@@ -1,37 +1,32 @@
-message("CAPTURE " ${PROJECT_VERSION_MAJOR})
-project(AsamCmpCaptureModule
-        VERSION 1.0.0
-        LANGUAGES CXX)
-message("CAPTURE 2 " ${PROJECT_VERSION_MAJOR})
 
-set(LIB_NAME asam_cmp_capture_module)
+message("SINK " ${PROJECT_VERSION_MAJOR})
+project(AsamCmpDataSink LANGUAGES CXX VERSION 1.0.0)
+message("SINK 2 " ${PROJECT_VERSION_MAJOR})
 
 set(SRC_Cpp module_dll.cpp
-    asam_cmp_capture_impl.cpp
-    asam_cmp_capture_module_impl.cpp
-    asam_cmp_interface_fb_impl.cpp
-    asam_cmp_stream_fb_impl.cpp
-    capture_module_impl.cpp
-    asam_cmp_ethernet_pcpp_impl.cpp
+            asam_cmp_data_sink_module_impl.cpp
+            asam_cmp_data_sink_module_fb_impl.cpp
+            asam_cmp_status_fb_impl.cpp
+            asam_cmp_data_sink_fb_impl.cpp
+            capture_module_impl.cpp
 )
 
 set(SRC_PublicHeaders module_dll.h
-    asam_cmp_capture_impl.h
-    asam_cmp_capture_module_impl.h
-    asam_cmp_interface_fb_impl.h
-    asam_cmp_stream_fb_impl.h
-    capture_module_impl.h
-    asam_cmp_ethernet_itf.h
+                      asam_cmp_data_sink_module_impl.h
+                      asam_cmp_data_sink_module_fb_impl.h
+                      asam_cmp_status_fb_impl.h
+                      asam_cmp_status_handler.h
+                      asam_cmp_data_sink_fb_impl.h
+                      capture_module_impl.h
 )
 
 set(SRC_PrivateHeaders
-    asam_cmp_id_manager.h
-    asam_cmp_encoder_bank.h
-    asam_cmp_ethernet_pcpp_impl.h
 )
 
 prepend_include(${TARGET_FOLDER_NAME} SRC_PrivateHeaders)
 prepend_include(${TARGET_FOLDER_NAME} SRC_PublicHeaders)
+
+set(LIB_NAME asam_cmp_data_sink)
 
 add_library(${LIB_NAME} SHARED
     ${SRC_Cpp}
@@ -43,11 +38,6 @@ target_link_libraries(${LIB_NAME} PUBLIC daq::opendaq
                                           Pcap++
                                           asam_cmp
 )
-
-# if (MSVC)
-#     target_compile_definitions(${LIB_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
-#     target_compile_options(${LIB_NAME} PRIVATE /wd4100)
-# endif()
 
 target_include_directories(${LIB_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
                                                $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../include>

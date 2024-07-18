@@ -17,7 +17,6 @@ static FunctionBlockPtr createAsamCmpCapture()
     auto fb = module.createFunctionBlock("asam_cmp_capture", nullptr, "id");
     auto captureModule = fb.getFunctionBlocks().getItemAt(0);
 
-
     return captureModule;
 }
 

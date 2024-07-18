@@ -46,7 +46,7 @@ private:
     AsamCmpStreamIdManager streamIdManager;
     uint16_t deviceId;
 
-    AsamCmpEthernetPcppImpl ethernetImpl;
+    //AsamCmpEthernetPcppImpl ethernetImpl;
 };
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

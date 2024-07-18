@@ -2,18 +2,15 @@
 #include <testutils/bb_memcheck_listener.h>
 #include <coreobjects/util.h>
 #include <opendaq/module_manager_init.h>
-#include <asam_cmp_capture_module/common.h>
-#include <asam_cmp_capture_module/module_dll.h>
+#include <asam_cmp_data_sink/module_dll.h>
 #include <opendaq/context_factory.h>
-#include <coretypes/stringobject_factory.h>
-#include <opendaq/module_ptr.h>
-
+#include <iostream>
 
 int main(int argc, char** args)
 {
     using namespace daq;
 
-    daq::daqInitializeCoreObjectsTesting();
+    daqInitializeCoreObjectsTesting();
     daqInitModuleManagerLibrary();
 
     testing::InitGoogleTest(&argc, args);
@@ -22,7 +19,7 @@ int main(int argc, char** args)
     {
         ModulePtr module;
         createModule(&module, NullContext());
-        module.createFunctionBlock("asam_cmp_capture_module", nullptr, "id");
+        module.createFunctionBlock("asam_cmp_data_sink_module", nullptr, "id");
     }
     catch (std::exception& e)
     {

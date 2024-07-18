@@ -15,25 +15,30 @@
  */
 
 #pragma once
-#include <asam_cmp/encoder.h>
-#include <asam_cmp_capture_module/common.h>
-#include <opendaq/context_factory.h>
+#include <asam_cmp/status.h>
 #include <opendaq/function_block_impl.h>
 
-BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
+#include <asam_cmp_data_sink/asam_cmp_status_handler.h>
+#include <asam_cmp_data_sink/common.h>
 
-class AsamCmpCaptureImpl final : public FunctionBlock
+BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
+
+class AsamCmpDataSinkFbImpl final : public FunctionBlock
 {
 public:
-    explicit AsamCmpCaptureImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
-    ~AsamCmpCaptureImpl() override = default;
+    explicit AsamCmpDataSinkFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, StatusMt statusMt);
+    ~AsamCmpDataSinkFbImpl() override = default;
 
     static FunctionBlockTypePtr CreateType();
 
 private:
     void initProperties();
-    void createFbs();
+    void addCaptureModuleFromStatus(int index);
+    void addCaptureModuleEmpty();
+    void removeCaptureModule(int fbIndex);
+
+private:
+    StatusMt status;
 };
 
-
-END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
+END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
