@@ -15,12 +15,12 @@
  */
 
 #pragma once
-#include <asam_cmp_capture_module/asam_cmp_ethernet_itf.h>
+#include <asam_cmp_capture_module/ethernet_itf.h>
 #include <PcapLiveDeviceList.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-class AsamCmpEthernetPcppImpl : public AsamCmpEthernetItf<std::function<void(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie)>>
+class EthernetPcppImpl : public EthernetItf<std::function<void(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie)>>
 {
 public:
     ListPtr<StringPtr> getEthernatDevicesNamesList() override;

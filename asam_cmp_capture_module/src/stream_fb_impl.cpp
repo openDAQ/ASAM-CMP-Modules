@@ -1,14 +1,14 @@
-#include <asam_cmp_capture_module/asam_cmp_stream_fb_impl.h>
+#include <asam_cmp_capture_module/stream_fb_impl.h>
 #include <coreobjects/argument_info_factory.h>
 #include <coreobjects/callable_info_factory.h>
 #include <coretypes/listobject_factory.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-AsamCmpStreamFbImpl::AsamCmpStreamFbImpl(const ContextPtr& ctx,
+StreamFbImpl::StreamFbImpl(const ContextPtr& ctx,
                                                const ComponentPtr& parent,
                                                const StringPtr& localId,
-                                               const AsamCmpStreamInit& init)
+                                               const StreamInit& init)
     : FunctionBlock(CreateType(), ctx, parent, localId)
     , streamIdManager(init.streamIdManager)
     , id(init.id)
@@ -19,12 +19,12 @@ AsamCmpStreamFbImpl::AsamCmpStreamFbImpl(const ContextPtr& ctx,
     createInputPort();
 }
 
-FunctionBlockTypePtr AsamCmpStreamFbImpl::CreateType()
+FunctionBlockTypePtr StreamFbImpl::CreateType()
 {
     return FunctionBlockType("asam_cmp_stream", "AsamCmpStream", "Asam CMP Stream");
 }
 
-void AsamCmpStreamFbImpl::initProperties()
+void StreamFbImpl::initProperties()
 {
     StringPtr propName = "StreamId";
     auto prop = IntPropertyBuilder(propName, id).build();
@@ -33,12 +33,12 @@ void AsamCmpStreamFbImpl::initProperties()
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateStreamIdInternal(); };
 }
 
-void AsamCmpStreamFbImpl::createInputPort()
+void StreamFbImpl::createInputPort()
 {
     inputPort = createAndAddInputPort("input", PacketReadyNotification::Scheduler);
 }
 
-void AsamCmpStreamFbImpl::updateStreamIdInternal()
+void StreamFbImpl::updateStreamIdInternal()
 {
     Int newId = objPtr.getPropertyValue("InterfaceId");
 

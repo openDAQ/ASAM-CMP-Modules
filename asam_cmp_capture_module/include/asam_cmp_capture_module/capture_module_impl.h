@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Blueberry d.o.o.
+ * Copyright 2022-2024 Blueberry d.o.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,38 +15,19 @@
  */
 
 #pragma once
-#include <opendaq/function_block_impl.h>
-#include <asam_cmp_capture_module/asam_cmp_id_manager.h>
-#include <asam_cmp_capture_module/asam_cmp_encoder_bank.h>
 #include <asam_cmp_capture_module/common.h>
-#include <asam_cmp_capture_module/asam_cmp_ethernet_pcpp_impl.h>
+#include <opendaq/module_impl.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-class CaptureModuleImpl final : public FunctionBlock
+class CaptureModule final : public Module
 {
 public:
-    explicit CaptureModuleImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
-    ~CaptureModuleImpl() override = default;
+    explicit CaptureModule(ContextPtr ctx);
 
-    static FunctionBlockTypePtr CreateType();
-
+    DictPtr<IString, IFunctionBlockType> onGetAvailableFunctionBlockTypes() override;
+    FunctionBlockPtr onCreateFunctionBlock(const StringPtr& id, const ComponentPtr& parent, const StringPtr& localId, const PropertyObjectPtr& config) override;
 private:
-    void initProperties();
-    void initEncoders();
-
-    void addInterfaceInternal();
-    void removeInterfaceInternal(size_t nInd);
-    void updateDeviceId();
-
-
-private:
-    AsamCmpEncoderBank encoders;
-    AsamCmpInterfaceIdManager interfaceIdManager;
-    AsamCmpStreamIdManager streamIdManager;
-    uint16_t deviceId;
-
-    //AsamCmpEthernetPcppImpl ethernetImpl;
 };
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

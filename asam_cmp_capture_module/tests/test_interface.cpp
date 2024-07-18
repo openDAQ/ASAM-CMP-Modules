@@ -14,7 +14,7 @@ static FunctionBlockPtr createAsamCmpInterface()
     auto logger = Logger();
     createModule(&module, Context(Scheduler(logger), logger, nullptr, nullptr, nullptr));
 
-    auto fb = module.createFunctionBlock("asam_cmp_capture", nullptr, "id");
+    auto fb = module.createFunctionBlock("asam_cmp_capture_module_fb", nullptr, "id");
     auto captureModule = fb.getFunctionBlocks().getItemAt(0);
 
     ProcedurePtr createProc = captureModule.getPropertyValue("AddInterface");
@@ -45,7 +45,7 @@ TEST_F(AsamCmpInterfaceTest, TestSetId)
     auto logger = Logger();
     createModule(&module, Context(Scheduler(logger), logger, nullptr, nullptr, nullptr));
 
-    auto fb = module.createFunctionBlock("asam_cmp_capture", nullptr, "id");
+    auto fb = module.createFunctionBlock("asam_cmp_capture_module_fb", nullptr, "id");
     auto captureModule = fb.getFunctionBlocks().getItemAt(0);
 
     ProcedurePtr createProc = captureModule.getPropertyValue("AddInterface");

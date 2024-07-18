@@ -22,7 +22,7 @@ int main(int argc, char** args)
     {
         ModulePtr module;
         createModule(&module, NullContext());
-        module.createFunctionBlock("asam_cmp_capture_module", nullptr, "id");
+        module.createFunctionBlock("asam_cmp_capture_module_fb", nullptr, "id");
     }
     catch (std::exception& e)
     {

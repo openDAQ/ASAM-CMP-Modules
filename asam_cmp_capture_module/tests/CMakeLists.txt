@@ -1,9 +1,9 @@
-set(TEST_APP test_asam_cmp_capture_module)
+set(TEST_APP test_capture_module)
 
-set(TEST_SOURCES test_asam_cmp_capture_module.cpp
-                 test_asam_cmp_interface.cpp
-                 test_asam_cmp_stream.cpp
-                 test_capture_module.cpp
+set(TEST_SOURCES test_capture_module.cpp
+                 test_interface.cpp
+                 test_stream.cpp
+                 test_capture_fb.cpp
                  test_app.cpp
 )
 

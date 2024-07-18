@@ -14,7 +14,7 @@ class AsamCmpStreamTest: public testing::Test
         auto logger = Logger();
         createModule(&module, Context(Scheduler(logger), logger, nullptr, nullptr, nullptr));
 
-        rootFb = module.createFunctionBlock("asam_cmp_capture", nullptr, "id");
+        rootFb = module.createFunctionBlock("asam_cmp_capture_module_fb", nullptr, "id");
         captureModule = rootFb.getFunctionBlocks().getItemAt(0);
 
         ProcedurePtr createProc = captureModule.getPropertyValue("AddInterface");

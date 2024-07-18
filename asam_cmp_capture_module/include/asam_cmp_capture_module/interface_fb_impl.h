@@ -17,30 +17,30 @@
 #pragma once
 #include <asam_cmp/encoder.h>
 #include <asam_cmp_capture_module/common.h>
-#include <asam_cmp_capture_module/asam_cmp_id_manager.h>
-#include <asam_cmp_capture_module/asam_cmp_encoder_bank.h>
+#include <asam_cmp_capture_module/id_manager.h>
+#include <asam_cmp_capture_module/encoder_bank.h>
 #include <opendaq/context_factory.h>
 #include <opendaq/function_block_impl.h>
 #include <asam_cmp_capture_module/common.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-struct AsamCmpInterfaceInit
+struct InterfaceInit
 {
     const uint32_t id;
-    AsamCmpInterfaceIdManagerPtr interfaceIdManager;
-    AsamCmpStreamIdManagerPtr streamIdManager;
-    AsamCmpEncoderBankPtr encoders;
+    InterfaceIdManagerPtr interfaceIdManager;
+    StreamIdManagerPtr streamIdManager;
+    EncoderBankPtr encoders;
 };
 
-class AsamCmpInterfaceFbImpl final : public FunctionBlock
+class InterfaceFbImpl final : public FunctionBlock
 {
 public:
-    explicit AsamCmpInterfaceFbImpl(const ContextPtr& ctx,
+    explicit InterfaceFbImpl(const ContextPtr& ctx,
                                     const ComponentPtr& parent,
                                     const StringPtr& localId,
-                                    const AsamCmpInterfaceInit& init);
-    ~AsamCmpInterfaceFbImpl() override = default;
+                                    const InterfaceInit& init);
+    ~InterfaceFbImpl() override = default;
     static FunctionBlockTypePtr CreateType();
 
 private:
@@ -52,9 +52,9 @@ private:
     void removeStreamInternal(size_t nInd);
 
 private:
-    AsamCmpInterfaceIdManagerPtr interfaceIdManager;
-    AsamCmpStreamIdManagerPtr streamIdManager;
-    AsamCmpEncoderBankPtr encoders;
+    InterfaceIdManagerPtr interfaceIdManager;
+    StreamIdManagerPtr streamIdManager;
+    EncoderBankPtr encoders;
     uint32_t id;
     ASAM::CMP::PayloadType payloadType;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Blueberry d.o.o.
+ * Copyright 2022-2023 Blueberry d.o.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,25 @@
  */
 
 #pragma once
+#include <asam_cmp/encoder.h>
 #include <asam_cmp_capture_module/common.h>
-#include <opendaq/module_impl.h>
+#include <opendaq/context_factory.h>
+#include <opendaq/function_block_impl.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-class AsamCmpCaptureModule final : public Module
+class CaptureModuleFbImpl final : public FunctionBlock
 {
 public:
-    explicit AsamCmpCaptureModule(ContextPtr ctx);
+    explicit CaptureModuleFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
+    ~CaptureModuleFbImpl() override = default;
 
-    DictPtr<IString, IFunctionBlockType> onGetAvailableFunctionBlockTypes() override;
-    FunctionBlockPtr onCreateFunctionBlock(const StringPtr& id, const ComponentPtr& parent, const StringPtr& localId, const PropertyObjectPtr& config) override;
+    static FunctionBlockTypePtr CreateType();
+
 private:
+    void initProperties();
+    void createFbs();
 };
+
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

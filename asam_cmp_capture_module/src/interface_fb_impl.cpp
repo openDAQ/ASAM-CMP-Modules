@@ -1,5 +1,5 @@
-#include <asam_cmp_capture_module/asam_cmp_interface_fb_impl.h>
-#include <asam_cmp_capture_module/asam_cmp_stream_fb_impl.h>
+#include <asam_cmp_capture_module/interface_fb_impl.h>
+#include <asam_cmp_capture_module/stream_fb_impl.h>
 #include <coreobjects/callable_info_factory.h>
 #include <coreobjects/argument_info_factory.h>
 #include <coretypes/listobject_factory.h>
@@ -8,10 +8,10 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-AsamCmpInterfaceFbImpl::AsamCmpInterfaceFbImpl(const ContextPtr& ctx,
+InterfaceFbImpl::InterfaceFbImpl(const ContextPtr& ctx,
                                                const ComponentPtr& parent,
                                                const StringPtr& localId,
-                                               const AsamCmpInterfaceInit& init)
+                                               const InterfaceInit& init)
     : FunctionBlock(CreateType(), ctx, parent, localId)
     , interfaceIdManager(init.interfaceIdManager)
     , streamIdManager(init.streamIdManager)
@@ -22,12 +22,12 @@ AsamCmpInterfaceFbImpl::AsamCmpInterfaceFbImpl(const ContextPtr& ctx,
     initProperties();
 }
 
-FunctionBlockTypePtr AsamCmpInterfaceFbImpl::CreateType()
+FunctionBlockTypePtr InterfaceFbImpl::CreateType()
 {
     return FunctionBlockType("asam_cmp_interface", "AsamCmpInterface", "Asam CMP Interface");
 }
 
-void AsamCmpInterfaceFbImpl::initProperties()
+void InterfaceFbImpl::initProperties()
 {
     StringPtr propName = "InterfaceId";
     auto prop = IntPropertyBuilder(propName, id).build();
@@ -59,7 +59,7 @@ void AsamCmpInterfaceFbImpl::initProperties()
                                                                        Procedure([this](IntPtr nInd) { removeStreamInternal(nInd); }));
 }
 
-void AsamCmpInterfaceFbImpl::updateInterfaceIdInternal()
+void InterfaceFbImpl::updateInterfaceIdInternal()
 {
     Int newId = objPtr.getPropertyValue("InterfaceId");
 
@@ -78,7 +78,7 @@ void AsamCmpInterfaceFbImpl::updateInterfaceIdInternal()
     }
 }
 
-void AsamCmpInterfaceFbImpl::updatePayloadTypeInternal()
+void InterfaceFbImpl::updatePayloadTypeInternal()
 {
     Int newType = objPtr.getPropertyValue("PayloadType");
 
@@ -92,20 +92,20 @@ void AsamCmpInterfaceFbImpl::updatePayloadTypeInternal()
     }
 }
 
-void AsamCmpInterfaceFbImpl::addStreamInternal()
+void InterfaceFbImpl::addStreamInternal()
 {
     std::cout << objPtr.getPropertyValue("PayloadType") << std::endl;
     auto id = streamIdManager->getFirstUnusedId();
-    AsamCmpStreamInit init{id,
+    StreamInit init{id,
                            payloadType,
                            streamIdManager};
 
     StringPtr fbId = fmt::format("asam_cmp_stream_{}", id);
-    functionBlocks.addItem(createWithImplementation<IFunctionBlock, AsamCmpStreamFbImpl>(context, functionBlocks, fbId, init));
+    functionBlocks.addItem(createWithImplementation<IFunctionBlock, StreamFbImpl>(context, functionBlocks, fbId, init));
     streamIdManager->addId(id);
 }
 
-void AsamCmpInterfaceFbImpl::removeStreamInternal(size_t nInd)
+void InterfaceFbImpl::removeStreamInternal(size_t nInd)
 {
     functionBlocks.removeItem(functionBlocks.getItems().getItemAt(nInd));
 }

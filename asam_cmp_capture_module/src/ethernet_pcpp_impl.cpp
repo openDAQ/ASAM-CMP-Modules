@@ -1,4 +1,4 @@
-#include <asam_cmp_capture_module/asam_cmp_ethernet_pcpp_impl.h>
+#include <asam_cmp_capture_module/ethernet_pcpp_impl.h>
 #include <PcapLiveDeviceList.h>
 #include <SystemUtils.h>
 #include <EthLayer.h>
@@ -26,7 +26,7 @@ void setFilters(pcpp::PcapLiveDevice* device)
     device->setFilter(andFilter);
 }
 
-pcpp::PcapLiveDevice* AsamCmpEthernetPcppImpl::getPcapLiveDevice(StringPtr deviceName)
+pcpp::PcapLiveDevice* EthernetPcppImpl::getPcapLiveDevice(StringPtr deviceName)
 {
     auto pcapLiveDevice = pcapDeviceList.getPcapLiveDeviceByName(deviceName);
     if (!pcapLiveDevice)
@@ -43,7 +43,7 @@ pcpp::PcapLiveDevice* AsamCmpEthernetPcppImpl::getPcapLiveDevice(StringPtr devic
     return pcapLiveDevice;
 }
 
-ListPtr<StringPtr> AsamCmpEthernetPcppImpl::getEthernatDevicesNamesList()
+ListPtr<StringPtr> EthernetPcppImpl::getEthernatDevicesNamesList()
 {
     auto& deviceList = pcapDeviceList.getPcapLiveDevicesList();
     ListPtr<StringPtr> devicesNames = List<IString>();
@@ -61,7 +61,7 @@ void addDeviceDescription(ListPtr<StringPtr>& devicesNames, const StringPtr& nam
     devicesNames.pushBack(newName);
 }
 
-ListPtr<StringPtr> AsamCmpEthernetPcppImpl::getEthernatDevicesDescriptionsList()
+ListPtr<StringPtr> EthernetPcppImpl::getEthernatDevicesDescriptionsList()
 {
     auto& deviceList = pcapDeviceList.getPcapLiveDevicesList();
     ListPtr<StringPtr> devicesDescriptions = List<IString>();
@@ -71,7 +71,7 @@ ListPtr<StringPtr> AsamCmpEthernetPcppImpl::getEthernatDevicesDescriptionsList()
     return devicesDescriptions;
 }
 
-void AsamCmpEthernetPcppImpl::sendPacket(const StringPtr& deviceName, const std::vector<uint8_t>& data)
+void EthernetPcppImpl::sendPacket(const StringPtr& deviceName, const std::vector<uint8_t>& data)
 {
     // create a new Ethernet layer
     pcpp::EthLayer newEthernetLayer(pcpp::MacAddress("00:50:43:11:22:33"), pcpp::MacAddress("FF:FF:FF:FF:FF:FF"), asamCmpEtherType);
@@ -89,7 +89,7 @@ void AsamCmpEthernetPcppImpl::sendPacket(const StringPtr& deviceName, const std:
     device->sendPacket(&newPacket);
 }
 
-void AsamCmpEthernetPcppImpl::startCapture(const StringPtr& deviceName, std::function<void(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie)> onPacketReceivedCb)
+void EthernetPcppImpl::startCapture(const StringPtr& deviceName, std::function<void(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie)> onPacketReceivedCb)
 {
     stopCapture(deviceName);
 
@@ -99,7 +99,7 @@ void AsamCmpEthernetPcppImpl::startCapture(const StringPtr& deviceName, std::fun
     device->startCapture(onPacketReceivedCb, nullptr);
 }
 
-void AsamCmpEthernetPcppImpl::stopCapture(const StringPtr& deviceName)
+void EthernetPcppImpl::stopCapture(const StringPtr& deviceName)
 {
     auto device = getPcapLiveDevice(deviceName);
     if (device->captureActive())

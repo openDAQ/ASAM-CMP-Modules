@@ -15,25 +15,38 @@
  */
 
 #pragma once
-#include <asam_cmp/encoder.h>
-#include <asam_cmp_capture_module/common.h>
-#include <opendaq/context_factory.h>
 #include <opendaq/function_block_impl.h>
+#include <asam_cmp_capture_module/id_manager.h>
+#include <asam_cmp_capture_module/encoder_bank.h>
+#include <asam_cmp_capture_module/common.h>
+#include <asam_cmp_capture_module/ethernet_pcpp_impl.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-class AsamCmpCaptureImpl final : public FunctionBlock
+class CaptureFbImpl final : public FunctionBlock
 {
 public:
-    explicit AsamCmpCaptureImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
-    ~AsamCmpCaptureImpl() override = default;
+    explicit CaptureFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
+    ~CaptureFbImpl() override = default;
 
     static FunctionBlockTypePtr CreateType();
 
 private:
     void initProperties();
-    void createFbs();
-};
+    void initEncoders();
 
+    void addInterfaceInternal();
+    void removeInterfaceInternal(size_t nInd);
+    void updateDeviceId();
+
+
+private:
+    EncoderBank encoders;
+    InterfaceIdManager interfaceIdManager;
+    StreamIdManager streamIdManager;
+    uint16_t deviceId;
+
+    EthernetPcppImpl ethernetImpl;
+};
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

@@ -7,27 +7,27 @@ message("CAPTURE 2 " ${PROJECT_VERSION_MAJOR})
 set(LIB_NAME asam_cmp_capture_module)
 
 set(SRC_Cpp module_dll.cpp
-    asam_cmp_capture_impl.cpp
-    asam_cmp_capture_module_impl.cpp
-    asam_cmp_interface_fb_impl.cpp
-    asam_cmp_stream_fb_impl.cpp
+    capture_module_fb_impl.cpp
     capture_module_impl.cpp
-    asam_cmp_ethernet_pcpp_impl.cpp
+    interface_fb_impl.cpp
+    stream_fb_impl.cpp
+    capture_fb_impl.cpp
+    ethernet_pcpp_impl.cpp
 )
 
 set(SRC_PublicHeaders module_dll.h
-    asam_cmp_capture_impl.h
-    asam_cmp_capture_module_impl.h
-    asam_cmp_interface_fb_impl.h
-    asam_cmp_stream_fb_impl.h
+    capture_module_fb_impl.h
     capture_module_impl.h
-    asam_cmp_ethernet_itf.h
+    interface_fb_impl.h
+    stream_fb_impl.h
+    capture_fb_impl.h
+    ethernet_itf.h
 )
 
 set(SRC_PrivateHeaders
-    asam_cmp_id_manager.h
-    asam_cmp_encoder_bank.h
-    asam_cmp_ethernet_pcpp_impl.h
+    id_manager.h
+    encoder_bank.h
+    ethernet_pcpp_impl.h
 )
 
 prepend_include(${TARGET_FOLDER_NAME} SRC_PrivateHeaders)

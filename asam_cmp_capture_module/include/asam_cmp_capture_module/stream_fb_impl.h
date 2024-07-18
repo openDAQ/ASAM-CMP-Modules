@@ -17,29 +17,29 @@
 #pragma once
 #include <asam_cmp/encoder.h>
 #include <asam_cmp_capture_module/common.h>
-#include <asam_cmp_capture_module/asam_cmp_id_manager.h>
-#include <asam_cmp_capture_module/asam_cmp_encoder_bank.h>
+#include <asam_cmp_capture_module/id_manager.h>
+#include <asam_cmp_capture_module/encoder_bank.h>
 #include <opendaq/context_factory.h>
 #include <opendaq/function_block_impl.h>
 #include <asam_cmp/payload_type.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-struct AsamCmpStreamInit
+struct StreamInit
 {
     const uint32_t id;
     const ASAM::CMP::PayloadType& payloadType;
-    const AsamCmpStreamIdManagerPtr streamIdManager;
+    const StreamIdManagerPtr streamIdManager;
 };
 
-class AsamCmpStreamFbImpl final : public FunctionBlock
+class StreamFbImpl final : public FunctionBlock
 {
 public:
-    explicit AsamCmpStreamFbImpl(const ContextPtr& ctx,
+    explicit StreamFbImpl(const ContextPtr& ctx,
                                     const ComponentPtr& parent,
                                     const StringPtr& localId,
-                                    const AsamCmpStreamInit& init);
-    ~AsamCmpStreamFbImpl() override = default;
+                                    const StreamInit& init);
+    ~StreamFbImpl() override = default;
     static FunctionBlockTypePtr CreateType();
 
 private:
@@ -49,8 +49,8 @@ private:
     void createInputPort();
 
 private:
-    AsamCmpStreamIdManagerPtr streamIdManager;
-    AsamCmpEncoderBankPtr encoders;
+    StreamIdManagerPtr streamIdManager;
+    EncoderBankPtr encoders;
     ASAM::CMP::Encoder* encoder;
     const ASAM::CMP::PayloadType& payloadType;
 

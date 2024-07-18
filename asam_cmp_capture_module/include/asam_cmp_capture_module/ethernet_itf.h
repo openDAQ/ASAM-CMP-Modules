@@ -16,12 +16,23 @@
 
 #pragma once
 #include <asam_cmp_capture_module/common.h>
-#include <asam_cmp/encoder.h>
-#include <array>
+#include <coretypes/listobject_factory.h>
+#include <coretypes/stringobject_factory.h>
+#include <coreobjects/callable_info_factory.h>
+#include <functional>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-using AsamCmpEncoderBank = std::array<ASAM::CMP::Encoder, 256>;
-using AsamCmpEncoderBankPtr = AsamCmpEncoderBank*;
+template <typename OnPacketReceivedCallbackType>
+class EthernetItf
+{
+public:
+    virtual ~EthernetItf() = default;
+    virtual ListPtr<StringPtr> getEthernatDevicesNamesList() = 0;
+    virtual ListPtr<StringPtr> getEthernatDevicesDescriptionsList() = 0;
+    virtual void sendPacket(const StringPtr& deviceName, const std::vector<uint8_t>& data) = 0;
+    virtual void startCapture(const StringPtr& deviceName, OnPacketReceivedCallbackType packetReceivedCb) = 0;
+    virtual void stopCapture(const StringPtr& deviceName) = 0;
+};
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
