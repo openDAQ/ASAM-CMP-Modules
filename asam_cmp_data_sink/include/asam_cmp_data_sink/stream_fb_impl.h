@@ -15,33 +15,22 @@
  */
 
 #pragma once
-#include <asam_cmp/device_status.h>
+#include <asam_cmp/encoder.h>
+#include <asam_cmp/payload_type.h>
+#include <opendaq/context_factory.h>
 #include <opendaq/function_block_impl.h>
 
 #include <asam_cmp_data_sink/id_manager.h>
-#include <asam_cmp_data_sink/capture_module_common_impl.h>
 #include <asam_cmp_data_sink/common.h>
+#include <asam_cmp_data_sink/stream_common_fb_impl.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-class CaptureModuleImpl final : public CaptureModuleCommonImpl
+class StreamFbImpl final : public StreamCommonFbImpl
 {
 public:
-    explicit CaptureModuleImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
-    explicit CaptureModuleImpl(const ContextPtr& ctx,
-                               const ComponentPtr& parent,
-                               const StringPtr& localId,
-                               ASAM::CMP::DeviceStatus&& deviceStatus);
-    ~CaptureModuleImpl() override = default;
-
-protected:
-    void addInterfaceInternal() override;
-
-private:
-    void createFbs();
-
-private:
-    ASAM::CMP::DeviceStatus deviceStatus;
+    explicit StreamFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, const AsamCmpStreamCommonInit& init);
+    ~StreamFbImpl() override = default;
 };
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE

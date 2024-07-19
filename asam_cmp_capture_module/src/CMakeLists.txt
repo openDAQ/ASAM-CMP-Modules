@@ -1,8 +1,6 @@
-message("CAPTURE " ${PROJECT_VERSION_MAJOR})
 project(AsamCmpCaptureModule
         VERSION 1.0.0
         LANGUAGES CXX)
-message("CAPTURE 2 " ${PROJECT_VERSION_MAJOR})
 
 set(LIB_NAME asam_cmp_capture_module)
 

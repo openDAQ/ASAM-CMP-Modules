@@ -1,12 +1,12 @@
-#include <asam_cmp_data_sink/asam_cmp_data_sink_module_fb_impl.h>
-#include <asam_cmp_data_sink/asam_cmp_data_sink_module_impl.h>
+#include <asam_cmp_data_sink/data_sink_module_fb_impl.h>
+#include <asam_cmp_data_sink/data_sink_module_impl.h>
 #include <asam_cmp_data_sink/version.h>
 #include <coretypes/version_info_factory.h>
 #include <opendaq/custom_log.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-AsamCmpDataSinkModule::AsamCmpDataSinkModule(ContextPtr ctx)
+DataSinkModule::DataSinkModule(ContextPtr ctx)
     : Module("ASAM CMP Data Sink Module",
              daq::VersionInfo(ASAM_CMP_DATA_SINK_MAJOR_VERSION, ASAM_CMP_DATA_SINK_MINOR_VERSION, ASAM_CMP_DATA_SINK_PATCH_VERSION),
              std::move(ctx),
@@ -14,24 +14,24 @@ AsamCmpDataSinkModule::AsamCmpDataSinkModule(ContextPtr ctx)
 {
 }
 
-DictPtr<IString, IFunctionBlockType> AsamCmpDataSinkModule::onGetAvailableFunctionBlockTypes()
+DictPtr<IString, IFunctionBlockType> DataSinkModule::onGetAvailableFunctionBlockTypes()
 {
     auto types = Dict<IString, IFunctionBlockType>();
 
-    auto typeStatistics = AsamCmpDataSinkModuleFbImpl::CreateType();
+    auto typeStatistics = DataSinkModuleFbImpl::CreateType();
     types.set(typeStatistics.getId(), typeStatistics);
 
     return types;
 }
 
-FunctionBlockPtr AsamCmpDataSinkModule::onCreateFunctionBlock(const StringPtr& id,
+FunctionBlockPtr DataSinkModule::onCreateFunctionBlock(const StringPtr& id,
                                                               const ComponentPtr& parent,
                                                               const StringPtr& localId,
                                                               const PropertyObjectPtr& config)
 {
-    if (id == AsamCmpDataSinkModuleFbImpl::CreateType().getId())
+    if (id == DataSinkModuleFbImpl::CreateType().getId())
     {
-        FunctionBlockPtr fb = createWithImplementation<IFunctionBlock, AsamCmpDataSinkModuleFbImpl>(context, parent, localId);
+        FunctionBlockPtr fb = createWithImplementation<IFunctionBlock, DataSinkModuleFbImpl>(context, parent, localId);
         return fb;
     }
 

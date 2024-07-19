@@ -15,23 +15,33 @@
  */
 
 #pragma once
+#include <asam_cmp/status.h>
+#include <opendaq/function_block_impl.h>
+
+#include <asam_cmp_data_sink/status_handler.h>
 #include <asam_cmp_data_sink/common.h>
-#include <opendaq/module_impl.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-class AsamCmpDataSinkModule final : public Module
+class StatusFbImpl final : public FunctionBlockImpl<IFunctionBlock, IStatusHandler>
 {
 public:
-    explicit AsamCmpDataSinkModule(ContextPtr ctx);
+    explicit StatusFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
+    ~StatusFbImpl() override = default;
 
-    DictPtr<IString, IFunctionBlockType> onGetAvailableFunctionBlockTypes() override;
-    FunctionBlockPtr onCreateFunctionBlock(const StringPtr& id,
-                                           const ComponentPtr& parent,
-                                           const StringPtr& localId,
-                                           const PropertyObjectPtr& config) override;
+    static FunctionBlockTypePtr CreateType();
+
+public:
+    void processStatusPacket(const std::shared_ptr<ASAM::CMP::Packet>& packet) override;
+    StatusMt getStatusMt() const override;
 
 private:
+    void initProperties();
+    void clear();
+
+private:
+    mutable std::mutex stMutex;
+    ASAM::CMP::Status status;
 };
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE

@@ -18,16 +18,16 @@
 #include <asam_cmp/status.h>
 #include <opendaq/function_block_impl.h>
 
-#include <asam_cmp_data_sink/asam_cmp_status_handler.h>
+#include <asam_cmp_data_sink/status_handler.h>
 #include <asam_cmp_data_sink/common.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-class AsamCmpDataSinkFbImpl final : public FunctionBlock
+class DataSinkFbImpl final : public FunctionBlock
 {
 public:
-    explicit AsamCmpDataSinkFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, StatusMt statusMt);
-    ~AsamCmpDataSinkFbImpl() override = default;
+    explicit DataSinkFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, StatusMt statusMt);
+    ~DataSinkFbImpl() override = default;
 
     static FunctionBlockTypePtr CreateType();
 
@@ -38,6 +38,7 @@ private:
     void removeCaptureModule(int fbIndex);
 
 private:
+    size_t captureModuleId{0};
     StatusMt status;
 };
 

@@ -6,7 +6,7 @@
 #include <opendaq/scheduler_factory.h>
 #include <opendaq/search_filter_factory.h>
 
-#include <asam_cmp_data_sink/asam_cmp_status_handler.h>
+#include <asam_cmp_data_sink/status_handler.h>
 #include <asam_cmp_data_sink/module_dll.h>
 
 using namespace daq;
@@ -14,7 +14,7 @@ using namespace daq;
 using ASAM::CMP::CaptureModulePayload;
 using ASAM::CMP::InterfacePayload;
 using ASAM::CMP::Packet;
-using daq::modules::asam_cmp_data_sink_module::IAsamCmpStatusHandler;
+using daq::modules::asam_cmp_data_sink_module::IStatusHandler;
 using daq::modules::asam_cmp_data_sink_module::StatusMt;
 
 class AsamCmpStatusFbFixture : public ::testing::Test
@@ -27,7 +27,7 @@ protected:
         auto dataSinkModuleFb = module.createFunctionBlock("asam_cmp_data_sink_module", nullptr, "id");
         funcBlock = dataSinkModuleFb.getFunctionBlocks(search::Recursive(search::LocalId("asam_cmp_status")))[0];
 
-        statusMt = std::make_unique<StatusMt>(funcBlock.asPtr<IAsamCmpStatusHandler>(true)->getStatusMt());
+        statusMt = std::make_unique<StatusMt>(funcBlock.asPtr<IStatusHandler>(true)->getStatusMt());
         cmPayload.setData(deviceDescr, "", "", "", {});
         ifPayload.setData(streams.data(), static_cast<uint16_t>(streams.size()), nullptr, 0);
 
@@ -85,7 +85,7 @@ bool AsamCmpStatusFbFixture::checkDescription(const StringPtr& description,
 
 TEST_F(AsamCmpStatusFbFixture, ProcessStatusPackets)
 {
-    funcBlock.asPtr<IAsamCmpStatusHandler>(true)->processStatusPacket(packet);
+    funcBlock.asPtr<IStatusHandler>(true)->processStatusPacket(packet);
     ListPtr<IString> cmList = funcBlock.getPropertyValue("CaptureModuleList");
     ASSERT_EQ(cmList.getCount(), 1u);
     ASSERT_EQ(statusMt->getStatus().getDeviceStatusCount(), 1u);
@@ -95,7 +95,7 @@ TEST_F(AsamCmpStatusFbFixture, ProcessStatusPackets)
     cmPayload.setData(deviceDescr, "", "", "", {});
     packet->setPayload(cmPayload);
     packet->setDeviceId(deviceId);
-    funcBlock.asPtr<IAsamCmpStatusHandler>(true)->processStatusPacket(packet);
+    funcBlock.asPtr<IStatusHandler>(true)->processStatusPacket(packet);
     cmList = funcBlock.getPropertyValue("CaptureModuleList");
     ASSERT_EQ(cmList.getCount(), 2u);
     ASSERT_EQ(statusMt->getStatus().getDeviceStatusCount(), 2u);
@@ -104,7 +104,7 @@ TEST_F(AsamCmpStatusFbFixture, ProcessStatusPackets)
     deviceId = 3;
     packet->setPayload(ifPayload);
     packet->setDeviceId(deviceId);
-    funcBlock.asPtr<IAsamCmpStatusHandler>(true)->processStatusPacket(packet);
+    funcBlock.asPtr<IStatusHandler>(true)->processStatusPacket(packet);
     cmList = funcBlock.getPropertyValue("CaptureModuleList");
     ASSERT_EQ(cmList.getCount(), 2u);
     ASSERT_EQ(statusMt->getStatus().getDeviceStatusCount(), 2u);
@@ -112,7 +112,7 @@ TEST_F(AsamCmpStatusFbFixture, ProcessStatusPackets)
 
     deviceId = 5;
     packet->setDeviceId(deviceId);
-    funcBlock.asPtr<IAsamCmpStatusHandler>(true)->processStatusPacket(packet);
+    funcBlock.asPtr<IStatusHandler>(true)->processStatusPacket(packet);
     cmList = funcBlock.getPropertyValue("CaptureModuleList");
     ASSERT_EQ(cmList.getCount(), 2u);
     ASSERT_EQ(statusMt->getStatus().getDeviceStatusCount(), 2u);
@@ -120,7 +120,7 @@ TEST_F(AsamCmpStatusFbFixture, ProcessStatusPackets)
 
 TEST_F(AsamCmpStatusFbFixture, Clear)
 {
-    funcBlock.asPtr<IAsamCmpStatusHandler>(true)->processStatusPacket(packet);
+    funcBlock.asPtr<IStatusHandler>(true)->processStatusPacket(packet);
     ListPtr<IString> cmList = funcBlock.getPropertyValue("CaptureModuleList");
     ASSERT_EQ(cmList.getCount(), 1u);
     ASSERT_EQ(statusMt->getStatus().getDeviceStatusCount(), 1u);

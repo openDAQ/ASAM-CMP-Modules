@@ -108,7 +108,7 @@ TEST_F(DataSinkModuleTest, CreateFunctionBlockNotFound)
     ASSERT_THROW(module.createFunctionBlock("test", nullptr, "id"), NotFoundException);
 }
 
-TEST_F(DataSinkModuleTest, CreateAsamCmpDataSinkModuleFunctionBlock)
+TEST_F(DataSinkModuleTest, CreateDataSinkModuleFunctionBlock)
 {
     const auto module = CreateModule();
 

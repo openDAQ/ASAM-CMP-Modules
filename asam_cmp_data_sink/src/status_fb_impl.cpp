@@ -1,22 +1,22 @@
 #include <asam_cmp/capture_module_payload.h>
 #include <coreobjects/callable_info_factory.h>
 
-#include <asam_cmp_data_sink/asam_cmp_status_fb_impl.h>
+#include <asam_cmp_data_sink/status_fb_impl.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-AsamCmpStatusFbImpl::AsamCmpStatusFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId)
+StatusFbImpl::StatusFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId)
     : FunctionBlockImpl(CreateType(), ctx, parent, localId)
 {
     initProperties();
 }
 
-FunctionBlockTypePtr AsamCmpStatusFbImpl::CreateType()
+FunctionBlockTypePtr StatusFbImpl::CreateType()
 {
     return FunctionBlockType("asam_cmp_status", "AsamCmpStatus", "ASAM CMP Status");
 }
 
-void AsamCmpStatusFbImpl::processStatusPacket(const std::shared_ptr<ASAM::CMP::Packet>& packet)
+void StatusFbImpl::processStatusPacket(const std::shared_ptr<ASAM::CMP::Packet>& packet)
 {
     std::scoped_lock lock(stMutex, sync);
 
@@ -43,12 +43,12 @@ void AsamCmpStatusFbImpl::processStatusPacket(const std::shared_ptr<ASAM::CMP::P
     objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue("CaptureModuleList", devices);
 }
 
-StatusMt AsamCmpStatusFbImpl::getStatusMt() const
+StatusMt StatusFbImpl::getStatusMt() const
 {
     return StatusMt(status, stMutex);
 }
 
-void AsamCmpStatusFbImpl::initProperties()
+void StatusFbImpl::initProperties()
 {
     StringPtr propName = "CaptureModuleList";
     auto list = List<IString>();
@@ -61,7 +61,7 @@ void AsamCmpStatusFbImpl::initProperties()
     objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue(propName, proc);
 }
 
-void AsamCmpStatusFbImpl::clear()
+void StatusFbImpl::clear()
 {
     std::scoped_lock lock{stMutex, sync};
 

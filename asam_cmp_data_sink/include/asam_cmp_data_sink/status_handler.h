@@ -2,6 +2,8 @@
 #include <asam_cmp/packet.h>
 #include <asam_cmp/status.h>
 #include <memory>
+#include <mutex>
+#include <coretypes/baseobject.h>
 
 #include <asam_cmp_data_sink/common.h>
 
@@ -33,7 +35,7 @@ private:
     const ASAM::CMP::Status& statusRef;
 };
 
-DECLARE_OPENDAQ_INTERFACE(IAsamCmpStatusHandler, IBaseObject)
+DECLARE_OPENDAQ_INTERFACE(IStatusHandler, IBaseObject)
 {
     virtual void processStatusPacket(const std::shared_ptr<ASAM::CMP::Packet>& packet) = 0;
     virtual StatusMt getStatusMt() const = 0;

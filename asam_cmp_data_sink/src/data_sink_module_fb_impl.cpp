@@ -2,13 +2,13 @@
 #include <asam_cmp/cmp_header.h>
 #include <coreobjects/callable_info_factory.h>
 
-#include <asam_cmp_data_sink/asam_cmp_data_sink_fb_impl.h>
-#include <asam_cmp_data_sink/asam_cmp_data_sink_module_fb_impl.h>
-#include <asam_cmp_data_sink/asam_cmp_status_fb_impl.h>
+#include <asam_cmp_data_sink/data_sink_fb_impl.h>
+#include <asam_cmp_data_sink/data_sink_module_fb_impl.h>
+#include <asam_cmp_data_sink/status_fb_impl.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-AsamCmpDataSinkModuleFbImpl::AsamCmpDataSinkModuleFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId)
+DataSinkModuleFbImpl::DataSinkModuleFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId)
     : FunctionBlock(CreateType(), ctx, parent, localId)
 {
     initProperties();
@@ -16,22 +16,22 @@ AsamCmpDataSinkModuleFbImpl::AsamCmpDataSinkModuleFbImpl(const ContextPtr& ctx, 
     startCapture();
 }
 
-AsamCmpDataSinkModuleFbImpl::~AsamCmpDataSinkModuleFbImpl()
+DataSinkModuleFbImpl::~DataSinkModuleFbImpl()
 {
     stopCapture();
 }
 
-FunctionBlockTypePtr AsamCmpDataSinkModuleFbImpl::CreateType()
+FunctionBlockTypePtr DataSinkModuleFbImpl::CreateType()
 {
-    return FunctionBlockType("asam_cmp_data_sink_module", "AsamCmpDataSinkModule", "ASAM CMP Data Sink Module");
+    return FunctionBlockType("asam_cmp_data_sink_module", "DataSinkModule", "ASAM CMP Data Sink Module");
 }
 
-void AsamCmpDataSinkModuleFbImpl::initProperties()
+void DataSinkModuleFbImpl::initProperties()
 {
     addNetworkAdaptersProperty();
 }
 
-void AsamCmpDataSinkModuleFbImpl::addNetworkAdaptersProperty()
+void DataSinkModuleFbImpl::addNetworkAdaptersProperty()
 {
     auto& deviceList = pcapDeviceList.getPcapLiveDevicesList();
     ListPtr<StringPtr> devicesDescriptions = List<IString>();
@@ -56,19 +56,19 @@ void AsamCmpDataSinkModuleFbImpl::addNetworkAdaptersProperty()
     };
 }
 
-void AsamCmpDataSinkModuleFbImpl::createFbs()
+void DataSinkModuleFbImpl::createFbs()
 {
     const StringPtr statusId = "asam_cmp_status";
-    auto newFb = createWithImplementation<IFunctionBlock, AsamCmpStatusFbImpl>(context, functionBlocks, statusId);
+    auto newFb = createWithImplementation<IFunctionBlock, StatusFbImpl>(context, functionBlocks, statusId);
     functionBlocks.addItem(newFb);
-    auto statusMt = functionBlocks.getItems()[0].asPtr<IAsamCmpStatusHandler>(true)->getStatusMt();
+    auto statusMt = functionBlocks.getItems()[0].asPtr<IStatusHandler>(true)->getStatusMt();
 
     const StringPtr dataSinkId = "asam_cmp_data_sink";
-    newFb = createWithImplementation<IFunctionBlock, AsamCmpDataSinkFbImpl>(context, functionBlocks, dataSinkId, statusMt);
+    newFb = createWithImplementation<IFunctionBlock, DataSinkFbImpl>(context, functionBlocks, dataSinkId, statusMt);
     functionBlocks.addItem(newFb);
 }
 
-void AsamCmpDataSinkModuleFbImpl::startCapture()
+void DataSinkModuleFbImpl::startCapture()
 {
     std::scoped_lock lock{sync};
 
@@ -102,13 +102,13 @@ void AsamCmpDataSinkModuleFbImpl::startCapture()
         [this](pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie) { onPacketArrives(packet, dev, cookie); }, nullptr);
 }
 
-void AsamCmpDataSinkModuleFbImpl::stopCapture()
+void DataSinkModuleFbImpl::stopCapture()
 {
     if (pcapLiveDevice)
         pcapLiveDevice->stopCapture();
 }
 
-void AsamCmpDataSinkModuleFbImpl::onPacketArrives(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie)
+void DataSinkModuleFbImpl::onPacketArrives(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie)
 {
     auto acPackets = decode(packet);
 
@@ -119,7 +119,7 @@ void AsamCmpDataSinkModuleFbImpl::onPacketArrives(pcpp::RawPacket* packet, pcpp:
             case ASAM::CMP::CmpHeader::MessageType::data:
                 break;
             case ASAM::CMP::CmpHeader::MessageType::status:
-                functionBlocks.getItems()[0].asPtr<IAsamCmpStatusHandler>(true)->processStatusPacket(acPacket);
+                functionBlocks.getItems()[0].asPtr<IStatusHandler>(true)->processStatusPacket(acPacket);
                 break;
             default:
                 LOG_I("ASAM CMP Message Type {} is not supported", to_underlying(acPacket->getMessageType()));
@@ -127,7 +127,7 @@ void AsamCmpDataSinkModuleFbImpl::onPacketArrives(pcpp::RawPacket* packet, pcpp:
     }
 }
 
-std::vector<std::shared_ptr<ASAM::CMP::Packet>> AsamCmpDataSinkModuleFbImpl::decode(pcpp::RawPacket* packet)
+std::vector<std::shared_ptr<ASAM::CMP::Packet>> DataSinkModuleFbImpl::decode(pcpp::RawPacket* packet)
 {
     pcpp::Packet parsedPacket(packet);
     pcpp::EthLayer* ethLayer = static_cast<pcpp::EthLayer*>(parsedPacket.getLayerOfType(pcpp::Ethernet));
@@ -137,7 +137,7 @@ std::vector<std::shared_ptr<ASAM::CMP::Packet>> AsamCmpDataSinkModuleFbImpl::dec
     return decoder.decode(ethLayer->getLayerPayload(), ethLayer->getLayerPayloadSize());
 }
 
-void AsamCmpDataSinkModuleFbImpl::addDeviceDescription(ListPtr<StringPtr>& devicesNames, const StringPtr& name)
+void DataSinkModuleFbImpl::addDeviceDescription(ListPtr<StringPtr>& devicesNames, const StringPtr& name)
 {
     StringPtr newName = name;
     for (size_t index = 1; std::find(devicesNames.begin(), devicesNames.end(), newName) != devicesNames.end(); ++index)
