@@ -18,21 +18,34 @@
 #include <asam_cmp_capture_module/common.h>
 #include <coretypes/listobject_factory.h>
 #include <coretypes/stringobject_factory.h>
-#include <coreobjects/callable_info_factory.h>
-#include <functional>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
+
+template <typename T>
+struct is_callable
+{
+    template <typename U>
+    static auto test(U* p) -> decltype(&U::operator(), std::true_type());
+
+    template <typename U>
+    static auto test(...) -> std::false_type;
+
+    static const bool value = std::is_function<T>::value || std::is_member_function_pointer<T>::value || decltype(test<T>(nullptr))::value;
+};
 
 template <typename OnPacketReceivedCallbackType>
 class EthernetItf
 {
+static_assert(is_callable<OnPacketReceivedCallbackType>::value, "OnPacketReceivedCallbackType must be callable");
+
 public:
     virtual ~EthernetItf() = default;
-    virtual ListPtr<StringPtr> getEthernatDevicesNamesList() = 0;
-    virtual ListPtr<StringPtr> getEthernatDevicesDescriptionsList() = 0;
+    virtual ListPtr<StringPtr> getEthernetDevicesNamesList() = 0;
+    virtual ListPtr<StringPtr> getEthernetDevicesDescriptionsList() = 0;
     virtual void sendPacket(const StringPtr& deviceName, const std::vector<uint8_t>& data) = 0;
     virtual void startCapture(const StringPtr& deviceName, OnPacketReceivedCallbackType packetReceivedCb) = 0;
     virtual void stopCapture(const StringPtr& deviceName) = 0;
+    virtual bool isDeviceCapturing(const StringPtr& deviceName) = 0;
 };
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

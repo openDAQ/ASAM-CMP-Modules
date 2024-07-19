@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2)
-set(REPO_NAME asam_cmp_module)
+set(REPO_NAME asam_cmp_modules)
 set(REPO_OPTION_PREFIX ASAM_CMP)
 
 project(${REPO_NAME} VERSION 1.0.0)

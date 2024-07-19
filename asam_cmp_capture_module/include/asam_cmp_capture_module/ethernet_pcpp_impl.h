@@ -17,18 +17,20 @@
 #pragma once
 #include <asam_cmp_capture_module/ethernet_itf.h>
 #include <PcapLiveDeviceList.h>
+#include <coreobjects/callable_info_factory.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-class EthernetPcppImpl : public EthernetItf<std::function<void(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie)>>
+class EthernetPcppImpl : public EthernetItf<std::function<void(pcpp::RawPacket*, pcpp::PcapLiveDevice*, void*)>>
 {
 public:
-    ListPtr<StringPtr> getEthernatDevicesNamesList() override;
-    ListPtr<StringPtr> getEthernatDevicesDescriptionsList() override;
+    ListPtr<StringPtr> getEthernetDevicesNamesList() override;
+    ListPtr<StringPtr> getEthernetDevicesDescriptionsList() override;
     void sendPacket(const StringPtr& deviceName, const std::vector<uint8_t>& data) override;
     void startCapture(const StringPtr& deviceName,
-                      std::function<void(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie)> onPacketReceivedCb) override;
+                      std::function<void(pcpp::RawPacket*, pcpp::PcapLiveDevice*, void*)> onPacketReceivedCb) override;
     void stopCapture(const StringPtr& deviceName) override;
+    bool isDeviceCapturing(const StringPtr& deviceName) override;
 
 private:
     pcpp::PcapLiveDevice* getPcapLiveDevice(StringPtr deviceName);

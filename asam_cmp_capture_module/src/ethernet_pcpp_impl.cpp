@@ -43,7 +43,7 @@ pcpp::PcapLiveDevice* EthernetPcppImpl::getPcapLiveDevice(StringPtr deviceName)
     return pcapLiveDevice;
 }
 
-ListPtr<StringPtr> EthernetPcppImpl::getEthernatDevicesNamesList()
+ListPtr<StringPtr> EthernetPcppImpl::getEthernetDevicesNamesList()
 {
     auto& deviceList = pcapDeviceList.getPcapLiveDevicesList();
     ListPtr<StringPtr> devicesNames = List<IString>();
@@ -61,7 +61,7 @@ void addDeviceDescription(ListPtr<StringPtr>& devicesNames, const StringPtr& nam
     devicesNames.pushBack(newName);
 }
 
-ListPtr<StringPtr> EthernetPcppImpl::getEthernatDevicesDescriptionsList()
+ListPtr<StringPtr> EthernetPcppImpl::getEthernetDevicesDescriptionsList()
 {
     auto& deviceList = pcapDeviceList.getPcapLiveDevicesList();
     ListPtr<StringPtr> devicesDescriptions = List<IString>();
@@ -101,9 +101,13 @@ void EthernetPcppImpl::startCapture(const StringPtr& deviceName, std::function<v
 
 void EthernetPcppImpl::stopCapture(const StringPtr& deviceName)
 {
-    auto device = getPcapLiveDevice(deviceName);
-    if (device->captureActive())
-        device->stopCapture();
+    if (isDeviceCapturing(deviceName))
+        getPcapLiveDevice(deviceName)->stopCapture();
+}
+
+bool EthernetPcppImpl::isDeviceCapturing(const StringPtr& deviceName)
+{
+    return getPcapLiveDevice(deviceName)->captureActive();
 }
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
