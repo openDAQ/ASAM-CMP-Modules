@@ -5,27 +5,23 @@ project(AsamCmpCaptureModule
 set(LIB_NAME asam_cmp_capture_module)
 
 set(SRC_Cpp module_dll.cpp
-    capture_module_fb_impl.cpp
-    capture_module_impl.cpp
-    interface_fb_impl.cpp
-    stream_fb_impl.cpp
-    capture_fb_impl.cpp
-    ethernet_pcpp_impl.cpp
+    capture_module_fb.cpp
+    capture_module.cpp
+    interface_fb.cpp
+    stream_fb.cpp
+    capture_fb.cpp
 )
 
 set(SRC_PublicHeaders module_dll.h
-    capture_module_fb_impl.h
-    capture_module_impl.h
-    interface_fb_impl.h
-    stream_fb_impl.h
-    capture_fb_impl.h
-    ethernet_itf.h
+    capture_module_fb.h
+    capture_module.h
+    interface_fb.h
+    stream_fb.h
+    capture_fb.h
 )
 
 set(SRC_PrivateHeaders
-    id_manager.h
     encoder_bank.h
-    ethernet_pcpp_impl.h
 )
 
 prepend_include(${TARGET_FOLDER_NAME} SRC_PrivateHeaders)
@@ -40,6 +36,7 @@ add_library(${LIB_NAME} SHARED
 target_link_libraries(${LIB_NAME} PUBLIC daq::opendaq
                                           Pcap++
                                           asam_cmp
+                                          asam_cmp_common_lib
 )
 
 # if (MSVC)

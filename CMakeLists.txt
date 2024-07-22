@@ -14,6 +14,7 @@ include(CommonUtils)
 setup_repo(${REPO_OPTION_PREFIX})
 
 add_subdirectory(external)
+add_subdirectory(asam_cmp_common_lib)
 
 if (ASAM_CMP_BUILD_CAPTURE_MODULE)
         add_subdirectory(asam_cmp_capture_module)
