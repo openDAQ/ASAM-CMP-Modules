@@ -27,7 +27,7 @@ BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 class StreamFb final : public asam_cmp_common_lib::StreamCommonFb
 { 
 public:
-    explicit StreamFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, const asam_cmp_common_lib::AsamCmpStreamCommonInit& init);
+    explicit StreamFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, const asam_cmp_common_lib::StreamCommonInit& init);
     ~StreamFb() override = default;
 };
 

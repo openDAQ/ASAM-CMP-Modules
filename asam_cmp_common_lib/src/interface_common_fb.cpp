@@ -9,7 +9,7 @@ BEGIN_NAMESPACE_ASAM_CMP_COMMON
 InterfaceCommonFb::InterfaceCommonFb(const ContextPtr& ctx,
                                              const ComponentPtr& parent,
                                              const StringPtr& localId,
-                                             const AsamCmpInterfaceCommonInit& init)
+                                             const InterfaceCommonInit& init)
     : FunctionBlock(CreateType(), ctx, parent, localId)
     , interfaceIdManager(init.interfaceIdManager)
     , streamIdManager(init.streamIdManager)

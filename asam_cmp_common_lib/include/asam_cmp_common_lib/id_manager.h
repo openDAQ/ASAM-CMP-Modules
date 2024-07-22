@@ -69,9 +69,9 @@ private:
     std::unordered_set<T> unusedIds;
 };
 
-using AsamCmpInterfaceIdManager = IdManager<uint32_t>;
-using AsamCmpStreamIdManager = IdManager<uint8_t>;
-using AsamCmpInterfaceIdManagerPtr = AsamCmpInterfaceIdManager*;
-using AsamCmpStreamIdManagerPtr = AsamCmpStreamIdManager*;
+using InterfaceIdManager = IdManager<uint32_t>;
+using StreamIdManager = IdManager<uint8_t>;
+using InterfaceIdManagerPtr = InterfaceIdManager*;
+using StreamIdManagerPtr = StreamIdManager*;
 
 END_NAMESPACE_ASAM_CMP_COMMON

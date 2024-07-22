@@ -23,11 +23,11 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_COMMON
 
-struct AsamCmpStreamCommonInit
+struct StreamCommonInit
 {
     const uint32_t id;
     const ASAM::CMP::PayloadType& payloadType;
-    const AsamCmpStreamIdManagerPtr streamIdManager;
+    const StreamIdManagerPtr streamIdManager;
 };
 
 class StreamCommonFb : public FunctionBlock
@@ -36,7 +36,7 @@ public:
     explicit StreamCommonFb(const ContextPtr& ctx,
                                 const ComponentPtr& parent,
                                 const StringPtr& localId,
-                                const AsamCmpStreamCommonInit& init);
+                                const StreamCommonInit& init);
     ~StreamCommonFb() override = default;
     static FunctionBlockTypePtr CreateType();
 
@@ -50,7 +50,7 @@ protected:
     uint32_t id;
 
 private:
-    AsamCmpStreamIdManagerPtr streamIdManager;
+    StreamIdManagerPtr streamIdManager;
     const ASAM::CMP::PayloadType& payloadType;
 };
 

@@ -64,7 +64,7 @@ void DataSinkModuleFbImpl::createFbs()
     auto statusMt = functionBlocks.getItems()[0].asPtr<IStatusHandler>(true)->getStatusMt();
 
     const StringPtr dataSinkId = "asam_cmp_data_sink";
-    newFb = createWithImplementation<IFunctionBlock, DataSinkFbImpl>(context, functionBlocks, dataSinkId, statusMt);
+    newFb = createWithImplementation<IFunctionBlock, DataSinkFb>(context, functionBlocks, dataSinkId, statusMt);
     functionBlocks.addItem(newFb);
 }
 

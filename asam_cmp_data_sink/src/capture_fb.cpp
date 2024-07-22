@@ -7,12 +7,12 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-CaptureModuleFb::CaptureModuleFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId)
+CaptureFb::CaptureFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId)
     : CaptureCommonFb(ctx, parent, localId)
 {
 }
 
-CaptureModuleFb::CaptureModuleFb(const ContextPtr& ctx,
+CaptureFb::CaptureFb(const ContextPtr& ctx,
                                      const ComponentPtr& parent,
                                      const StringPtr& localId,
                                      ASAM::CMP::DeviceStatus&& deviceStatus)
@@ -22,13 +22,13 @@ CaptureModuleFb::CaptureModuleFb(const ContextPtr& ctx,
     createFbs();
 }
 
-void CaptureModuleFb::addInterfaceInternal()
+void CaptureFb::addInterfaceInternal()
 {
     auto newId = interfaceIdManager.getFirstUnusedId();
     addInterfaceWithParams<InterfaceFb>(newId);
 }
 
-void CaptureModuleFb::createFbs()
+void CaptureFb::createFbs()
 {
     for (size_t i = 0; i < deviceStatus.getInterfaceStatusCount(); ++i)
     {

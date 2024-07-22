@@ -17,10 +17,10 @@ using ASAM::CMP::Packet;
 using daq::modules::asam_cmp_data_sink_module::IStatusHandler;
 using daq::modules::asam_cmp_data_sink_module::StatusMt;
 
-class AsamCmpStatusFbFixture : public ::testing::Test
+class StatusFbFixture : public ::testing::Test
 {
 protected:
-    AsamCmpStatusFbFixture()
+    StatusFbFixture()
     {
         auto logger = Logger();
         createModule(&module, Context(Scheduler(logger), logger, TypeManager(), nullptr));
@@ -53,13 +53,13 @@ protected:
     std::vector<uint8_t> streams = {1};
 };
 
-TEST_F(AsamCmpStatusFbFixture, NotNull)
+TEST_F(StatusFbFixture, NotNull)
 {
     ASSERT_NE(module, nullptr);
     ASSERT_NE(funcBlock, nullptr);
 }
 
-TEST_F(AsamCmpStatusFbFixture, FunctionBlockType)
+TEST_F(StatusFbFixture, FunctionBlockType)
 {
     auto type = funcBlock.getFunctionBlockType();
     ASSERT_EQ(type.getId(), "asam_cmp_status");
@@ -67,14 +67,14 @@ TEST_F(AsamCmpStatusFbFixture, FunctionBlockType)
     ASSERT_EQ(type.getDescription(), "ASAM CMP Status");
 }
 
-TEST_F(AsamCmpStatusFbFixture, CaptureModuleList)
+TEST_F(StatusFbFixture, CaptureModuleList)
 {
     ListPtr<IString> cmList = funcBlock.getPropertyValue("CaptureModuleList");
     ASSERT_EQ(cmList.getCount(), 0);
     EXPECT_THROW(funcBlock.setPropertyValue("CaptureModuleList", cmList), daq::AccessDeniedException);
 }
 
-bool AsamCmpStatusFbFixture::checkDescription(const StringPtr& description,
+bool StatusFbFixture::checkDescription(const StringPtr& description,
                                               std::string_view deviceDescr,
                                               const uint16_t deviceId,
                                               size_t interfacesCount)
@@ -83,7 +83,7 @@ bool AsamCmpStatusFbFixture::checkDescription(const StringPtr& description,
     return description == correctDescription;
 }
 
-TEST_F(AsamCmpStatusFbFixture, ProcessStatusPackets)
+TEST_F(StatusFbFixture, ProcessStatusPackets)
 {
     funcBlock.asPtr<IStatusHandler>(true)->processStatusPacket(packet);
     ListPtr<IString> cmList = funcBlock.getPropertyValue("CaptureModuleList");
@@ -118,7 +118,7 @@ TEST_F(AsamCmpStatusFbFixture, ProcessStatusPackets)
     ASSERT_EQ(statusMt->getStatus().getDeviceStatusCount(), 2u);
 }
 
-TEST_F(AsamCmpStatusFbFixture, Clear)
+TEST_F(StatusFbFixture, Clear)
 {
     funcBlock.asPtr<IStatusHandler>(true)->processStatusPacket(packet);
     ListPtr<IString> cmList = funcBlock.getPropertyValue("CaptureModuleList");

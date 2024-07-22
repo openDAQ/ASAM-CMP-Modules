@@ -1,10 +1,10 @@
 set(TEST_APP test_data_sink)
 
 set(TEST_SOURCES test_app.cpp
-                 test_asam_cmp_data_sink_module.cpp
-                 test_asam_cmp_data_sink_module_fb.cpp
-                 test_asam_cmp_status_fb.cpp
-                 test_asam_cmp_data_sink_fb.cpp
+                 test_data_sink_module.cpp
+                 test_data_sink_module_fb.cpp
+                 test_status_fb.cpp
+                 test_data_sink_fb.cpp
                  test_capture_module.cpp
                  test_interface.cpp
                  test_stream.cpp

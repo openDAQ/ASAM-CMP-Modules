@@ -32,7 +32,7 @@ public:
     explicit StreamFb(const ContextPtr& ctx,
                                     const ComponentPtr& parent,
                                     const StringPtr& localId,
-                                    const asam_cmp_common_lib::AsamCmpStreamCommonInit& init);
+                                    const asam_cmp_common_lib::StreamCommonInit& init);
     ~StreamFb() override = default;
 
 private:

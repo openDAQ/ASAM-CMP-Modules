@@ -41,15 +41,15 @@ private:
     void initProperties();
 
 protected:
-    AsamCmpInterfaceIdManager interfaceIdManager;
-    AsamCmpStreamIdManager streamIdManager;
+    InterfaceIdManager interfaceIdManager;
+    StreamIdManager streamIdManager;
     uint16_t deviceId{0};
 };
 
 template <class Impl, typename... Params>
 void CaptureCommonFb::addInterfaceWithParams(uint32_t interfaceId, Params&&... params)
 {
-    AsamCmpInterfaceCommonInit init{interfaceId, &interfaceIdManager, &streamIdManager};
+    InterfaceCommonInit init{interfaceId, &interfaceIdManager, &streamIdManager};
 
     StringPtr fbId = fmt::format("asam_cmp_interface_{}", interfaceId);
     auto newFb = createWithImplementation<IFunctionBlock, Impl>(context, functionBlocks, fbId, init, std::forward<Params>(params)...);

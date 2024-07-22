@@ -23,11 +23,11 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-class DataSinkFbImpl final : public FunctionBlock
+class DataSinkFb final : public FunctionBlock
 {
 public:
-    explicit DataSinkFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, StatusMt statusMt);
-    ~DataSinkFbImpl() override = default;
+    explicit DataSinkFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, StatusMt statusMt);
+    ~DataSinkFb() override = default;
 
     static FunctionBlockTypePtr CreateType();
 

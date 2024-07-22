@@ -9,7 +9,7 @@ BEGIN_NAMESPACE_ASAM_CMP_COMMON
 StreamCommonFb::StreamCommonFb(const ContextPtr& ctx,
                                        const ComponentPtr& parent,
                                        const StringPtr& localId,
-                                       const AsamCmpStreamCommonInit& init)
+                                       const StreamCommonInit& init)
     : FunctionBlock(CreateType(), ctx, parent, localId)
     , streamIdManager(init.streamIdManager)
     , id(init.id)

@@ -32,7 +32,7 @@ public:
     explicit InterfaceFb(const ContextPtr& ctx,
                                     const ComponentPtr& parent,
                                     const StringPtr& localId,
-                                    const asam_cmp_common_lib::AsamCmpInterfaceCommonInit& init,
+                                    const asam_cmp_common_lib::InterfaceCommonInit& init,
                                     const EncoderBankPtr& encoders);
     ~InterfaceFb() override = default;
     static FunctionBlockTypePtr CreateType();

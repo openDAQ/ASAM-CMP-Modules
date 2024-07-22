@@ -24,15 +24,15 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-class CaptureModuleFb final : public asam_cmp_common_lib::CaptureCommonFb
+class CaptureFb final : public asam_cmp_common_lib::CaptureCommonFb
 {
 public:
-    explicit CaptureModuleFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
-    explicit CaptureModuleFb(const ContextPtr& ctx,
+    explicit CaptureFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
+    explicit CaptureFb(const ContextPtr& ctx,
                                const ComponentPtr& parent,
                                const StringPtr& localId,
                                ASAM::CMP::DeviceStatus&& deviceStatus);
-    ~CaptureModuleFb() override = default;
+    ~CaptureFb() override = default;
 
 protected:
     void addInterfaceInternal() override;

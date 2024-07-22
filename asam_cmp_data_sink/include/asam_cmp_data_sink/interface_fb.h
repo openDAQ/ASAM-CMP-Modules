@@ -17,8 +17,8 @@
 #pragma once
 #include <asam_cmp/interface_status.h>
 #include <asam_cmp_common_lib/id_manager.h>
-#include <asam_cmp_data_sink/common.h>
 #include <asam_cmp_common_lib/interface_common_fb.h>
+#include <asam_cmp_data_sink/common.h>
 
 #include <opendaq/context_factory.h>
 #include <opendaq/function_block_impl.h>
@@ -29,14 +29,14 @@ class InterfaceFb final : public asam_cmp_common_lib::InterfaceCommonFb
 {
 public:
     explicit InterfaceFb(const ContextPtr& ctx,
-                             const ComponentPtr& parent,
-                             const StringPtr& localId,
-                             const asam_cmp_common_lib::AsamCmpInterfaceCommonInit& init);
+                         const ComponentPtr& parent,
+                         const StringPtr& localId,
+                         const asam_cmp_common_lib::InterfaceCommonInit& init);
     explicit InterfaceFb(const ContextPtr& ctx,
-                             const ComponentPtr& parent,
-                             const StringPtr& localId,
-                             const asam_cmp_common_lib::AsamCmpInterfaceCommonInit& init,
-                             ASAM::CMP::InterfaceStatus&& ifStatus);
+                         const ComponentPtr& parent,
+                         const StringPtr& localId,
+                         const asam_cmp_common_lib::InterfaceCommonInit& init,
+                         ASAM::CMP::InterfaceStatus&& ifStatus);
 
     ~InterfaceFb() override = default;
 

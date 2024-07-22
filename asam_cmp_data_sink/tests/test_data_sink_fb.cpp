@@ -14,10 +14,10 @@ using ASAM::CMP::CaptureModulePayload;
 using ASAM::CMP::InterfacePayload;
 using ASAM::CMP::Packet;
 
-class AsamCmpDataSinkFbFixture : public ::testing::Test
+class DataSinkFbFixture : public ::testing::Test
 {
 protected:
-    AsamCmpDataSinkFbFixture()
+    DataSinkFbFixture()
     {
         auto logger = Logger();
         createModule(&module, Context(Scheduler(logger), logger, TypeManager(), nullptr));
@@ -54,14 +54,14 @@ protected:
     std::shared_ptr<Packet> ifPacket;
 };
 
-TEST_F(AsamCmpDataSinkFbFixture, NotNull)
+TEST_F(DataSinkFbFixture, NotNull)
 {
     ASSERT_NE(module, nullptr);
     ASSERT_NE(funcBlock, nullptr);
     ASSERT_NE(statusHandler, nullptr);
 }
 
-TEST_F(AsamCmpDataSinkFbFixture, FunctionBlockType)
+TEST_F(DataSinkFbFixture, FunctionBlockType)
 {
     auto type = funcBlock.getFunctionBlockType();
     ASSERT_EQ(type.getId(), "asam_cmp_data_sink");
@@ -69,7 +69,7 @@ TEST_F(AsamCmpDataSinkFbFixture, FunctionBlockType)
     ASSERT_EQ(type.getDescription(), "ASAM CMP Data Sink");
 }
 
-TEST_F(AsamCmpDataSinkFbFixture, AddCaptureModuleFromStatus)
+TEST_F(DataSinkFbFixture, AddCaptureModuleFromStatus)
 {
     auto proc = daq::Procedure([]() {});
     EXPECT_THROW(funcBlock.setPropertyValue("AddCaptureModuleFromStatus", proc), daq::AccessDeniedException);
@@ -112,7 +112,7 @@ TEST_F(AsamCmpDataSinkFbFixture, AddCaptureModuleFromStatus)
     ASSERT_EQ(interfaceFb.getFunctionBlocks(search::LocalId("asam_cmp_stream_10")).getCount(), 1);
 }
 
-TEST_F(AsamCmpDataSinkFbFixture, AddCaptureModuleEmpty)
+TEST_F(DataSinkFbFixture, AddCaptureModuleEmpty)
 {
     auto proc = daq::Procedure([]() {});
     EXPECT_THROW(funcBlock.setPropertyValue("AddCaptureModuleEmpty", proc), daq::AccessDeniedException);
@@ -123,7 +123,7 @@ TEST_F(AsamCmpDataSinkFbFixture, AddCaptureModuleEmpty)
     ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 2);
 }
 
-TEST_F(AsamCmpDataSinkFbFixture, RemoveCaptureModule)
+TEST_F(DataSinkFbFixture, RemoveCaptureModule)
 {
     auto proc = daq::Procedure([]() {});
     EXPECT_THROW(funcBlock.setPropertyValue("RemoveCaptureModule", proc), daq::AccessDeniedException);

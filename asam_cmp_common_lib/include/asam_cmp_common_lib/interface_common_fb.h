@@ -24,11 +24,11 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_COMMON
 
-struct AsamCmpInterfaceCommonInit
+struct InterfaceCommonInit
 {
     const uint32_t id;
-    AsamCmpInterfaceIdManagerPtr interfaceIdManager;
-    AsamCmpStreamIdManagerPtr streamIdManager;
+    InterfaceIdManagerPtr interfaceIdManager;
+    StreamIdManagerPtr streamIdManager;
 };
 
 class InterfaceCommonFb : public FunctionBlock
@@ -37,7 +37,7 @@ public:
     explicit InterfaceCommonFb(const ContextPtr& ctx,
                                    const ComponentPtr& parent,
                                    const StringPtr& localId,
-                                   const AsamCmpInterfaceCommonInit& init);
+                                   const InterfaceCommonInit& init);
     ~InterfaceCommonFb() override = default;
     static FunctionBlockTypePtr CreateType();
 
@@ -53,8 +53,8 @@ private:
     void initProperties();
 
 protected:
-    AsamCmpInterfaceIdManagerPtr interfaceIdManager;
-    AsamCmpStreamIdManagerPtr streamIdManager;
+    InterfaceIdManagerPtr interfaceIdManager;
+    StreamIdManagerPtr streamIdManager;
     uint32_t id;
     ASAM::CMP::PayloadType payloadType;
 
@@ -66,7 +66,7 @@ protected:
 template <class Impl, typename... Params>
 void InterfaceCommonFb::addStreamWithParams(uint8_t streamId, Params&&... params)
 {
-    AsamCmpStreamCommonInit init{streamId, payloadType, streamIdManager};
+    StreamCommonInit init{streamId, payloadType, streamIdManager};
 
     StringPtr fbId = fmt::format("asam_cmp_stream_{}", streamId);
     auto newFb = createWithImplementation<IFunctionBlock, Impl>(context, functionBlocks, fbId, init, std::forward<Params>(params)...);

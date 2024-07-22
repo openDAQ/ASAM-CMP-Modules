@@ -9,18 +9,18 @@
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
 InterfaceFb::InterfaceFb(const ContextPtr& ctx,
-                                 const ComponentPtr& parent,
-                                 const StringPtr& localId,
-                                 const asam_cmp_common_lib::AsamCmpInterfaceCommonInit& init)
+                         const ComponentPtr& parent,
+                         const StringPtr& localId,
+                         const asam_cmp_common_lib::InterfaceCommonInit& init)
     : InterfaceCommonFb(ctx, parent, localId, init)
 {
 }
 
 InterfaceFb::InterfaceFb(const ContextPtr& ctx,
-                                 const ComponentPtr& parent,
-                                 const StringPtr& localId,
-                                 const asam_cmp_common_lib::AsamCmpInterfaceCommonInit& init,
-                                 ASAM::CMP::InterfaceStatus&& ifStatus)
+                         const ComponentPtr& parent,
+                         const StringPtr& localId,
+                         const asam_cmp_common_lib::InterfaceCommonInit& init,
+                         ASAM::CMP::InterfaceStatus&& ifStatus)
     : InterfaceCommonFb(ctx, parent, localId, init)
     , interfaceStatus(std::move(ifStatus))
 {

@@ -7,7 +7,7 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-StreamFb::StreamFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, const asam_cmp_common_lib::AsamCmpStreamCommonInit& init)
+StreamFb::StreamFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, const asam_cmp_common_lib::StreamCommonInit& init)
     : StreamCommonFb(ctx, parent, localId, init)
 {
 }

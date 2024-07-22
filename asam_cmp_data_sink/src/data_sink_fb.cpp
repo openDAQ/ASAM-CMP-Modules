@@ -6,7 +6,7 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-DataSinkFbImpl::DataSinkFbImpl(const ContextPtr& ctx,
+DataSinkFb::DataSinkFb(const ContextPtr& ctx,
                                              const ComponentPtr& parent,
                                              const StringPtr& localId,
                                              StatusMt statusMt)
@@ -16,34 +16,34 @@ DataSinkFbImpl::DataSinkFbImpl(const ContextPtr& ctx,
     initProperties();
 }
 
-FunctionBlockTypePtr DataSinkFbImpl::CreateType()
+FunctionBlockTypePtr DataSinkFb::CreateType()
 {
     return FunctionBlockType("asam_cmp_data_sink", "AsamCmpDataSink", "ASAM CMP Data Sink");
 }
 
-void DataSinkFbImpl::addCaptureModuleFromStatus(int index)
+void DataSinkFb::addCaptureModuleFromStatus(int index)
 {
     auto deviceStatus = status.getDeviceStatus(index);
     const StringPtr fbId = fmt::format("capture_module_{}", captureModuleId);
-    const auto newFb = createWithImplementation<IFunctionBlock, CaptureModuleFb>(context, functionBlocks, fbId, std::move(deviceStatus));
+    const auto newFb = createWithImplementation<IFunctionBlock, CaptureFb>(context, functionBlocks, fbId, std::move(deviceStatus));
     functionBlocks.addItem(newFb);
     ++captureModuleId;
 }
 
-void DataSinkFbImpl::addCaptureModuleEmpty()
+void DataSinkFb::addCaptureModuleEmpty()
 {
     const StringPtr fbId = fmt::format("capture_module_{}", captureModuleId);
-    const auto newFb = createWithImplementation<IFunctionBlock, CaptureModuleFb>(context, functionBlocks, fbId);
+    const auto newFb = createWithImplementation<IFunctionBlock, CaptureFb>(context, functionBlocks, fbId);
     functionBlocks.addItem(newFb);
     ++captureModuleId;
 }
 
-void DataSinkFbImpl::removeCaptureModule(int fbIndex)
+void DataSinkFb::removeCaptureModule(int fbIndex)
 {
     functionBlocks.removeItem(functionBlocks.getItems().getItemAt(fbIndex));
 }
 
-void DataSinkFbImpl::initProperties()
+void DataSinkFb::initProperties()
 {
     StringPtr propName = "AddCaptureModuleFromStatus";
     auto arguments = List<IArgumentInfo>(ArgumentInfo("index", ctInt));
