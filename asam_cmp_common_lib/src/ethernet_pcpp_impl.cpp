@@ -6,17 +6,11 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_COMMON
 
-namespace
-{
-    const pcpp::MacAddress broadcastMac{"FF:FF:FF:FF:FF:FF"};
-    constexpr uint16_t asamCmpEtherType = 0x99FE;
-}
-
 void setFilters(pcpp::PcapLiveDevice* device)
 {
     // create a filters
-    pcpp::MacAddressFilter macAddressFilter{broadcastMac, pcpp::Direction(pcpp::DST)};
-    pcpp::EtherTypeFilter ethernetTypeFilter(asamCmpEtherType);
+    pcpp::MacAddressFilter macAddressFilter{EthernetPcppImpl::broadcastMac, pcpp::Direction(pcpp::DST)};
+    pcpp::EtherTypeFilter ethernetTypeFilter(EthernetPcppImpl::asamCmpEtherType);
 
     // create an AND filter to combine both filters
     pcpp::AndFilter andFilter;

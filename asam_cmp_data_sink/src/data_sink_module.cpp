@@ -18,7 +18,7 @@ DictPtr<IString, IFunctionBlockType> DataSinkModule::onGetAvailableFunctionBlock
 {
     auto types = Dict<IString, IFunctionBlockType>();
 
-    auto typeStatistics = DataSinkModuleFbImpl::CreateType();
+    auto typeStatistics = DataSinkModuleFb::CreateType();
     types.set(typeStatistics.getId(), typeStatistics);
 
     return types;
@@ -29,9 +29,9 @@ FunctionBlockPtr DataSinkModule::onCreateFunctionBlock(const StringPtr& id,
                                                               const StringPtr& localId,
                                                               const PropertyObjectPtr& config)
 {
-    if (id == DataSinkModuleFbImpl::CreateType().getId())
+    if (id == DataSinkModuleFb::CreateType().getId())
     {
-        FunctionBlockPtr fb = createWithImplementation<IFunctionBlock, DataSinkModuleFbImpl>(context, parent, localId);
+        FunctionBlockPtr fb = DataSinkModuleFb::create(context, parent, localId);
         return fb;
     }
 

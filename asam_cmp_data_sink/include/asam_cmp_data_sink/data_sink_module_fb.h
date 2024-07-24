@@ -17,38 +17,34 @@
 #pragma once
 #include <PcapLiveDeviceList.h>
 #include <asam_cmp/decoder.h>
-#include <opendaq/function_block_impl.h>
+#include <asam_cmp_common_lib/network_manager_fb.h>
 
 #include <asam_cmp_data_sink/common.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-class DataSinkModuleFbImpl final : public FunctionBlock
+class DataSinkModuleFb final : public asam_cmp_common_lib::NetworkManagerFb
 {
 public:
-    explicit DataSinkModuleFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
-    ~DataSinkModuleFbImpl() override;
+    explicit DataSinkModuleFb(const ContextPtr& ctx,
+                                  const ComponentPtr& parent,
+                                  const StringPtr& localId,
+                                  const std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf>& ethernetWrapper);
+    ~DataSinkModuleFb() override;
 
     static FunctionBlockTypePtr CreateType();
+    static FunctionBlockPtr create(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
 
 private:
-    void initProperties();
-    void addNetworkAdaptersProperty();
     void createFbs();
     void startCapture();
     void stopCapture();
     void onPacketArrives(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie);
     std::vector<std::shared_ptr<ASAM::CMP::Packet>> decode(pcpp::RawPacket* packet);
 
-    static void addDeviceDescription(ListPtr<StringPtr>& devicesNames, const StringPtr& name);
+    void networkAdapterChangedInternal() override;
 
 private:
-    inline static const pcpp::MacAddress broadcastMac{"FF:FF:FF:FF:FF:FF"};
-    static constexpr uint16_t asamCmpEtherType = 0x99FE;
-
-private:
-    pcpp::PcapLiveDeviceList& pcapDeviceList{pcpp::PcapLiveDeviceList::getInstance()};
-    pcpp::PcapLiveDevice* pcapLiveDevice{nullptr};
     ASAM::CMP::Decoder decoder;
 };
 

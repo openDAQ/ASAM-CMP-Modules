@@ -15,13 +15,11 @@
  */
 
 #pragma once
-#include <asam_cmp_common_lib/ethernet_itf.h>
-#include <PcapLiveDeviceList.h>
-#include <coreobjects/callable_info_factory.h>
+#include <asam_cmp_common_lib/ethernet_pcpp_itf.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_COMMON
 
-class EthernetPcppImpl : public EthernetItf<std::function<void(pcpp::RawPacket*, pcpp::PcapLiveDevice*, void*)>>
+class EthernetPcppImpl : public EthernetPcppItf
 {
 public:
     ListPtr<StringPtr> getEthernetDevicesNamesList() override;
@@ -34,6 +32,10 @@ public:
 
 private:
     pcpp::PcapLiveDevice* getPcapLiveDevice(StringPtr deviceName);
+
+public:
+    inline static const pcpp::MacAddress broadcastMac{"FF:FF:FF:FF:FF:FF"};
+    static constexpr uint16_t asamCmpEtherType = 0x99FE;
 
 private:
     pcpp::PcapLiveDeviceList& pcapDeviceList{pcpp::PcapLiveDeviceList::getInstance()};

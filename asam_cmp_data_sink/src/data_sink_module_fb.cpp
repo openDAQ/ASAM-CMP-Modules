@@ -6,57 +6,43 @@
 #include <asam_cmp_data_sink/data_sink_module_fb.h>
 #include <asam_cmp_data_sink/status_fb_impl.h>
 
+#include <asam_cmp_common_lib/ethernet_pcpp_impl.h>
+
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-DataSinkModuleFbImpl::DataSinkModuleFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId)
-    : FunctionBlock(CreateType(), ctx, parent, localId)
+DataSinkModuleFb::DataSinkModuleFb(const ContextPtr& ctx,
+                                           const ComponentPtr& parent,
+                                           const StringPtr& localId,
+                                           const std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf>& ethernetWrapper)
+    : asam_cmp_common_lib::NetworkManagerFb(CreateType(), ctx, parent, localId, ethernetWrapper)
 {
-    initProperties();
     createFbs();
     startCapture();
 }
 
-DataSinkModuleFbImpl::~DataSinkModuleFbImpl()
+FunctionBlockPtr DataSinkModuleFb::create(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId)
+{
+    std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf> ptr = std::make_shared<asam_cmp_common_lib::EthernetPcppImpl>();
+    auto fb = createWithImplementation<IFunctionBlock, DataSinkModuleFb>(ctx, parent, localId, ptr);
+    return fb;
+}
+
+DataSinkModuleFb::~DataSinkModuleFb()
 {
     stopCapture();
 }
 
-FunctionBlockTypePtr DataSinkModuleFbImpl::CreateType()
+void DataSinkModuleFb::networkAdapterChangedInternal()
+{
+    startCapture();
+}
+
+FunctionBlockTypePtr DataSinkModuleFb::CreateType()
 {
     return FunctionBlockType("asam_cmp_data_sink_module", "DataSinkModule", "ASAM CMP Data Sink Module");
 }
 
-void DataSinkModuleFbImpl::initProperties()
-{
-    addNetworkAdaptersProperty();
-}
-
-void DataSinkModuleFbImpl::addNetworkAdaptersProperty()
-{
-    auto& deviceList = pcapDeviceList.getPcapLiveDevicesList();
-    ListPtr<StringPtr> devicesDescriptions = List<IString>();
-    ListPtr<StringPtr> devicesNames = List<IString>();
-    for (const auto& device : deviceList)
-    {
-        addDeviceDescription(devicesDescriptions, device->getDesc());
-        devicesNames.pushBack(device->getName());
-    }
-
-    StringPtr propName = "NetworkAdaptersNames";
-    auto prop = SelectionPropertyBuilder(propName, devicesNames, 0).setVisible(false).build();
-    objPtr.addProperty(prop);
-
-    propName = "NetworkAdapters";
-    prop = SelectionPropertyBuilder(propName, devicesDescriptions, 0).build();
-    objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) += [this, propName](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args)
-    {
-        objPtr.setPropertyValue("NetworkAdaptersNames", objPtr.getPropertyValue(propName));
-        startCapture();
-    };
-}
-
-void DataSinkModuleFbImpl::createFbs()
+void DataSinkModuleFb::createFbs()
 {
     const StringPtr statusId = "asam_cmp_status";
     auto newFb = createWithImplementation<IFunctionBlock, StatusFbImpl>(context, functionBlocks, statusId);
@@ -68,47 +54,24 @@ void DataSinkModuleFbImpl::createFbs()
     functionBlocks.addItem(newFb);
 }
 
-void DataSinkModuleFbImpl::startCapture()
+void DataSinkModuleFb::startCapture()
 {
     std::scoped_lock lock{sync};
 
     stopCapture();
 
-    std::string deviceName = objPtr.getPropertySelectionValue("NetworkAdaptersNames");
-    pcapLiveDevice = pcapDeviceList.getPcapLiveDeviceByName(deviceName);
-    if (!pcapLiveDevice)
-    {
-        std::string err = fmt::format("Can't find device {}", deviceName);
-        throw std::invalid_argument(err);
-    }
-    if (!pcapLiveDevice->open())
-    {
-        std::string err = fmt::format("Can't open device {}", deviceName);
-        throw std::invalid_argument(err);
-    }
-
-    // create a filters
-    pcpp::MacAddressFilter macAddressFilter{broadcastMac, pcpp::Direction(pcpp::DST)};
-    pcpp::EtherTypeFilter ethernetTypeFilter(asamCmpEtherType);
-
-    // create an AND filter to combine both filters
-    pcpp::AndFilter andFilter;
-    andFilter.addFilter(&macAddressFilter);
-    andFilter.addFilter(&ethernetTypeFilter);
-    // set the filter on the device
-    pcapLiveDevice->setFilter(andFilter);
-
-    pcapLiveDevice->startCapture(
-        [this](pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie) { onPacketArrives(packet, dev, cookie); }, nullptr);
+    ethernetWrapper->startCapture(
+        selectedEthernetDeviceName,
+        [this](pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie) { onPacketArrives(packet, dev, cookie); }
+    );
 }
 
-void DataSinkModuleFbImpl::stopCapture()
+void DataSinkModuleFb::stopCapture()
 {
-    if (pcapLiveDevice)
-        pcapLiveDevice->stopCapture();
+    ethernetWrapper->stopCapture(selectedEthernetDeviceName);
 }
 
-void DataSinkModuleFbImpl::onPacketArrives(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie)
+void DataSinkModuleFb::onPacketArrives(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie)
 {
     auto acPackets = decode(packet);
 
@@ -127,22 +90,14 @@ void DataSinkModuleFbImpl::onPacketArrives(pcpp::RawPacket* packet, pcpp::PcapLi
     }
 }
 
-std::vector<std::shared_ptr<ASAM::CMP::Packet>> DataSinkModuleFbImpl::decode(pcpp::RawPacket* packet)
+std::vector<std::shared_ptr<ASAM::CMP::Packet>> DataSinkModuleFb::decode(pcpp::RawPacket* packet)
 {
     pcpp::Packet parsedPacket(packet);
     pcpp::EthLayer* ethLayer = static_cast<pcpp::EthLayer*>(parsedPacket.getLayerOfType(pcpp::Ethernet));
-    assert(ethLayer->getDestMac() == broadcastMac);
-    assert(ethLayer->getEthHeader()->etherType == asamCmpEtherType);
+    assert(ethLayer->getDestMac() == asam_cmp_common_lib::EthernetPcppImpl::broadcastMac);
+    assert(ethLayer->getEthHeader()->etherType == asam_cmp_common_lib::EthernetPcppImpl::asamCmpEtherType);
 
     return decoder.decode(ethLayer->getLayerPayload(), ethLayer->getLayerPayloadSize());
-}
-
-void DataSinkModuleFbImpl::addDeviceDescription(ListPtr<StringPtr>& devicesNames, const StringPtr& name)
-{
-    StringPtr newName = name;
-    for (size_t index = 1; std::find(devicesNames.begin(), devicesNames.end(), newName) != devicesNames.end(); ++index)
-        newName = fmt::format("{} {}", name, index);
-    devicesNames.pushBack(newName);
 }
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
