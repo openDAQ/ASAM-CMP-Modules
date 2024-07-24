@@ -19,24 +19,22 @@
 #include <asam_cmp_capture_module/common.h>
 #include <opendaq/context_factory.h>
 #include <opendaq/function_block_impl.h>
-#include <asam_cmp_common_lib/ethernet_pcpp_impl.h>
+#include <asam_cmp_common_lib/network_manager_fb.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-class CaptureModuleFb final : public FunctionBlock
+class CaptureModuleFb final : public asam_cmp_common_lib::NetworkManagerFb
 {
 public:
-    explicit CaptureModuleFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
+    explicit CaptureModuleFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, const std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf>& ethernetWrapper);
     ~CaptureModuleFb() override = default;
 
     static FunctionBlockTypePtr CreateType();
+    static FunctionBlockPtr create(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
 
 private:
-    void initProperties();
     void createFbs();
-
-private:
-    asam_cmp_common_lib::EthernetPcppImpl ethernetImpl;
+    void networkAdapterChangedInternal() override;
 };
 
 

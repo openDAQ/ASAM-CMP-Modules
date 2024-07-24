@@ -5,7 +5,7 @@
 #include <opendaq/scheduler_factory.h>
 #include <gtest/gtest.h>
 
-using AsamCmpInterfaceTest = testing::Test;
+using InterfaceFbTest = testing::Test;
 using namespace daq;
 
 static FunctionBlockPtr createAsamCmpInterface()
@@ -23,13 +23,13 @@ static FunctionBlockPtr createAsamCmpInterface()
     return captureModule.getFunctionBlocks().getItemAt(0);
 }
 
-TEST_F(AsamCmpInterfaceTest, CreateInterface)
+TEST_F(InterfaceFbTest, CreateInterface)
 {
     auto asamCmpCapture = createAsamCmpInterface();
     ASSERT_NE(asamCmpCapture, nullptr);
 }
 
-TEST_F(AsamCmpInterfaceTest, CaptureModuleProperties)
+TEST_F(InterfaceFbTest, CaptureModuleProperties)
 {
     auto asamCmpCapture = createAsamCmpInterface();
 
@@ -39,7 +39,7 @@ TEST_F(AsamCmpInterfaceTest, CaptureModuleProperties)
     ASSERT_TRUE(asamCmpCapture.hasProperty("RemoveStream"));
 }
 
-TEST_F(AsamCmpInterfaceTest, TestSetId)
+TEST_F(InterfaceFbTest, TestSetId)
 {
     ModulePtr module;
     auto logger = Logger();

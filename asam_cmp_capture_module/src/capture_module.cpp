@@ -31,7 +31,7 @@ FunctionBlockPtr CaptureModule::onCreateFunctionBlock(const StringPtr& id,
 {
     if (id == CaptureModuleFb::CreateType().getId())
     {
-        FunctionBlockPtr fb = createWithImplementation<IFunctionBlock, CaptureModuleFb>(context, parent, localId);
+        FunctionBlockPtr fb = CaptureModuleFb::create(context, parent, localId);
         return fb;
     }
 

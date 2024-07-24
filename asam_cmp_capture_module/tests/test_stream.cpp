@@ -7,7 +7,7 @@
 
 using namespace daq;
 
-class AsamCmpStreamTest: public testing::Test
+class StreamFbTest: public testing::Test
 {
     protected:
     void SetUp() {
@@ -28,7 +28,7 @@ protected:
     FunctionBlockPtr interface;
 };
 
-TEST_F(AsamCmpStreamTest, CreateStream)
+TEST_F(StreamFbTest, CreateStream)
 {
     ProcedurePtr createProc = interface.getPropertyValue("AddStream");
     interface.setPropertyValue("PayloadType", 1);
