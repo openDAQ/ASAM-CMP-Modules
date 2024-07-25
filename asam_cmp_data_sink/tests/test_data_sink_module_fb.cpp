@@ -2,17 +2,47 @@
 #include <gtest/gtest.h>
 #include <opendaq/context_factory.h>
 #include <opendaq/scheduler_factory.h>
+#include <asam_cmp_common_lib/ethernet_pcpp_mock.h>
+#include <asam_cmp_common_lib/network_manager_fb.h>
+#include <asam_cmp_data_sink/data_sink_module_fb.h>
 
 using namespace daq;
+using ::testing::Return;
+using namespace testing;
 
 class DataSinkModuleFbFixture : public ::testing::Test
 {
 protected:
     DataSinkModuleFbFixture()
     {
+        ethernetWrapper = std::make_shared<asam_cmp_common_lib::EthernetPcppMock>();
+
+        names = List<IString>();
+        names.pushBack("name1");
+        names.pushBack("name2");
+
+        descriptions = List<IString>();
+        descriptions.pushBack("desc1");
+        descriptions.pushBack("desc2");
+
+        auto startStub = []() { };
+        auto stopStub = []() {};
+
+        ON_CALL(*ethernetWrapper, startCapture(_, _)).WillByDefault(startStub);
+        ON_CALL(*ethernetWrapper, stopCapture(_)).WillByDefault(stopStub);
+        ON_CALL(*ethernetWrapper, getEthernetDevicesNamesList()).WillByDefault(Return(names));
+        ON_CALL(*ethernetWrapper, getEthernetDevicesDescriptionsList()).WillByDefault(Return(descriptions));
+
+        EXPECT_CALL(*ethernetWrapper, startCapture(_, _)).Times(AtLeast(1));
+        EXPECT_CALL(*ethernetWrapper, stopCapture(_)).Times(AtLeast(1));
+        EXPECT_CALL(*ethernetWrapper, getEthernetDevicesNamesList()).Times(AtLeast(1));
+        EXPECT_CALL(*ethernetWrapper, getEthernetDevicesDescriptionsList()).Times(AtLeast(1));
+
         auto logger = Logger();
-        createModule(&module, Context(Scheduler(logger), logger, TypeManager(), nullptr));
-        funcBlock = module.createFunctionBlock("asam_cmp_data_sink_module", nullptr, "id");
+        context = Context(Scheduler(logger), logger, TypeManager(), nullptr);
+                    
+        funcBlock = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::DataSinkModuleFb>(
+            context, nullptr, "id", ethernetWrapper);
     }
 
 protected:
@@ -20,13 +50,18 @@ protected:
     void testProperty(const StringPtr& name, T newValue, bool success = true);
 
 protected:
-    ModulePtr module;
+    std::shared_ptr<asam_cmp_common_lib::EthernetPcppMock> ethernetWrapper;
+    ListPtr<StringPtr> names;
+    ListPtr<StringPtr> descriptions;
+
+    ContextPtr context;
     FunctionBlockPtr funcBlock;
 };
 
 TEST_F(DataSinkModuleFbFixture, NotNull)
 {
-    ASSERT_NE(module, nullptr);
+    ASSERT_NE(ethernetWrapper, nullptr);
+    ASSERT_NE(context, nullptr);
     ASSERT_NE(funcBlock, nullptr);
 }
 

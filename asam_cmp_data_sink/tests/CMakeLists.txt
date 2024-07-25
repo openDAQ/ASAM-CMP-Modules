@@ -1,7 +1,6 @@
 set(TEST_APP test_data_sink)
 
 set(TEST_SOURCES test_app.cpp
-                 test_data_sink_module.cpp
                  test_data_sink_module_fb.cpp
                  test_status_fb.cpp
                  test_data_sink_fb.cpp
@@ -15,7 +14,7 @@ add_executable(${TEST_APP} ${TEST_SOURCES}
 )
 
 target_link_libraries(${TEST_APP} PRIVATE daq::test_utils
-                                          asam_cmp_data_sink
+                                          asam_cmp_data_sink_lib
 )
 
 add_test(NAME ${TEST_APP}

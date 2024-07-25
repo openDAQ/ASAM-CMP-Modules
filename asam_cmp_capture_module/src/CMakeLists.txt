@@ -1,4 +1,4 @@
-project(AsamCmpCaptureModule
+project(asam_cmp_capture_module
         VERSION 1.0.0
         LANGUAGES CXX)
 
@@ -39,11 +39,6 @@ target_link_libraries(${LIB_NAME} PUBLIC daq::opendaq
                                           asam_cmp_common_lib
 )
 
-# if (MSVC)
-#     target_compile_definitions(${LIB_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
-#     target_compile_options(${LIB_NAME} PRIVATE /wd4100)
-# endif()
-
 target_include_directories(${LIB_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
                                                $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../include>
                                                $<INSTALL_INTERFACE:include>
@@ -60,3 +55,53 @@ install(TARGETS ${LIB_NAME}
         ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
         PUBLIC_HEADER DESTINATION include/${TARGET_FOLDER_NAME}
 )
+
+if (${REPO_OPTION_PREFIX}_ENABLE_TESTS)
+
+    set(SRC_Lib_Cpp capture_module_fb.cpp
+                    capture_module.cpp
+                    interface_fb.cpp
+                    stream_fb.cpp
+                    capture_fb.cpp
+    )
+
+    set(SRC_Lib_PublicHeaders capture_module_fb.h
+                            capture_module.h
+                            interface_fb.h
+                            stream_fb.h
+                            capture_fb.h
+    )
+
+    set(SRC_Lib_PrivateHeaders encoder_bank.h
+    )
+
+    prepend_include(${TARGET_FOLDER_NAME} SRC_Lib_PrivateHeaders)
+    prepend_include(${TARGET_FOLDER_NAME} SRC_Lib_PublicHeaders)
+
+    add_library(${PROJECT_NAME}_lib STATIC
+        ${SRC_Lib_Cpp}
+        ${SRC_Lib_PublicHeaders}
+        ${SRC_Lib_PrivateHeaders}
+    )
+
+    target_link_libraries(${PROJECT_NAME}_lib PUBLIC daq::opendaq
+                                                Pcap++
+                                                asam_cmp
+                                                asam_cmp_common_lib
+    )
+
+    target_include_directories(${PROJECT_NAME}_lib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+                                                        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../include>
+                                                        $<INSTALL_INTERFACE:include>
+    )
+
+    set_target_properties(${PROJECT_NAME}_lib PROPERTIES PUBLIC_HEADER "${SRC_PublicHeaders}")
+
+    install(TARGETS ${PROJECT_NAME}_lib
+            RUNTIME DESTINATION ${INSTALL_BIN_DIR}
+            LIBRARY DESTINATION ${INSTALL_LIB_DIR}
+            ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
+            PUBLIC_HEADER DESTINATION include/${TARGET_FOLDER_NAME}
+    )
+
+endif()

@@ -17,18 +17,7 @@ int main(int argc, char** args)
     daqInitModuleManagerLibrary();
 
     testing::InitGoogleTest(&argc, args);
-
-    try
-    {
-        ModulePtr module;
-        createModule(&module, NullContext());
-        module.createFunctionBlock("asam_cmp_capture_module_fb", nullptr, "id");
-    }
-    catch (std::exception& e)
-    {
-        std::cerr << e.what();
-    }
-
+    
     testing::TestEventListeners& listeners = testing::UnitTest::GetInstance()->listeners();
     listeners.Append(new DaqMemCheckListener());
 

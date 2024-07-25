@@ -1,5 +1,5 @@
 #include <asam_cmp_data_sink/common.h>
-#include <asam_cmp_data_sink/module_dll.h>
+#include <asam_cmp_data_sink/capture_fb.h>
 
 #include <gtest/gtest.h>
 #include <opendaq/context_factory.h>
@@ -9,26 +9,13 @@
 
 using AsamCmpInterfaceTest = testing::Test;
 using namespace daq;
+using namespace testing;
 
 static FunctionBlockPtr createAsamCmpInterface()
 {
-    ModulePtr module;
     auto logger = Logger();
-    createModule(&module, Context(Scheduler(logger), logger, nullptr, nullptr, nullptr));
-
-    FunctionBlockPtr captureModule, fb;
-    auto fbs = module.getAvailableFunctionBlockTypes();
-    if (fbs.hasKey("asam_cmp_capture"))
-    {
-        fb = module.createFunctionBlock("asam_cmp_capture", nullptr, "id");
-    }
-    else
-    {
-        fb = module.createFunctionBlock("asam_cmp_data_sink_module", nullptr, "id");
-        auto dataSink = fb.getFunctionBlocks(search::Recursive(search::LocalId("asam_cmp_data_sink")))[0];
-        dataSink.getPropertyValue("AddCaptureModuleEmpty").execute();
-    }
-    captureModule = fb.getFunctionBlocks(search::Recursive(search::LocalId("capture_module_0")))[0];
+    FunctionBlockPtr captureModule = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
+        Context(Scheduler(logger), logger, nullptr, nullptr, nullptr), nullptr, "capture_module_0");
 
     ProcedurePtr createProc = captureModule.getPropertyValue("AddInterface");
     createProc();
@@ -54,23 +41,9 @@ TEST_F(AsamCmpInterfaceTest, CaptureModuleProperties)
 
 TEST_F(AsamCmpInterfaceTest, TestSetId)
 {
-    ModulePtr module;
     auto logger = Logger();
-    createModule(&module, Context(Scheduler(logger), logger, nullptr, nullptr, nullptr));
-
-    FunctionBlockPtr captureModule, fb;
-    auto fbs = module.getAvailableFunctionBlockTypes();
-    if (fbs.hasKey("asam_cmp_capture"))
-    {
-        fb = module.createFunctionBlock("asam_cmp_capture", nullptr, "id");
-    }
-    else
-    {
-        fb = module.createFunctionBlock("asam_cmp_data_sink_module", nullptr, "id");
-        auto dataSink = fb.getFunctionBlocks(search::Recursive(search::LocalId("asam_cmp_data_sink")))[0];
-        dataSink.getPropertyValue("AddCaptureModuleEmpty").execute();
-    }
-    captureModule = fb.getFunctionBlocks(search::Recursive(search::LocalId("capture_module_0")))[0];  
+    FunctionBlockPtr captureModule = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
+        Context(Scheduler(logger), logger, nullptr, nullptr, nullptr), nullptr, "capture_module_0");
 
     ProcedurePtr createProc = captureModule.getPropertyValue("AddInterface");
     createProc();

@@ -1,6 +1,6 @@
 set(TEST_APP test_capture_module)
 
-set(TEST_SOURCES test_capture_module.cpp
+set(TEST_SOURCES
                  test_interface.cpp
                  test_stream.cpp
                  test_capture_fb.cpp
@@ -11,7 +11,7 @@ add_executable(${TEST_APP} ${TEST_SOURCES}
 )
 
 target_link_libraries(${TEST_APP} PRIVATE daq::test_utils
-                                          asam_cmp_capture_module
+                                          asam_cmp_capture_module_lib
 )
 
 add_test(NAME ${TEST_APP}

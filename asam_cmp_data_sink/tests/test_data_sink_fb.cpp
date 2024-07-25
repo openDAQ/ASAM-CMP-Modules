@@ -1,5 +1,6 @@
 #include <asam_cmp_data_sink/status_handler.h>
-#include <asam_cmp_data_sink/module_dll.h>
+#include <asam_cmp_data_sink/data_sink_fb.h>
+#include <asam_cmp_data_sink/status_fb_impl.h>
 
 #include <asam_cmp/capture_module_payload.h>
 #include <asam_cmp/interface_payload.h>
@@ -20,11 +21,16 @@ protected:
     DataSinkFbFixture()
     {
         auto logger = Logger();
-        createModule(&module, Context(Scheduler(logger), logger, TypeManager(), nullptr));
-        dataSinkModuleFb = module.createFunctionBlock("asam_cmp_data_sink_module", nullptr, "id");
-        funcBlock = dataSinkModuleFb.getFunctionBlocks(search::Recursive(search::LocalId("asam_cmp_data_sink")))[0];
-        auto statusFb = dataSinkModuleFb.getFunctionBlocks(search::Recursive(search::LocalId("asam_cmp_status")))[0];
+        context = Context(Scheduler(logger), logger, TypeManager(), nullptr);
+        statusFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::StatusFbImpl>(
+            context, nullptr, "asam_cmp_status");
         statusHandler = statusFb.asPtrOrNull<IStatusHandler>();
+
+        funcBlock = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::DataSinkFb>(
+            context,
+            nullptr,
+            "asam_cmp_data_sink",
+            statusHandler->getStatusMt());
 
         CaptureModulePayload cmPayload;
         cmPayload.setData(deviceDescr, "", "", "", {});
@@ -45,9 +51,9 @@ protected:
     static constexpr std::string_view deviceDescr = "Device Description";
 
 protected:
-    ModulePtr module;
+    ContextPtr context;
     FunctionBlockPtr funcBlock;
-    FunctionBlockPtr dataSinkModuleFb;
+    FunctionBlockPtr statusFb;
     IStatusHandler* statusHandler;
 
     std::shared_ptr<Packet> cmPacket;
@@ -56,7 +62,6 @@ protected:
 
 TEST_F(DataSinkFbFixture, NotNull)
 {
-    ASSERT_NE(module, nullptr);
     ASSERT_NE(funcBlock, nullptr);
     ASSERT_NE(statusHandler, nullptr);
 }

@@ -7,7 +7,7 @@
 #include <opendaq/search_filter_factory.h>
 
 #include <asam_cmp_data_sink/status_handler.h>
-#include <asam_cmp_data_sink/module_dll.h>
+#include <asam_cmp_data_sink/status_fb_impl.h>
 
 using namespace daq;
 
@@ -23,9 +23,8 @@ protected:
     StatusFbFixture()
     {
         auto logger = Logger();
-        createModule(&module, Context(Scheduler(logger), logger, TypeManager(), nullptr));
-        auto dataSinkModuleFb = module.createFunctionBlock("asam_cmp_data_sink_module", nullptr, "id");
-        funcBlock = dataSinkModuleFb.getFunctionBlocks(search::Recursive(search::LocalId("asam_cmp_status")))[0];
+        funcBlock = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::StatusFbImpl>(
+            Context(Scheduler(logger), logger, TypeManager(), nullptr), nullptr, "asam_cmp_status");
 
         statusMt = std::make_unique<StatusMt>(funcBlock.asPtr<IStatusHandler>(true)->getStatusMt());
         cmPayload.setData(deviceDescr, "", "", "", {});
@@ -41,7 +40,6 @@ protected:
     bool checkDescription(const StringPtr& description, std::string_view deviceDescr, const uint16_t deviceId, size_t interfacesCount);
 
 protected:
-    ModulePtr module;
     FunctionBlockPtr funcBlock;
 
     CaptureModulePayload cmPayload;
@@ -55,7 +53,6 @@ protected:
 
 TEST_F(StatusFbFixture, NotNull)
 {
-    ASSERT_NE(module, nullptr);
     ASSERT_NE(funcBlock, nullptr);
 }
 

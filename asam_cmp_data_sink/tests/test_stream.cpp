@@ -1,5 +1,5 @@
 #include <asam_cmp_data_sink/common.h>
-#include <asam_cmp_data_sink/module_dll.h>
+#include <asam_cmp_data_sink/capture_fb.h>
 
 #include <gtest/gtest.h>
 #include <opendaq/context_factory.h>
@@ -8,6 +8,7 @@
 #include <opendaq/search_filter_factory.h>
 
 using namespace daq;
+using namespace testing;
 
 class AsamCmpStreamTest : public testing::Test
 {
@@ -15,32 +16,17 @@ protected:
     void SetUp()
     {
         auto logger = Logger();
-        createModule(&module, Context(Scheduler(logger), logger, nullptr, nullptr, nullptr));
+        captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
+            Context(Scheduler(logger), logger, nullptr, nullptr, nullptr), nullptr, "capture_module_0");
 
-        auto fbs = module.getAvailableFunctionBlockTypes();
-        if (fbs.hasKey("asam_cmp_capture"))
-        {
-            rootFb = module.createFunctionBlock("asam_cmp_capture", nullptr, "id");
-            captureModule = rootFb.getFunctionBlocks().getItemAt(0);
-        }
-        else
-        {
-            rootFb = module.createFunctionBlock("asam_cmp_data_sink_module", nullptr, "id");
-            dataSink = rootFb.getFunctionBlocks(search::Recursive(search::LocalId("asam_cmp_data_sink")))[0];
-            dataSink.getPropertyValue("AddCaptureModuleEmpty").execute();
-        }
-        captureModule = rootFb.getFunctionBlocks(search::Recursive(search::LocalId("capture_module_0")))[0];
-
-        ProcedurePtr createProc = captureModule.getPropertyValue("AddInterface");
+        ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
         createProc();
-        interface = captureModule.getFunctionBlocks().getItemAt(0);
+
+        interface = captureFb.getFunctionBlocks().getItemAt(0);
     }
 
 protected:
-    ModulePtr module;
-    FunctionBlockPtr rootFb;
-    FunctionBlockPtr dataSink;
-    FunctionBlockPtr captureModule;
+    FunctionBlockPtr captureFb;
     FunctionBlockPtr interface;
 };
 

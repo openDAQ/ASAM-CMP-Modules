@@ -13,6 +13,7 @@ set(SRC_PublicHeaders common.h
                       stream_common_fb_impl.h
                       ethernet_pcpp_impl.h
                       ethernet_pcpp_itf.h
+                      ethernet_pcpp_mock.h
                       ethernet_itf.h
                       network_manager_fb.h
 )
@@ -32,6 +33,7 @@ add_library(${PROJECT_NAME} STATIC
 target_link_libraries(${PROJECT_NAME} PUBLIC daq::opendaq
                                           Pcap++
                                           asam_cmp
+                                          daq::test_utils
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>

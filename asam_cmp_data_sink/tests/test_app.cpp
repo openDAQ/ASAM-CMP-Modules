@@ -15,7 +15,7 @@ int main(int argc, char** args)
 
     testing::InitGoogleTest(&argc, args);
 
-    try
+   /* try
     {
         ModulePtr module;
         createModule(&module, NullContext());
@@ -24,7 +24,7 @@ int main(int argc, char** args)
     catch (std::exception& e)
     {
         std::cerr << e.what();
-    }
+    }*/
 
     testing::TestEventListeners& listeners = testing::UnitTest::GetInstance()->listeners();
     listeners.Append(new DaqMemCheckListener());
