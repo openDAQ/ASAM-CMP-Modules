@@ -17,7 +17,7 @@ protected:
     {
         auto logger = Logger();
         captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
-            Context(Scheduler(logger), logger, nullptr, nullptr, nullptr), nullptr, "capture_module_0");
+            Context(Scheduler(logger), logger, nullptr, nullptr, nullptr), nullptr, "capture_module_0", callsMultiMap);
 
         ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
         createProc();
@@ -26,6 +26,7 @@ protected:
     }
 
 protected:
+    modules::asam_cmp_data_sink_module::CallsMultiMap callsMultiMap;
     FunctionBlockPtr captureFb;
     FunctionBlockPtr interface;
 };

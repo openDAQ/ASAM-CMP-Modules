@@ -8,49 +8,49 @@
 
 #include <asam_cmp_data_sink/capture_fb.h>
 
-using CaptureModuleTest = testing::Test;
 using namespace daq;
 
-static FunctionBlockPtr createAsamCmpCapture()
+class CaptureModuleTest : public testing::Test
 {
-    auto logger = Logger();
-    FunctionBlockPtr captureModule = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
-        Context(Scheduler(logger), logger, nullptr, nullptr, nullptr), nullptr, "capture_module_0");
+protected:
+    CaptureModuleTest()
+    {
+        auto logger = Logger();
+        captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
+            Context(Scheduler(logger), logger, nullptr, nullptr, nullptr), nullptr, "capture_module_0", callsMultiMap);
+    }
 
-    return captureModule;
-}
+protected:
+    modules::asam_cmp_data_sink_module::CallsMultiMap callsMultiMap;
+    FunctionBlockPtr captureFb;
+};
 
 TEST_F(CaptureModuleTest, CreateCaptureModule)
 {
-    auto asamCmpCapture = createAsamCmpCapture();
-    ASSERT_NE(asamCmpCapture, nullptr);
+    ASSERT_NE(captureFb, nullptr);
 }
 
 TEST_F(CaptureModuleTest, CaptureModuleProperties)
 {
-    auto asamCmpCapture = createAsamCmpCapture();
-
-    ASSERT_TRUE(asamCmpCapture.hasProperty("DeviceId"));
-    ASSERT_TRUE(asamCmpCapture.hasProperty("AddInterface"));
-    ASSERT_TRUE(asamCmpCapture.hasProperty("RemoveInterface"));
+    ASSERT_TRUE(captureFb.hasProperty("DeviceId"));
+    ASSERT_TRUE(captureFb.hasProperty("AddInterface"));
+    ASSERT_TRUE(captureFb.hasProperty("RemoveInterface"));
 }
 
 TEST_F(CaptureModuleTest, TestCreateInterface)
 {
-    auto asamCmpCapture = createAsamCmpCapture();
+    ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
 
-    ProcedurePtr createProc = asamCmpCapture.getPropertyValue("AddInterface");
-
-    ASSERT_EQ(asamCmpCapture.getFunctionBlocks().getCount(), 0);
+    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 0);
     createProc();
     createProc();
-    ASSERT_EQ(asamCmpCapture.getFunctionBlocks().getCount(), 2);
+    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 2);
 
-    int lstId = asamCmpCapture.getFunctionBlocks().getItemAt(1).getPropertyValue("InterfaceId");
+    int lstId = captureFb.getFunctionBlocks().getItemAt(1).getPropertyValue("InterfaceId");
 
-    ProcedurePtr removeProc = asamCmpCapture.getPropertyValue("RemoveInterface");
+    ProcedurePtr removeProc = captureFb.getPropertyValue("RemoveInterface");
     removeProc(0);
 
-    ASSERT_EQ(asamCmpCapture.getFunctionBlocks().getCount(), 1);
-    ASSERT_EQ(asamCmpCapture.getFunctionBlocks().getItemAt(0).getPropertyValue("InterfaceId"), lstId);
+    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 1);
+    ASSERT_EQ(captureFb.getFunctionBlocks().getItemAt(0).getPropertyValue("InterfaceId"), lstId);
 }

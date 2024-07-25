@@ -7,49 +7,50 @@
 #include <opendaq/scheduler_factory.h>
 #include <opendaq/search_filter_factory.h>
 
-using AsamCmpInterfaceTest = testing::Test;
 using namespace daq;
 using namespace testing;
 
-static FunctionBlockPtr createAsamCmpInterface()
+class AsamCmpInterfaceTest : public testing::Test
 {
-    auto logger = Logger();
-    FunctionBlockPtr captureModule = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
-        Context(Scheduler(logger), logger, nullptr, nullptr, nullptr), nullptr, "capture_module_0");
+protected:
+    AsamCmpInterfaceTest()
+    {
+        auto logger = Logger();
+        captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
+            Context(Scheduler(logger), logger, nullptr, nullptr, nullptr), nullptr, "capture_module_0", callsMultiMap);
 
-    ProcedurePtr createProc = captureModule.getPropertyValue("AddInterface");
-    createProc();
+        ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
+        createProc();
 
-    return captureModule.getFunctionBlocks().getItemAt(0);
-}
+        interfaceFb = captureFb.getFunctionBlocks().getItemAt(0);
+    }
+
+protected:
+    FunctionBlockPtr captureFb;
+    FunctionBlockPtr interfaceFb;
+    modules::asam_cmp_data_sink_module::CallsMultiMap callsMultiMap;
+};
 
 TEST_F(AsamCmpInterfaceTest, CreateInterface)
 {
-    auto asamCmpCapture = createAsamCmpInterface();
-    ASSERT_NE(asamCmpCapture, nullptr);
+    ASSERT_NE(interfaceFb, nullptr);
 }
 
 TEST_F(AsamCmpInterfaceTest, CaptureModuleProperties)
 {
-    auto asamCmpCapture = createAsamCmpInterface();
 
-    ASSERT_TRUE(asamCmpCapture.hasProperty("InterfaceId"));
-    ASSERT_TRUE(asamCmpCapture.hasProperty("PayloadType"));
-    ASSERT_TRUE(asamCmpCapture.hasProperty("AddStream"));
-    ASSERT_TRUE(asamCmpCapture.hasProperty("RemoveStream"));
+    ASSERT_TRUE(interfaceFb.hasProperty("InterfaceId"));
+    ASSERT_TRUE(interfaceFb.hasProperty("PayloadType"));
+    ASSERT_TRUE(interfaceFb.hasProperty("AddStream"));
+    ASSERT_TRUE(interfaceFb.hasProperty("RemoveStream"));
 }
 
 TEST_F(AsamCmpInterfaceTest, TestSetId)
 {
-    auto logger = Logger();
-    FunctionBlockPtr captureModule = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
-        Context(Scheduler(logger), logger, nullptr, nullptr, nullptr), nullptr, "capture_module_0");
-
-    ProcedurePtr createProc = captureModule.getPropertyValue("AddInterface");
-    createProc();
+    ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
     createProc();
 
-    FunctionBlockPtr itf1 = captureModule.getFunctionBlocks().getItemAt(0), itf2 = captureModule.getFunctionBlocks().getItemAt(1);
+    FunctionBlockPtr itf1 = captureFb.getFunctionBlocks().getItemAt(0), itf2 = captureFb.getFunctionBlocks().getItemAt(1);
 
     uint32_t id1 = itf1.getPropertyValue("InterfaceId"), id2 = itf2.getPropertyValue("InterfaceId");
     ASSERT_NE(id1, id2);

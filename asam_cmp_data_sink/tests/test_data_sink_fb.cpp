@@ -30,7 +30,8 @@ protected:
             context,
             nullptr,
             "asam_cmp_data_sink",
-            statusHandler->getStatusMt());
+            statusHandler->getStatusMt(),
+            callsMultiMap);
 
         CaptureModulePayload cmPayload;
         cmPayload.setData(deviceDescr, "", "", "", {});
@@ -51,6 +52,7 @@ protected:
     static constexpr std::string_view deviceDescr = "Device Description";
 
 protected:
+    modules::asam_cmp_data_sink_module::CallsMultiMap callsMultiMap;
     ContextPtr context;
     FunctionBlockPtr funcBlock;
     FunctionBlockPtr statusFb;
