@@ -6,17 +6,34 @@
 #include <opendaq/scheduler_factory.h>
 #include <gtest/gtest.h>
 
+#include <asam_cmp_common_lib/ethernet_pcpp_mock.h>
+
 using namespace daq;
+using namespace testing;
 
 class InterfaceFbTest: public testing::Test
 {
     protected:
-    void SetUp() {
+    InterfaceFbTest() : ethernetWrapper(std::make_shared<asam_cmp_common_lib::EthernetPcppMock>())
+    {
+        auto startStub = []() {};
+        auto stopStub = []() {};
+
+        auto sendPacketStub = [](StringPtr deviceName, const std::vector<uint8_t>& data) {};
+
+        ON_CALL(*ethernetWrapper, startCapture(_, _)).WillByDefault(startStub);
+        ON_CALL(*ethernetWrapper, stopCapture(_)).WillByDefault(stopStub);
+        ON_CALL(*ethernetWrapper, getEthernetDevicesNamesList()).WillByDefault(Return(names));
+        ON_CALL(*ethernetWrapper, getEthernetDevicesDescriptionsList()).WillByDefault(Return(descriptions));
+        ON_CALL(*ethernetWrapper, sendPacket(_, _)).WillByDefault(WithArgs<0, 1>(Invoke(sendPacketStub)));
+
         auto logger = Logger();
         context = Context(Scheduler(logger), logger, nullptr, nullptr, nullptr);
         const StringPtr captureModuleId = "asam_cmp_capture_fb";
-        captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_capture_module::CaptureFb>(
-            context, nullptr, captureModuleId);
+        selectedDevice = "device1";
+        modules::asam_cmp_capture_module::CaptureFbInit init = {ethernetWrapper, selectedDevice};
+        captureFb =
+            createWithImplementation<IFunctionBlock, modules::asam_cmp_capture_module::CaptureFb>(context, nullptr, captureModuleId, init);
 
         ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
         createProc();
@@ -24,6 +41,11 @@ class InterfaceFbTest: public testing::Test
         interfaceFb = captureFb.getFunctionBlocks().getItemAt(0);
     }
 protected:
+    std::shared_ptr<asam_cmp_common_lib::EthernetPcppMock> ethernetWrapper;
+    ListPtr<StringPtr> names;
+    ListPtr<StringPtr> descriptions;
+
+    StringPtr selectedDevice;
     ContextPtr context;
     FunctionBlockPtr captureFb;
     FunctionBlockPtr interfaceFb;

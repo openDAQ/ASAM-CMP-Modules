@@ -26,7 +26,9 @@ FunctionBlockTypePtr CaptureModuleFb::CreateType()
 void CaptureModuleFb::createFbs()
 {
     const StringPtr captureModuleId = "asam_cmp_capture_fb";
-    auto newFb = createWithImplementation<IFunctionBlock, CaptureFb>(context, functionBlocks, captureModuleId);
+    CaptureFbInit init{ethernetWrapper, selectedEthernetDeviceName};
+    auto newFb = createWithImplementation<IFunctionBlock, CaptureFb>(
+        context, functionBlocks, captureModuleId, init);
     functionBlocks.addItem(newFb);
 }
 

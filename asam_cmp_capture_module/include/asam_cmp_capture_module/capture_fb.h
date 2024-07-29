@@ -19,25 +19,57 @@
 #include <asam_cmp_capture_module/encoder_bank.h>
 #include <asam_cmp_capture_module/common.h>
 #include <asam_cmp_common_lib/capture_common_fb.h>
+#include <asam_cmp/capture_module_payload.h>
+
+namespace daq::asam_cmp_common_lib
+{
+    class EthernetPcppItf;
+}
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
+
+struct CaptureFbInit
+{
+    const std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf>& ethernetWrapper;
+    const StringPtr& selectedDeviceName;
+};
 
 class CaptureFb final : public daq::asam_cmp_common_lib::CaptureCommonFb
 {
 public:
-    explicit CaptureFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
-    ~CaptureFb() override = default;
+    explicit CaptureFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, const CaptureFbInit& init);
+    ~CaptureFb() override;
 
     static FunctionBlockTypePtr CreateType();
 
 private:
+    void initProperties();
     void initEncoders();
+    void initStatusPacket();
+    void updateCaptureData();
 
     void addInterfaceInternal() override;
 
+    void statusLoop();
+    void startStatusLoop();
+    void stopStatusLoop();
 
 private:
     EncoderBank encoders;
+    ASAM::CMP::Packet captureStatusPacket;
+    StringPtr deviceDescription;
+    StringPtr serialNumber;
+    StringPtr hardwareVersion;
+    StringPtr softwareVersion;
+    std::vector<uint8_t> vendorData;
+
+    std::thread statusThread;
+    std::mutex statusSync;
+    std::condition_variable cv;
+    const size_t sendingSyncLoopTime{1000};
+    bool stopStatusSending;
+    std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf> ethernetWrapper;
+    const StringPtr selectedEthernetDeviceName;
 };
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
