@@ -18,6 +18,7 @@ CaptureFb::CaptureFb(const ContextPtr& ctx, const ComponentPtr& parent, const St
     , hardwareVersion("DefaultHardwwareVersion")
     , softwareVersion("DefaultSoftwareVersion")
     , vendorDataAsString("")
+    , allowJumboFrames(false)
 {
     initProperties();
     initEncoders();
@@ -56,6 +57,10 @@ void CaptureFb::initProperties()
     prop = StringPropertyBuilder(propName, vendorDataAsString).build();
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateCaptureData(); };
+
+    propName = "AllowJumboFrames";
+    prop = BoolPropertyBuilder(propName, allowJumboFrames).setReadOnly(true).build();
+    objPtr.addProperty(prop);
 }
 
 void CaptureFb::updateCaptureData()
@@ -104,8 +109,15 @@ void CaptureFb::addInterfaceInternal(){
     addInterfaceWithParams<InterfaceFb>(newId, init);
 }
 
+ASAM::CMP::DataContext CaptureFb::createEncoderDataContext() const
+{
+    assert(!allowJumboFrames);
+    return {64, 1500};
+}
+
 void CaptureFb::statusLoop()
 {
+    auto encoderContext = createEncoderDataContext();
     std::unique_lock<std::mutex> lock(statusSync);
     while (!stopStatusSending)
     {
@@ -113,20 +125,20 @@ void CaptureFb::statusLoop()
         if (!stopStatusSending)
         {
             auto encodeAndSend = [&](const ASAM::CMP::Packet& packet) {
-                auto encodedData = encoders[1].encode(packet, {64, 1500});  // TODO: magic numbers
+                auto encodedData = encoders[1].encode(packet, encoderContext);
                 for (const auto& e : encodedData)
                     ethernetWrapper->sendPacket(selectedEthernetDeviceName, e);
             };
 
 
-            auto encodedData = encoders[1].encode(captureStatus.getPacket(), {64, 1500});  // TODO: magic numbers
+            auto encodedData = encoders[1].encode(captureStatus.getPacket(), encoderContext);
             for (const auto& e : encodedData)
                 ethernetWrapper->sendPacket(selectedEthernetDeviceName, e);
 
            
             for (int i = 0; i < captureStatus.getInterfaceStatusCount(); ++i)
             {
-                encodedData = encoders[1].encode(captureStatus.getInterfaceStatus(i).getPacket(), {64, 1500});  // TODO: magic numbers
+                encodedData = encoders[1].encode(captureStatus.getInterfaceStatus(i).getPacket(), encoderContext);
                 for (const auto& e : encodedData)
                     ethernetWrapper->sendPacket(selectedEthernetDeviceName, e);
             }

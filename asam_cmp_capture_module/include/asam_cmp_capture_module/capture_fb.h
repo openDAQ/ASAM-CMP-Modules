@@ -54,8 +54,10 @@ private:
     void statusLoop();
     void startStatusLoop();
     void stopStatusLoop();
+    ASAM::CMP::DataContext createEncoderDataContext() const;
 
 private:
+    const bool allowJumboFrames;
     EncoderBank encoders;
     ASAM::CMP::Packet captureStatusPacket;
     ASAM::CMP::DeviceStatus captureStatus;

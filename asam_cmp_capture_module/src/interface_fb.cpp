@@ -66,6 +66,8 @@ void InterfaceFb::initStatusPacket()
 {
     interfaceStatusPacket.setPayload(ASAM::CMP::InterfacePayload());
     interfaceStatusPacket.getPayload().setMessageType(ASAM::CMP::CmpHeader::MessageType::status);
+    static_cast<ASAM::CMP::InterfacePayload&>(interfaceStatusPacket.getPayload())
+        .setInterfaceStatus(ASAM::CMP::InterfacePayload::InterfaceStatus::linkStatusUp);//TODO: currently as a constant (may be changed in next iterations)
 
     updateInterfaceData();
 }
@@ -82,7 +84,7 @@ void InterfaceFb::updateInterfaceData()
     std::vector<uint8_t> streamIdsAsVector(begin(streamIdsList), end(streamIdsList));
 
     static_cast<ASAM::CMP::InterfacePayload&>(interfaceStatusPacket.getPayload())
-        .setData(streamIdsAsVector.data(), streamIdsAsVector.size(), vendorData.data(), vendorData.size());
+        .setData(streamIdsAsVector.data(), static_cast<uint16_t>(streamIdsAsVector.size()), vendorData.data(), static_cast<uint16_t>(vendorData.size()));
 
     std::scoped_lock lock(statusSync);
     deviceStatus.update(interfaceStatusPacket);

@@ -103,6 +103,9 @@ TEST_F(StreamFbTest, TestInterfaceStatusWithStreamsReceived)
         if (lastReceivedPacket.getPayload().getType() != ASAM::CMP::PayloadType::ifStatMsg)
             return false;
 
+        if (static_cast<ASAM::CMP::InterfacePayload&>(lastReceivedPacket.getPayload()).getInterfaceStatus() != ASAM::CMP::InterfacePayload::InterfaceStatus::linkStatusUp)
+            return false;
+
         if (static_cast<ASAM::CMP::InterfacePayload&>(lastReceivedPacket.getPayload()).getStreamIdsCount() != streamsCnt)
             return false;
 

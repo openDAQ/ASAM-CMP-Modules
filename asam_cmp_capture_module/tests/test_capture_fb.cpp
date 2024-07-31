@@ -71,11 +71,10 @@ TEST_F(CaptureFbTest, CreateCaptureModule)
     ASSERT_NE(captureFb, nullptr);
 }
 
-TEST_F(CaptureFbTest, CaptureModuleProperties)
+TEST_F(CaptureFbTest, JumboFramesNotAllowed)
 {
-    ASSERT_TRUE(captureFb.hasProperty("DeviceId"));
-    ASSERT_TRUE(captureFb.hasProperty("AddInterface"));
-    ASSERT_TRUE(captureFb.hasProperty("RemoveInterface"));
+    ASSERT_FALSE(captureFb.getPropertyValue("AllowJumboFrames"));
+    EXPECT_ANY_THROW(captureFb.setPropertyValue("AllowJumboFrames", true));
 }
 
 TEST_F(CaptureFbTest, TestCreateInterface)
