@@ -13,6 +13,11 @@ CaptureFb::CaptureFb(const ContextPtr& ctx, const ComponentPtr& parent, const St
     : asam_cmp_common_lib::CaptureCommonFb(ctx, parent, localId)
     , ethernetWrapper(init.ethernetWrapper)
     , selectedEthernetDeviceName(init.selectedDeviceName)
+    , deviceDescription("DefaultDeviceDescription")
+    , serialNumber("DefaultSerailNumber")
+    , hardwareVersion("DefaultHardwwareVersion")
+    , softwareVersion("DefaultSoftwareVersion")
+    , vendorDataAsString("")
 {
     initProperties();
     initEncoders();
@@ -28,27 +33,27 @@ CaptureFb::~CaptureFb()
 void CaptureFb::initProperties()
 {
     StringPtr propName = "DeviceDescription";
-    auto prop = StringPropertyBuilder(propName, "DefaultDeviceDescription").build();
+    auto prop = StringPropertyBuilder(propName, deviceDescription).build();
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateCaptureData(); };
 
     propName = "SerialNumber";
-    prop = StringPropertyBuilder(propName, "DefaultSerialNumber").build();
+    prop = StringPropertyBuilder(propName, serialNumber).build();
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateCaptureData(); };
 
     propName = "HardwareVersion";
-    prop = StringPropertyBuilder(propName, "DefaultHardwareVersion").build();
+    prop = StringPropertyBuilder(propName, hardwareVersion).build();
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateCaptureData(); };
 
     propName = "SoftwareVersion";
-    prop = StringPropertyBuilder(propName, "DefaultSoftwareVersion").build();
+    prop = StringPropertyBuilder(propName, softwareVersion).build();
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateCaptureData(); };
 
     propName = "VendorData";
-    prop = StringPropertyBuilder(propName, "").build();
+    prop = StringPropertyBuilder(propName, vendorDataAsString).build();
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateCaptureData(); };
 }
@@ -61,7 +66,7 @@ void CaptureFb::updateCaptureData()
     serialNumber = objPtr.getPropertyValue("SerialNumber");
     hardwareVersion = objPtr.getPropertyValue("HardwareVersion");
     softwareVersion = objPtr.getPropertyValue("SoftwareVersion");
-    std::string vendorDataAsString = objPtr.getPropertyValue("VendorData").toString();
+    vendorDataAsString = objPtr.getPropertyValue("VendorData").asPtr<IString>().toStdString();
     vendorData = std::vector<uint8_t>(begin(vendorDataAsString), end(vendorDataAsString));
 
 
@@ -73,6 +78,8 @@ void CaptureFb::updateCaptureData()
             softwareVersion.toView(),
             vendorData
         );
+
+    captureStatus.update(captureStatusPacket);
 }
 
 void CaptureFb::initEncoders()
@@ -86,15 +93,15 @@ void CaptureFb::initEncoders()
 
 void CaptureFb::initStatusPacket()
 {
-    captureStatusPacket.setPayload(ASAM::CMP::Payload());
+    captureStatusPacket.setPayload(ASAM::CMP::CaptureModulePayload());
     captureStatusPacket.getPayload().setMessageType(ASAM::CMP::CmpHeader::MessageType::status);
-    captureStatusPacket.getPayload().setRawPayloadType(0x01);//TODO: magic number
     updateCaptureData();
 }
 
 void CaptureFb::addInterfaceInternal(){
     auto newId = interfaceIdManager.getFirstUnusedId();
-    addInterfaceWithParams<InterfaceFb>(newId, &encoders);
+    InterfaceFbInit init{&encoders, captureStatus, statusSync};
+    addInterfaceWithParams<InterfaceFb>(newId, init);
 }
 
 void CaptureFb::statusLoop()
@@ -105,9 +112,24 @@ void CaptureFb::statusLoop()
         cv.wait_for(lock, std::chrono::milliseconds(sendingSyncLoopTime));
         if (!stopStatusSending)
         {
-            auto encodedData = encoders[1].encode(captureStatusPacket, {64, 1500});  // TODO: magic numbers
+            auto encodeAndSend = [&](const ASAM::CMP::Packet& packet) {
+                auto encodedData = encoders[1].encode(packet, {64, 1500});  // TODO: magic numbers
+                for (const auto& e : encodedData)
+                    ethernetWrapper->sendPacket(selectedEthernetDeviceName, e);
+            };
+
+
+            auto encodedData = encoders[1].encode(captureStatus.getPacket(), {64, 1500});  // TODO: magic numbers
             for (const auto& e : encodedData)
                 ethernetWrapper->sendPacket(selectedEthernetDeviceName, e);
+
+           
+            for (int i = 0; i < captureStatus.getInterfaceStatusCount(); ++i)
+            {
+                encodedData = encoders[1].encode(captureStatus.getInterfaceStatus(i).getPacket(), {64, 1500});  // TODO: magic numbers
+                for (const auto& e : encodedData)
+                    ethernetWrapper->sendPacket(selectedEthernetDeviceName, e);
+            }
         }
     }
 }

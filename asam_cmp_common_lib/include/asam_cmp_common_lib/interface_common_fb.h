@@ -58,7 +58,7 @@ protected:
     uint32_t id;
     ASAM::CMP::PayloadType payloadType;
 
-    // temporary solution once not full list of types is immplemented
+    // temporary solution once not full list of types is immplemented (or not in case values missmatch due to reserved values)
     inline static std::map<int, int> payloadTypeToAsamPayloadType = {{0, 0}, {1, 1}, {2, 2}, {3, 7}};
     inline static std::map<int, int> asamPayloadTypeToPayloadType = {{0, 0}, {1, 1}, {2, 2}, {7, 3}};
 };

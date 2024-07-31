@@ -16,6 +16,7 @@
 
 #pragma once
 #include <asam_cmp/encoder.h>
+#include <asam_cmp/device_status.h>
 #include <asam_cmp_capture_module/common.h>
 #include <asam_cmp_common_lib/id_manager.h>
 #include <asam_cmp_capture_module/encoder_bank.h>
@@ -26,22 +27,43 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
+struct InterfaceFbInit
+{
+    const EncoderBankPtr& encoders;
+    ASAM::CMP::DeviceStatus& deviceStatus;
+    std::mutex& statusSync;
+};
+
 class InterfaceFb final : public asam_cmp_common_lib::InterfaceCommonFb
 {
 public:
     explicit InterfaceFb(const ContextPtr& ctx,
                                     const ComponentPtr& parent,
                                     const StringPtr& localId,
-                                    const asam_cmp_common_lib::InterfaceCommonInit& init,
-                                    const EncoderBankPtr& encoders);
+                                    const asam_cmp_common_lib::InterfaceCommonInit& commonInit,
+                                    const InterfaceFbInit& internalInit);
     ~InterfaceFb() override = default;
     static FunctionBlockTypePtr CreateType();
 
 private:
-    void addStreamInternal();
+    void initProperties();
+    void addStreamInternal() override;
+    void removeStreamInternal(size_t nInd) override;
+    void initStatusPacket();
+    void updateInterfaceData();
+
+    void updateInterfaceIdInternal() override;
+    void updatePayloadTypeInternal() override;
 
 private:
+    std::mutex& statusSync;
     EncoderBankPtr encoders;
+    ASAM::CMP::Packet interfaceStatusPacket;
+    ASAM::CMP::DeviceStatus& deviceStatus;
+
+    std::unordered_set<uint8_t> streamIdsList;
+    std::string vendorDataAsString;
+    std::vector<uint8_t> vendorData;
 };
 
 

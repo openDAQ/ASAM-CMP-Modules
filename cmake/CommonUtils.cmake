@@ -7,6 +7,8 @@ macro(setup_repo REPO_OPTION_PREFIX)
     option(${REPO_OPTION_PREFIX}_DISABLE_DEBUG_POSTFIX "Disable debug ('-debug') postfix" OFF)
     option(${REPO_OPTION_PREFIX}_DEBUG_WARNINGS_AS_ERRORS "Treat debug warnings as errors" OFF)
     option(${REPO_OPTION_PREFIX}_ENABLE_TESTS "Enable unit-tests for ${REPO_OPTION_PREFIX}" ON)
+    option(${REPO_OPTION_PREFIX}_BUILD_CAPTURE_MODULE "Enable ASAM CMP Capture Module" ON)
+    option(${REPO_OPTION_PREFIX}_BUILD_DATA_SINK "Enable ASAM CMP Data Sink" ON)
 
     get_filename_component(ROOT_DIR ${CMAKE_SOURCE_DIR} REALPATH)
 

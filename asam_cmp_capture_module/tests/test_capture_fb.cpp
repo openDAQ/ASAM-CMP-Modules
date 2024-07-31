@@ -54,14 +54,14 @@ protected:
     ContextPtr context;
     FunctionBlockPtr captureFb;
 
-    std::mutex m;
+    std::mutex packedReceivedSync;
     ASAM::CMP::Packet lastReceivedPacket;
     ASAM::CMP::Decoder decoder;
 
     void onPacketSendCb(StringPtr deviceName, const std::vector<uint8_t>& data)
     {
-        std::scoped_lock lock(m);
-        std::cout << "onPacketSend detected " << std::chrono::steady_clock::now().time_since_epoch().count() << "\n ";
+        std::scoped_lock lock(packedReceivedSync);
+        std::cout << "onPacketSend detected\n";
         lastReceivedPacket = *(decoder.decode(data.data(), data.size()).back().get());
     };
 };
@@ -100,15 +100,15 @@ TEST_F(CaptureFbTest, TestCaptureStatusReceived)
 {
     EXPECT_CALL(*ethernetWrapper, sendPacket(_, _)).Times(AtLeast(1));
 
-    std::string deviceDescription = "DefaultDeviceDescription";
-    std::string softwareVersion = "DefaultSoftwareVersion";
-    std::string hardwareVersion = "DefaultHardwareVersion";
-    size_t vendorDataLen = 0;
-    std::string vendorData = "";
+    std::string deviceDescription = captureFb.getPropertyValue("DeviceDescription");
+    std::string softwareVersion = captureFb.getPropertyValue("SoftwareVersion");
+    std::string hardwareVersion =  captureFb.getPropertyValue("HardwareVersion");
+    std::string vendorData = captureFb.getPropertyValue("VendorData");
+    size_t vendorDataLen = vendorData.length();
 
     auto checker = [&]()
     {
-        std::scoped_lock lock(m);
+        std::scoped_lock lock(packedReceivedSync);
 
         if (!lastReceivedPacket.isValid())
             return false;

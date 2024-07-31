@@ -16,6 +16,7 @@
 
 #pragma once
 #include <asam_cmp_common_lib/id_manager.h>
+#include <asam_cmp/device_status.h>
 #include <asam_cmp_capture_module/encoder_bank.h>
 #include <asam_cmp_capture_module/common.h>
 #include <asam_cmp_common_lib/capture_common_fb.h>
@@ -57,10 +58,12 @@ private:
 private:
     EncoderBank encoders;
     ASAM::CMP::Packet captureStatusPacket;
+    ASAM::CMP::DeviceStatus captureStatus;
     StringPtr deviceDescription;
     StringPtr serialNumber;
     StringPtr hardwareVersion;
     StringPtr softwareVersion;
+    std::string vendorDataAsString;
     std::vector<uint8_t> vendorData;
 
     std::thread statusThread;

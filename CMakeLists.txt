@@ -16,10 +16,10 @@ setup_repo(${REPO_OPTION_PREFIX})
 add_subdirectory(external)
 add_subdirectory(asam_cmp_common_lib)
 
-if (ASAM_CMP_BUILD_CAPTURE_MODULE)
+if (${REPO_OPTION_PREFIX}_BUILD_CAPTURE_MODULE)
         add_subdirectory(asam_cmp_capture_module)
 endif()
 
-if (ASAM_CMP_BUILD_DATA_SINK)
+if (${REPO_OPTION_PREFIX}_BUILD_DATA_SINK)
         add_subdirectory(asam_cmp_data_sink)
 endif()
