@@ -49,26 +49,42 @@ protected:
     virtual void addStreamInternal() = 0;
     virtual void removeStreamInternal(size_t nInd);
 
+    
+    daq::ErrCode INTERFACE_FUNC beginUpdate() override;
+    void endApplyProperties(const UpdatingActions& propsAndValues, bool parentUpdating) override;
+    virtual void propertyChanged();
+    void propertyChangedIfNotUpdating();
+
 private:
     void initProperties();
 
 protected:
     InterfaceIdManagerPtr interfaceIdManager;
     StreamIdManagerPtr streamIdManager;
-    uint32_t id;
+    uint32_t interfaceId;
     ASAM::CMP::PayloadType payloadType;
+
+    std::atomic_bool isUpdating;
+    std::atomic_bool needsPropertyChanged;
+    std::atomic_bool isInternalPropertyUpdate;
 
     // temporary solution once not full list of types is immplemented (or not in case values missmatch due to reserved values)
     inline static std::map<int, int> payloadTypeToAsamPayloadType = {{0, 0}, {1, 1}, {2, 2}, {3, 7}};
     inline static std::map<int, int> asamPayloadTypeToPayloadType = {{0, 0}, {1, 1}, {2, 2}, {7, 3}};
+
+private:
+    size_t createdStreams;
 };
 
 template <class Impl, typename... Params>
 FunctionBlockPtr InterfaceCommonFb::addStreamWithParams(uint8_t streamId, Params&&... params)
 {
+    if (isUpdating)
+        throw std::runtime_error("Adding streams is disabled during update");
+
     StreamCommonInit init{streamId, payloadType, streamIdManager};
 
-    StringPtr fbId = fmt::format("asam_cmp_stream_{}", streamId);
+    StringPtr fbId = fmt::format("asam_cmp_stream_{}", createdStreams++);
     auto newFb = createWithImplementation<IFunctionBlock, Impl>(context, functionBlocks, fbId, init, std::forward<Params>(params)...);
     functionBlocks.addItem(newFb);
     streamIdManager->addId(streamId);

@@ -4,6 +4,7 @@
 
 #include <asam_cmp_common_lib/interface_common_fb.h>
 #include <asam_cmp_common_lib/stream_common_fb_impl.h>
+#include <fmt/core.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_COMMON
 
@@ -14,8 +15,12 @@ InterfaceCommonFb::InterfaceCommonFb(const ContextPtr& ctx,
     : FunctionBlock(CreateType(), ctx, parent, localId)
     , interfaceIdManager(init.interfaceIdManager)
     , streamIdManager(init.streamIdManager)
-    , id(init.id)
+    , interfaceId(init.id)
     , payloadType(0)
+    , isUpdating(false)
+    , needsPropertyChanged(false)
+    , isInternalPropertyUpdate(false)
+    , createdStreams(0)
 {
     initProperties();
 }
@@ -28,17 +33,17 @@ FunctionBlockTypePtr InterfaceCommonFb::CreateType()
 void InterfaceCommonFb::initProperties()
 {
     StringPtr propName = "InterfaceId";
-    auto prop = IntPropertyBuilder(propName, id).build();
+    auto prop = IntPropertyBuilder(propName, interfaceId).build();
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) +=
-        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateInterfaceIdInternal(); };
+        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 
     propName = "PayloadType";
     ListPtr<StringPtr> payloadTypes{"UNDEFINED", "CAN", "CAN_FD", "ANALOG"};
     prop = SelectionPropertyBuilder(propName, payloadTypes, 0).build();
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) +=
-        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updatePayloadTypeInternal(); };
+        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 
     propName = "AddStream";
     prop = FunctionPropertyBuilder(propName, ProcedureInfo(List<IArgumentInfo>())).setReadOnly(true).build();
@@ -56,18 +61,20 @@ void InterfaceCommonFb::updateInterfaceIdInternal()
 {
     Int newId = objPtr.getPropertyValue("InterfaceId");
 
-    if (newId == id)
+    if (newId == interfaceId)
         return;
 
     if (interfaceIdManager->isValidId(newId))
     {
-        interfaceIdManager->removeId(id);
-        id = newId;
-        interfaceIdManager->addId(id);
+        interfaceIdManager->removeId(interfaceId);
+        interfaceId = newId;
+        interfaceIdManager->addId(interfaceId);
     }
     else
     {
-        objPtr.setPropertyValue("InterfaceId", id);
+        isInternalPropertyUpdate = true;
+        objPtr.setPropertyValue("InterfaceId", interfaceId);
+        isInternalPropertyUpdate = false;
     }
 }
 
@@ -77,7 +84,9 @@ void InterfaceCommonFb::updatePayloadTypeInternal()
 
     if (newType < 0 || static_cast<size_t>(newType) > payloadTypeToAsamPayloadType.size())
     {
+        isInternalPropertyUpdate = true;
         objPtr.setPropertyValue("PayloadType", asamPayloadTypeToPayloadType.at(payloadType.getRawPayloadType()));
+        isInternalPropertyUpdate = false;
     }
     else
     {
@@ -92,6 +101,49 @@ void InterfaceCommonFb::updatePayloadTypeInternal()
 void InterfaceCommonFb::removeStreamInternal(size_t nInd)
 {
     functionBlocks.removeItem(functionBlocks.getItems().getItemAt(nInd));
+}
+
+daq::ErrCode INTERFACE_FUNC InterfaceCommonFb::beginUpdate()
+{
+    daq::ErrCode result = FunctionBlock::beginUpdate();
+    if (result == OPENDAQ_SUCCESS)
+        isUpdating = true;
+
+    return result;
+}
+
+void InterfaceCommonFb::endApplyProperties(const UpdatingActions& propsAndValues, bool parentUpdating)
+{
+    std::scoped_lock lock{sync};
+    FunctionBlock::endApplyProperties(propsAndValues, parentUpdating);
+
+    if (needsPropertyChanged)
+    {
+        propertyChanged();
+        needsPropertyChanged = false;
+    }
+
+    isUpdating = false;
+}
+
+void InterfaceCommonFb::propertyChanged()
+{
+    updateInterfaceIdInternal();
+    updatePayloadTypeInternal();
+}
+
+void InterfaceCommonFb::propertyChangedIfNotUpdating()
+{
+    if (!isUpdating)
+    {
+        if (!isInternalPropertyUpdate)
+        {
+            std::scoped_lock lock{sync};
+            propertyChanged();
+        }
+    }
+    else
+        needsPropertyChanged = true;
 }
 
 END_NAMESPACE_ASAM_CMP_COMMON

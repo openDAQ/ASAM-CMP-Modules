@@ -27,8 +27,11 @@ InterfaceFb::InterfaceFb(const ContextPtr& ctx,
 
 void InterfaceFb::addStreamInternal()
 {
+    std::scoped_lock lock(statusSync);
+
     auto newId = streamIdManager->getFirstUnusedId();
-    addStreamWithParams<StreamFb>(newId);
+    StreamInit internalInit{streamIdsList, statusSync};
+    addStreamWithParams<StreamFb>(newId, internalInit);
 
     streamIdsList.insert(newId);
     updateInterfaceData();
@@ -36,6 +39,8 @@ void InterfaceFb::addStreamInternal()
 
 void InterfaceFb::removeStreamInternal(size_t nInd)
 {
+    std::scoped_lock lock(statusSync);
+
     auto id = functionBlocks.getItems().getItemAt(nInd).getPropertyValue("StreamId");
     streamIdsList.erase(id);
     asam_cmp_common_lib::InterfaceCommonFb::removeStreamInternal(nInd);
@@ -47,17 +52,21 @@ void InterfaceFb::initProperties()
     auto propName = "VendorData";
     auto prop = StringPropertyBuilder(propName, vendorDataAsString).build();
     objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateInterfaceData(); };
+    objPtr.getOnPropertyValueWrite(propName) += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 }
 
 void InterfaceFb::updateInterfaceIdInternal()
 {
+    std::scoped_lock lock(statusSync);
+
     asam_cmp_common_lib::InterfaceCommonFb::updateInterfaceIdInternal();
     updateInterfaceData();
 }
 
 void InterfaceFb::updatePayloadTypeInternal()
 {
+    std::scoped_lock lock(statusSync);
+
     asam_cmp_common_lib::InterfaceCommonFb::updatePayloadTypeInternal();
     updateInterfaceData();
 }
@@ -74,7 +83,7 @@ void InterfaceFb::initStatusPacket()
 
 void InterfaceFb::updateInterfaceData()
 {
-    static_cast<ASAM::CMP::InterfacePayload&>(interfaceStatusPacket.getPayload()).setInterfaceId(id);
+    static_cast<ASAM::CMP::InterfacePayload&>(interfaceStatusPacket.getPayload()).setInterfaceId(interfaceId);
     static_cast<ASAM::CMP::InterfacePayload&>(interfaceStatusPacket.getPayload())
         .setInterfaceType(payloadType.getRawPayloadType());
 
@@ -86,7 +95,6 @@ void InterfaceFb::updateInterfaceData()
     static_cast<ASAM::CMP::InterfacePayload&>(interfaceStatusPacket.getPayload())
         .setData(streamIdsAsVector.data(), static_cast<uint16_t>(streamIdsAsVector.size()), vendorData.data(), static_cast<uint16_t>(vendorData.size()));
 
-    std::scoped_lock lock(statusSync);
     deviceStatus.update(interfaceStatusPacket);
 }
 

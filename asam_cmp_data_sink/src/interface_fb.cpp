@@ -36,14 +36,14 @@ void InterfaceFb::addStreamInternal()
 {
     auto streamId = streamIdManager->getFirstUnusedId();
     auto newFb = addStreamWithParams<StreamFb>(streamId);
-    callsMap.Insert(deviceId, id, streamId, newFb.as<IDataHandler>(true));
+    callsMap.Insert(deviceId, interfaceId, streamId, newFb.as<IDataHandler>(true));
 }
 
 void InterfaceFb::removeStreamInternal(size_t nInd)
 {
     auto fb = functionBlocks.getItems().getItemAt(nInd);
     uint8_t streamId = fb.getPropertyValue("StreamId");
-    callsMap.Erase(deviceId, id, streamId, fb.asPtr<IDataHandler>());
+    callsMap.Erase(deviceId, interfaceId, streamId, fb.asPtr<IDataHandler>());
     functionBlocks.removeItem(fb);
 }
 

@@ -36,36 +36,43 @@ void CaptureFb::initProperties()
     StringPtr propName = "DeviceDescription";
     auto prop = StringPropertyBuilder(propName, deviceDescription).build();
     objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateCaptureData(); };
+    objPtr.getOnPropertyValueWrite(propName) +=
+        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 
     propName = "SerialNumber";
     prop = StringPropertyBuilder(propName, serialNumber).build();
     objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateCaptureData(); };
+    objPtr.getOnPropertyValueWrite(propName) +=
+        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 
     propName = "HardwareVersion";
     prop = StringPropertyBuilder(propName, hardwareVersion).build();
     objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateCaptureData(); };
+    objPtr.getOnPropertyValueWrite(propName) +=
+        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 
     propName = "SoftwareVersion";
     prop = StringPropertyBuilder(propName, softwareVersion).build();
     objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateCaptureData(); };
+    objPtr.getOnPropertyValueWrite(propName) +=
+        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 
     propName = "VendorData";
     prop = StringPropertyBuilder(propName, vendorDataAsString).build();
     objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateCaptureData(); };
+    objPtr.getOnPropertyValueWrite(propName) +=
+        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 
     propName = "AllowJumboFrames";
     prop = BoolPropertyBuilder(propName, allowJumboFrames).setReadOnly(true).build();
     objPtr.addProperty(prop);
 }
 
-void CaptureFb::updateCaptureData()
+void CaptureFb::propertyChanged()
 {
-    std::scoped_lock lock(statusSync);
+    asam_cmp_common_lib::CaptureCommonFb::propertyChanged();
+
+    initEncoders();
 
     deviceDescription = objPtr.getPropertyValue("DeviceDescription");
     serialNumber = objPtr.getPropertyValue("SerialNumber");
@@ -74,7 +81,14 @@ void CaptureFb::updateCaptureData()
     vendorDataAsString = objPtr.getPropertyValue("VendorData").asPtr<IString>().toStdString();
     vendorData = std::vector<uint8_t>(begin(vendorDataAsString), end(vendorDataAsString));
 
+    updateCaptureData();
+}
 
+void CaptureFb::updateCaptureData()
+{
+    std::scoped_lock lock(statusSync);
+
+    captureStatusPacket.setDeviceId(deviceId);
     static_cast<ASAM::CMP::CaptureModulePayload&>(captureStatusPacket.getPayload())
         .setData(
             deviceDescription.toView(),
@@ -104,9 +118,19 @@ void CaptureFb::initStatusPacket()
 }
 
 void CaptureFb::addInterfaceInternal(){
+    std::scoped_lock lock(statusSync);
+
     auto newId = interfaceIdManager.getFirstUnusedId();
     InterfaceFbInit init{&encoders, captureStatus, statusSync};
     addInterfaceWithParams<InterfaceFb>(newId, init);
+}
+
+void CaptureFb::removeInterfaceInternal(size_t nInd)
+{
+    std::scoped_lock lock(statusSync);
+
+    auto id = functionBlocks.getItems().getItemAt(nInd).getPropertyValue("InterfaceId");
+    asam_cmp_common_lib::CaptureCommonFb::removeInterfaceInternal(nInd);
 }
 
 ASAM::CMP::DataContext CaptureFb::createEncoderDataContext() const

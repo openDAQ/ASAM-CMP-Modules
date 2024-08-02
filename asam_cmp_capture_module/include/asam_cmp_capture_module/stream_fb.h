@@ -26,19 +26,28 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
+struct StreamInit
+{
+    std::unordered_set<uint8_t>& streamIdsList;
+    std::mutex& statusSync;
+};
+
 class StreamFb final : public asam_cmp_common_lib::StreamCommonFb
 {
 public:
     explicit StreamFb(const ContextPtr& ctx,
                       const ComponentPtr& parent,
                       const StringPtr& localId,
-                      const asam_cmp_common_lib::StreamCommonInit& init);
+                      const asam_cmp_common_lib::StreamCommonInit& init,
+                      const StreamInit& internalInit);
     ~StreamFb() override = default;
-
 private:
     void createInputPort();
+    void updateStreamIdInternal() override;
 
 private:
+    std::unordered_set<uint8_t>& streamIdsList;
+    std::mutex& statusSync;
     EncoderBankPtr encoders;
     ASAM::CMP::Encoder* encoder;
 

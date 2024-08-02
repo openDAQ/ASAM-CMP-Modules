@@ -53,7 +53,8 @@ private:
     void initProperties();
 
 protected:
-    uint32_t id;
+    uint32_t streamId;
+    bool isInternalUpdate;
 
 private:
     StreamIdManagerPtr streamIdManager;
@@ -69,8 +70,9 @@ StreamCommonFbImpl<Interfaces...>::StreamCommonFbImpl(const ContextPtr& ctx,
                                                       const StreamCommonInit& init)
     : FunctionBlockImpl(CreateType(), ctx, parent, localId)
     , streamIdManager(init.streamIdManager)
-    , id(init.id)
+    , streamId(init.id)
     , payloadType(init.payloadType)
+    , isInternalUpdate(false)
 {
     initProperties();
 }
@@ -91,7 +93,7 @@ template <typename... Interfaces>
 void StreamCommonFbImpl<Interfaces...>::initProperties()
 {
     StringPtr propName = "StreamId";
-    auto prop = IntPropertyBuilder(propName, id).build();
+    auto prop = IntPropertyBuilder(propName, streamId).build();
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) +=
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateStreamIdInternal(); };
@@ -100,20 +102,22 @@ void StreamCommonFbImpl<Interfaces...>::initProperties()
 template <typename... Interfaces>
 void StreamCommonFbImpl<Interfaces...>::updateStreamIdInternal()
 {
-    Int newId = objPtr.getPropertyValue("InterfaceId");
+    Int newId = objPtr.getPropertyValue("StreamId");
 
-    if (newId == id)
+    if (newId == streamId)
         return;
 
     if (streamIdManager->isValidId(newId))
     {
-        streamIdManager->removeId(id);
-        id = newId;
-        streamIdManager->addId(id);
+        streamIdManager->removeId(streamId);
+        streamId = newId;
+        streamIdManager->addId(streamId);
     }
     else
     {
-        objPtr.setPropertyValue("InterfaceId", id);
+        isInternalUpdate = true;
+        objPtr.setPropertyValue("StreamId", streamId);
+        isInternalUpdate = false;
     }
 }
 

@@ -89,9 +89,25 @@ TEST_F(DataSinkFbFixture, AddCaptureModuleFromStatus)
     addCaptureModuleFromStatus(0);
     ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 2);
     auto captureModule = funcBlock.getFunctionBlocks()[0];
-    ASSERT_EQ(captureModule.getFunctionBlocks(search::LocalId("asam_cmp_interface_0")).getCount(), 1);
-    auto interfaceFb = captureModule.getFunctionBlocks(search::LocalId("asam_cmp_interface_0"))[0];
-    ASSERT_EQ(interfaceFb.getFunctionBlocks(search::LocalId("asam_cmp_stream_1")).getCount(), 1);
+
+    int targetInterfaceId = 0;
+    FunctionPtr isCorrectInterface =
+        Function([&targetInterfaceId](FunctionBlockPtr arg){
+            return arg.hasProperty("InterfaceId") && (arg.getPropertyValue("InterfaceId") == targetInterfaceId);
+        });
+    SearchFilterPtr interfaceFilter = search::Custom(isCorrectInterface);
+
+    ASSERT_EQ(captureModule.getFunctionBlocks(interfaceFilter).getCount(), 1);
+    auto interfaceFb = captureModule.getFunctionBlocks(interfaceFilter)[0];
+
+    int targetStreamId = 1;
+    FunctionPtr isCorrectStream =
+        Function([&targetStreamId](FunctionBlockPtr arg) {
+            return arg.hasProperty("StreamId") && (arg.getPropertyValue("StreamId") == targetStreamId);
+        });
+    SearchFilterPtr streamFilter = search::Custom(isCorrectStream);
+
+    ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1);
 
     cmPacket->setDeviceId(3);
     statusHandler->processStatusPacket(cmPacket);
@@ -109,14 +125,24 @@ TEST_F(DataSinkFbFixture, AddCaptureModuleFromStatus)
     addCaptureModuleFromStatus(1);
     ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 3);
     captureModule = funcBlock.getFunctionBlocks()[2];
-    ASSERT_EQ(captureModule.getFunctionBlocks(search::LocalId("asam_cmp_interface_22")).getCount(), 1);
-    interfaceFb = captureModule.getFunctionBlocks(search::LocalId("asam_cmp_interface_22"))[0];
-    ASSERT_EQ(interfaceFb.getFunctionBlocks(search::LocalId("asam_cmp_stream_1")).getCount(), 1);
-    ASSERT_EQ(captureModule.getFunctionBlocks(search::LocalId("asam_cmp_interface_33")).getCount(), 1);
-    interfaceFb = captureModule.getFunctionBlocks(search::LocalId("asam_cmp_interface_33"))[0];
-    ASSERT_EQ(interfaceFb.getFunctionBlocks(search::LocalId("asam_cmp_stream_3")).getCount(), 1);
-    ASSERT_EQ(interfaceFb.getFunctionBlocks(search::LocalId("asam_cmp_stream_5")).getCount(), 1);
-    ASSERT_EQ(interfaceFb.getFunctionBlocks(search::LocalId("asam_cmp_stream_10")).getCount(), 1);
+
+    targetInterfaceId = 22;
+    ASSERT_EQ(captureModule.getFunctionBlocks(interfaceFilter).getCount(), 1);
+    interfaceFb = captureModule.getFunctionBlocks(interfaceFilter)[0];
+
+    targetStreamId = 1;
+    ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1);
+
+    targetInterfaceId = 33;
+    ASSERT_EQ(captureModule.getFunctionBlocks(interfaceFilter).getCount(), 1);
+    interfaceFb = captureModule.getFunctionBlocks(interfaceFilter)[0];
+
+    targetStreamId = 3;
+    ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1);
+    targetStreamId = 5;
+    ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1);
+    targetStreamId = 10;
+    ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1);
 }
 
 TEST_F(DataSinkFbFixture, AddCaptureModuleEmpty)

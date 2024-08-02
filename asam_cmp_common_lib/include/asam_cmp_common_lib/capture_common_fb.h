@@ -37,21 +37,32 @@ protected:
     virtual void updateDeviceId();
     virtual void removeInterfaceInternal(size_t nInd);
 
+    daq::ErrCode INTERFACE_FUNC beginUpdate() override;
+    void endApplyProperties(const UpdatingActions& propsAndValues, bool parentUpdating) override;
+    virtual void propertyChanged();
+    void propertyChangedIfNotUpdating();
+
 private:
     void initProperties();
+    size_t createdInterfaces;
 
 protected:
     InterfaceIdManager interfaceIdManager;
     StreamIdManager streamIdManager;
     uint16_t deviceId{0};
+
+    std::atomic_bool isUpdating;
+    std::atomic_bool needsPropertyChanged;
 };
 
 template <class Impl, typename... Params>
 FunctionBlockPtr CaptureCommonFb::addInterfaceWithParams(uint32_t interfaceId, Params&&... params)
 {
+    if (isUpdating)
+        throw std::runtime_error("Adding interfaces is disabled during update");
     InterfaceCommonInit init{interfaceId, &interfaceIdManager, &streamIdManager};
 
-    StringPtr fbId = fmt::format("asam_cmp_interface_{}", interfaceId);
+    StringPtr fbId = fmt::format("asam_cmp_interface_{}", createdInterfaces++);
     auto newFb = createWithImplementation<IFunctionBlock, Impl>(context, functionBlocks, fbId, init, std::forward<Params>(params)...);
     functionBlocks.addItem(newFb);
     interfaceIdManager.addId(interfaceId);

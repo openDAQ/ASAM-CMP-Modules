@@ -50,6 +50,8 @@ private:
     void updateCaptureData();
 
     void addInterfaceInternal() override;
+    void removeInterfaceInternal(size_t nInd) override;
+    void propertyChanged() override;
 
     void statusLoop();
     void startStatusLoop();

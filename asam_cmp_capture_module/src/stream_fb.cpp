@@ -8,8 +8,11 @@ BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 StreamFb::StreamFb(const ContextPtr& ctx,
                    const ComponentPtr& parent,
                    const StringPtr& localId,
-                   const asam_cmp_common_lib::StreamCommonInit& init)
+                   const asam_cmp_common_lib::StreamCommonInit& init,
+                   const StreamInit& internalInit)
     : asam_cmp_common_lib::StreamCommonFb(ctx, parent, localId, init)
+    , streamIdsList(internalInit.streamIdsList)
+    , statusSync(internalInit.statusSync)
 {
     createInputPort();
 }
@@ -17,6 +20,18 @@ StreamFb::StreamFb(const ContextPtr& ctx,
 void StreamFb::createInputPort()
 {
     inputPort = createAndAddInputPort("input", PacketReadyNotification::Scheduler);
+}
+
+void StreamFb::updateStreamIdInternal()
+{
+    if (isInternalUpdate)
+        return;
+
+    std::scoped_lock lock(statusSync);
+
+    streamIdsList.erase(streamId);
+    streamIdsList.insert(objPtr.getPropertyValue("StreamId"));
+    StreamCommonFbImpl::updateStreamIdInternal();
 }
 
 
