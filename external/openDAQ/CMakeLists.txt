@@ -6,7 +6,6 @@ FetchContent_Declare(
     GIT_TAG        v3.0.0-dev16
     GIT_PROGRESS   ON
     GIT_SHALLOW    ON
-    EXCLUDE_FROM_ALL
     SYSTEM
     FIND_PACKAGE_ARGS 3.0.0 GLOBAL
 )
