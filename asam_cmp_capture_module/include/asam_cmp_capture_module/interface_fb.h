@@ -25,6 +25,11 @@
 #include <asam_cmp_capture_module/common.h>
 #include <asam_cmp_common_lib/interface_common_fb.h>
 
+namespace daq::asam_cmp_common_lib
+{
+    class EthernetPcppItf;
+}
+
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
 struct InterfaceFbInit
@@ -32,6 +37,9 @@ struct InterfaceFbInit
     const EncoderBankPtr& encoders;
     ASAM::CMP::DeviceStatus& deviceStatus;
     std::mutex& statusSync;
+    const std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf>& ethernetWrapper;
+    const bool& allowJumboFrames;
+    const StringPtr& selectedDeviceName;
 };
 
 class InterfaceFb final : public asam_cmp_common_lib::InterfaceCommonFb
@@ -64,6 +72,10 @@ private:
     std::unordered_set<uint8_t> streamIdsList;
     std::string vendorDataAsString;
     std::vector<uint8_t> vendorData;
+
+    const std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf>& ethernetWrapper;
+    const bool& allowJumboFrames;
+    const StringPtr& selectedDeviceName;
 };
 
 

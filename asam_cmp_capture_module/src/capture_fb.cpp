@@ -121,7 +121,7 @@ void CaptureFb::addInterfaceInternal(){
     std::scoped_lock lock(statusSync);
 
     auto newId = interfaceIdManager.getFirstUnusedId();
-    InterfaceFbInit init{&encoders, captureStatus, statusSync};
+    InterfaceFbInit init{&encoders, captureStatus, statusSync, ethernetWrapper, allowJumboFrames, selectedEthernetDeviceName};
     addInterfaceWithParams<InterfaceFb>(newId, init);
 }
 

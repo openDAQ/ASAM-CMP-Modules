@@ -23,6 +23,14 @@
 #include <opendaq/context_factory.h>
 #include <opendaq/function_block_impl.h>
 #include <asam_cmp/payload_type.h>
+#include <opendaq/data_packet_ptr.h>
+#include <opendaq/event_packet_ptr.h>
+
+
+namespace daq::asam_cmp_common_lib
+{
+    class EthernetPcppItf;
+}
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
@@ -30,6 +38,10 @@ struct StreamInit
 {
     std::unordered_set<uint8_t>& streamIdsList;
     std::mutex& statusSync;
+    const uint32_t& interfaceId;
+    const std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf>& ethernetWrapper;
+    const bool& allowJumboFrames;
+    const StringPtr& selectedDeviceName;
 };
 
 class StreamFb final : public asam_cmp_common_lib::StreamCommonFb
@@ -42,10 +54,28 @@ public:
                       const StreamInit& internalInit);
     ~StreamFb() override = default;
 private:
+    void setPayloadType(ASAM::CMP::PayloadType type) override;
+
     void createInputPort();
     void updateStreamIdInternal() override;
 
+    void initStatuses();
+    void setInputStatus(const StringPtr& value);
+
+    void onPacketReceived(const InputPortPtr& port) override;
+    void onDisconnected(const InputPortPtr& port) override;
+    void processSignalDescriptorChanged(DataDescriptorPtr inputDataDescriptor, DataDescriptorPtr inputDomainDataDescriptor);
+    void configure();
+
+    void processDataPacket(const DataPacketPtr& packet);
+    void processCanPacket(const DataPacketPtr& packet);
+
+    void processEventPacket(const EventPacketPtr& packet);
+    ASAM::CMP::Packet createPacket() const;
+    ASAM::CMP::DataContext createEncoderDataContext() const;
+
 private:
+    const uint32_t& interfaceId;
     std::unordered_set<uint8_t>& streamIdsList;
     std::mutex& statusSync;
     EncoderBankPtr encoders;
@@ -55,6 +85,11 @@ private:
     DataDescriptorPtr inputDataDescriptor;
     DataDescriptorPtr inputDomainDataDescriptor;
     SampleType inputSampleType;
+
+    std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf> ethernetWrapper;
+    const bool allowJumboFrames;
+    ASAM::CMP::DataContext dataContext;
+    const StringPtr& selectedDeviceName;
 };
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

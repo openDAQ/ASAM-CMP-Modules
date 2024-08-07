@@ -32,7 +32,7 @@ protected:
         ON_CALL(*ethernetWrapper, sendPacket(_, _)).WillByDefault(WithArgs<0, 1>(Invoke(sendPacketStub)));
 
         auto logger = Logger();
-        context = Context(Scheduler(logger), logger, nullptr, nullptr, nullptr);
+        context = Context(Scheduler(logger), logger, TypeManager(), nullptr, nullptr);
         const StringPtr captureModuleId = "asam_cmp_capture_fb";
         selectedDevice = "device1";
         modules::asam_cmp_capture_module::CaptureFbInit init = {ethernetWrapper, selectedDevice};

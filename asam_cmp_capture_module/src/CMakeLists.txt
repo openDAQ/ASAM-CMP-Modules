@@ -10,6 +10,7 @@ set(SRC_Cpp module_dll.cpp
     interface_fb.cpp
     stream_fb.cpp
     capture_fb.cpp
+    input_descriptors_validator.cpp
 )
 
 set(SRC_PublicHeaders module_dll.h
@@ -22,6 +23,7 @@ set(SRC_PublicHeaders module_dll.h
 
 set(SRC_PrivateHeaders
     encoder_bank.h
+    input_descriptors_validator.h
 )
 
 prepend_include(${TARGET_FOLDER_NAME} SRC_PrivateHeaders)
@@ -63,6 +65,7 @@ if (${REPO_OPTION_PREFIX}_ENABLE_TESTS)
                     interface_fb.cpp
                     stream_fb.cpp
                     capture_fb.cpp
+                    input_descriptors_validator.cpp
     )
 
     set(SRC_Lib_PublicHeaders capture_module_fb.h
@@ -72,7 +75,9 @@ if (${REPO_OPTION_PREFIX}_ENABLE_TESTS)
                             capture_fb.h
     )
 
-    set(SRC_Lib_PrivateHeaders encoder_bank.h
+    set(SRC_Lib_PrivateHeaders 
+        encoder_bank.h
+        input_descriptors_validator.h
     )
 
     prepend_include(${TARGET_FOLDER_NAME} SRC_Lib_PrivateHeaders)

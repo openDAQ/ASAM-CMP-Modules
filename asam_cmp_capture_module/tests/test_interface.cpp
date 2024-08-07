@@ -32,7 +32,7 @@ class InterfaceFbTest: public testing::Test
                 Invoke([&](StringPtr deviceName, const std::vector<uint8_t>& data) { this->onPacketSendCb(deviceName, data); })));
 
         auto logger = Logger();
-        context = Context(Scheduler(logger), logger, nullptr, nullptr, nullptr);
+        context = Context(Scheduler(logger), logger, TypeManager(), nullptr, nullptr);
         const StringPtr captureModuleId = "asam_cmp_capture_fb";
         selectedDevice = "device1";
         modules::asam_cmp_capture_module::CaptureFbInit init = {ethernetWrapper, selectedDevice};

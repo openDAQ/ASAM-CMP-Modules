@@ -19,6 +19,9 @@ InterfaceFb::InterfaceFb(const ContextPtr& ctx,
     , deviceStatus(internalInit.deviceStatus)
     , statusSync(internalInit.statusSync)
     , vendorDataAsString("")
+    , ethernetWrapper(internalInit.ethernetWrapper)
+    , allowJumboFrames(internalInit.allowJumboFrames)
+    , selectedDeviceName(internalInit.selectedDeviceName)
 {
     initProperties();
     initStatusPacket();
@@ -30,7 +33,7 @@ void InterfaceFb::addStreamInternal()
     std::scoped_lock lock(statusSync);
 
     auto newId = streamIdManager->getFirstUnusedId();
-    StreamInit internalInit{streamIdsList, statusSync};
+    StreamInit internalInit{streamIdsList, statusSync, interfaceId, ethernetWrapper, allowJumboFrames, selectedDeviceName};
     addStreamWithParams<StreamFb>(newId, internalInit);
 
     streamIdsList.insert(newId);

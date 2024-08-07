@@ -55,10 +55,10 @@ private:
 protected:
     uint32_t streamId;
     bool isInternalUpdate;
+    ASAM::CMP::PayloadType payloadType;
 
 private:
     StreamIdManagerPtr streamIdManager;
-    ASAM::CMP::PayloadType payloadType;
 };
 
 using StreamCommonFb = StreamCommonFbImpl<>;
