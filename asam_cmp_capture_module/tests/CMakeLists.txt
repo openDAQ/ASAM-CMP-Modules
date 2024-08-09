@@ -5,12 +5,23 @@ set(TEST_SOURCES
                  test_stream.cpp
                  test_capture_fb.cpp
                  test_app.cpp
+                 ref_can_channel_impl.cpp
 )
 
-add_executable(${TEST_APP} ${TEST_SOURCES}
+set(TEST_HEADERS 
+    include/ref_can_channel_impl.h 
 )
 
-target_link_libraries(${TEST_APP} PRIVATE daq::test_utils
+if (MSVC)
+    add_compile_options(/bigobj)
+endif()
+
+
+add_executable(${TEST_APP} ${TEST_SOURCES} ${TEST_HEADERS}
+)
+
+target_link_libraries(${TEST_APP} PRIVATE daq::opendaq
+                                          daq::test_utils
                                           asam_cmp_capture_module_lib
 )
 

@@ -42,6 +42,7 @@ struct StreamInit
     const std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf>& ethernetWrapper;
     const bool& allowJumboFrames;
     const StringPtr& selectedDeviceName;
+    const EncoderBankPtr encoderBank;
 };
 
 class StreamFb final : public asam_cmp_common_lib::StreamCommonFb
@@ -78,7 +79,7 @@ private:
     const uint32_t& interfaceId;
     std::unordered_set<uint8_t>& streamIdsList;
     std::mutex& statusSync;
-    EncoderBankPtr encoders;
+    const EncoderBankPtr encoders;
     ASAM::CMP::Encoder* encoder;
 
     InputPortPtr inputPort;

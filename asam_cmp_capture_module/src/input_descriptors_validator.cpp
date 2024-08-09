@@ -100,7 +100,7 @@ bool validateInputDescriptor(DataDescriptorPtr inputDataDescriptor, const ASAM::
 {
     switch (type.getRawPayloadType())
     {
-        case ASAM::CMP::PayloadType::can:
+        case uint8_t(ASAM::CMP::PayloadType::can):
             return validateStructureSampleType(inputDataDescriptor, canStructureReference);
         default:
             return false;

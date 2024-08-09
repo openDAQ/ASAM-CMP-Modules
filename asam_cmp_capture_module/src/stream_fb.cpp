@@ -29,8 +29,11 @@ StreamFb::StreamFb(const ContextPtr& ctx,
     , dataContext(createEncoderDataContext())
     , allowJumboFrames(internalInit.allowJumboFrames)
     , selectedDeviceName(internalInit.selectedDeviceName)
+    , encoders(internalInit.encoderBank)
+    , encoder(&(*encoders)[streamId])
 {
     createInputPort();
+    initStatuses();
 }
 
 void StreamFb::createInputPort()
@@ -113,7 +116,7 @@ void StreamFb::onPacketReceived(const InputPortPtr& port)
     };
 }
 
-void StreamFb::processSignalDescriptorChanged(DataDescriptorPtr, DataDescriptorPtr)
+void StreamFb::processSignalDescriptorChanged(DataDescriptorPtr inputDataDescriptor, DataDescriptorPtr inputDomainDataDescriptor)
 {
     if (inputDataDescriptor.assigned())
         this->inputDataDescriptor = inputDataDescriptor;
@@ -160,8 +163,34 @@ void StreamFb::processEventPacket(const EventPacketPtr& packet)
 ASAM::CMP::DataContext StreamFb::createEncoderDataContext() const
 {
     assert(!allowJumboFrames);
+    //TODO: name them \/
     return {64, 1500};
 }
+
+/*
+//TODO:
+
+#pragma pack(push, 1)
+    struct CANData
+    {
+        uint32_t arbId;
+        uint8_t length;
+        uint8_t data[64];
+    };
+#pragma pack(pop)
+
+this structure is the same for CAN and CAN-FD we don't know which kind of CAN exactly
+until we read length (if length > 8 this is CAN FD)
+
+Since we cannot read length before we open packet, however PayloadType is already set (CAN or CAN-FD)
+we should:
+
+for PayloadType CAN - ignore every frame with length > 8
+
+for PayloadType CAN-FD - ignore nothing
+
+REMOVE JUMBO from public interface (opendaq property)
+*/
 
 void StreamFb::processCanPacket(const DataPacketPtr& packet)
 {
@@ -194,6 +223,9 @@ void StreamFb::processCanPacket(const DataPacketPtr& packet)
         packets.back().setTimestamp(*rawTimeBuffer);
         static_cast<ASAM::CMP::CanPayload&>(packets.back().getPayload()).setData(canData->data, canData->length);
         static_cast<ASAM::CMP::CanPayload&>(packets.back().getPayload()).setId(canData->arbId);
+
+        canData++;
+        rawTimeBuffer++;
     }
 
     for (auto& rawFrame : encoder->encode(packets.begin(), packets.end(), dataContext))
@@ -202,13 +234,11 @@ void StreamFb::processCanPacket(const DataPacketPtr& packet)
 
 void StreamFb::processDataPacket(const DataPacketPtr& packet)
 {
-    if (payloadType == ASAM::CMP::PayloadType::can)
+    switch (payloadType.getRawPayloadType())
     {
-        processCanPacket(packet);
-    }
-    else
-    {
-        throw std::runtime_error("PayloadType is not implemented");
+        case uint8_t(ASAM::CMP::PayloadType::can):
+            processCanPacket(packet);
+            break;
     }
 }
 
