@@ -69,7 +69,7 @@ private:
     void configure();
 
     void processDataPacket(const DataPacketPtr& packet);
-    void processCanPacket(const DataPacketPtr& packet);
+    void processCanPacket(const DataPacketPtr& packet, bool isCanFd);
 
     void processEventPacket(const EventPacketPtr& packet);
     ASAM::CMP::Packet createPacket() const;

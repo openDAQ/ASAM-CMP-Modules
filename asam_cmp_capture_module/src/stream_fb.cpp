@@ -8,6 +8,7 @@
 #include <coretypes/enumeration_type_factory.h>
 #include <asam_cmp_capture_module/input_descriptors_validator.h>
 #include <asam_cmp/can_payload.h>
+#include <asam_cmp/can_fd_payload.h>
 #include <asam_cmp_common_lib/ethernet_pcpp_itf.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
@@ -192,7 +193,7 @@ for PayloadType CAN-FD - ignore nothing
 REMOVE JUMBO from public interface (opendaq property)
 */
 
-void StreamFb::processCanPacket(const DataPacketPtr& packet)
+void StreamFb::processCanPacket(const DataPacketPtr& packet, bool isCanFd)
 {
 #pragma pack(push, 1)
     struct CANData
@@ -213,19 +214,30 @@ void StreamFb::processCanPacket(const DataPacketPtr& packet)
 
     for (size_t i = 0; i < sampleCount; i++)
     {
-        packets.emplace_back();
-        packets.back().setInterfaceId(interfaceId);
+        if (isCanFd || canData->length <= 8)
+        {
+            packets.emplace_back();
+            packets.back().setInterfaceId(interfaceId);
 
-        ASAM::CMP::Payload payload;
-        payload.setMessageType(ASAM::CMP::CmpHeader::MessageType::data);
-        payload.setType(ASAM::CMP::PayloadType::can);
-        packets.back().setPayload(payload);
-        packets.back().setTimestamp(*rawTimeBuffer);
-        static_cast<ASAM::CMP::CanPayload&>(packets.back().getPayload()).setData(canData->data, canData->length);
-        static_cast<ASAM::CMP::CanPayload&>(packets.back().getPayload()).setId(canData->arbId);
-
+            ASAM::CMP::Payload payload;
+            payload.setMessageType(ASAM::CMP::CmpHeader::MessageType::data);
+            payload.setType(isCanFd ? ASAM::CMP::PayloadType::canFd : ASAM::CMP::PayloadType::can);
+            packets.back().setPayload(payload);
+            packets.back().setTimestamp(*rawTimeBuffer);
+            if (isCanFd)
+            {
+                static_cast<ASAM::CMP::CanFdPayload&>(packets.back().getPayload()).setData(canData->data, canData->length);
+                static_cast<ASAM::CMP::CanFdPayload&>(packets.back().getPayload()).setId(canData->arbId);
+            }
+            else
+            {
+                static_cast<ASAM::CMP::CanPayload&>(packets.back().getPayload()).setData(canData->data, canData->length);
+                static_cast<ASAM::CMP::CanPayload&>(packets.back().getPayload()).setId(canData->arbId);
+            }
+        }
         canData++;
         rawTimeBuffer++;
+
     }
 
     for (auto& rawFrame : encoder->encode(packets.begin(), packets.end(), dataContext))
@@ -237,7 +249,10 @@ void StreamFb::processDataPacket(const DataPacketPtr& packet)
     switch (payloadType.getRawPayloadType())
     {
         case uint8_t(ASAM::CMP::PayloadType::can):
-            processCanPacket(packet);
+            processCanPacket(packet, false);
+            break;
+        case uint8_t(ASAM::CMP::PayloadType::canFd):
+            processCanPacket(packet, true);
             break;
     }
 }
@@ -264,7 +279,5 @@ void StreamFb::setPayloadType(ASAM::CMP::PayloadType type)
         setInputStatus(InputDisconnected.data());
     }
 }
-
-
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

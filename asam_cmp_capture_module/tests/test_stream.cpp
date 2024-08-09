@@ -82,7 +82,13 @@ protected:
     {
         auto curTime = timeStub.getMicroSecondsSinceDeviceStart();
         auto chPrivate = canChannel.asPtr<IRefChannel>();
-        chPrivate->collectSamples(curTime, samplesCount);
+        chPrivate->collectSamples(curTime, samplesCount, true);
+    }
+
+    void resetExpectedFramesCnt()
+    {
+        capturedFrames.clear();
+        expectedFramesCnt = 0;
     }
 
     void onPacketSendCb(StringPtr deviceName, const std::vector<uint8_t>& data)
@@ -93,20 +99,10 @@ protected:
             receivedPackets.push(e);
     };
 
-    void rawCanFdFrameCapture(const CANData& data)
+
+    void rawCanFrameCapture(const CANData& data, bool allowCanFd)
     {
-        capturedFrames.emplace_back();
-        CANData& frame = capturedFrames.back();
-
-        frame.arbId = data.arbId;
-        frame.length = data.length;
-        memcpy(frame.data, data.data, frame.length);
-    }
-
-
-    void rawCanFrameCapture(const CANData& data)
-    {
-        if (data.length <= 8)
+        if (allowCanFd || data.length <= 8)
         {
             capturedFrames.emplace_back();
             CANData& frame = capturedFrames.back();
@@ -114,8 +110,11 @@ protected:
             frame.arbId = data.arbId;
             frame.length = data.length;
             memcpy(frame.data, data.data, frame.length);
+            ++expectedFramesCnt;
         }
     }
+
+    void testCanPacketWithParameter(bool isCanFd);
 
 protected:
     TimeStub timeStub;
@@ -129,6 +128,7 @@ protected:
     FunctionBlockPtr interfaceFb;
     ChannelPtr canChannel;
     std::vector<CANData> capturedFrames;
+    int expectedFramesCnt;
 
     std::mutex packedReceivedSync;
     std::queue<std::shared_ptr<ASAM::CMP::Packet>> receivedPackets;
@@ -147,11 +147,9 @@ TEST_F(StreamFbTest, CreateStream)
     ASSERT_NE(s1.getPropertyValue("StreamId"), s2.getPropertyValue("StreamId"));
 }
 
-TEST_F(StreamFbTest, TestPacketsAreSent)
+void StreamFbTest::testCanPacketWithParameter(bool isCanFd)
 {
-    auto rawFramesCapture = [&](const CANData& data) {
-        rawCanFrameCapture(data);
-    };
+    auto rawFramesCapture = [&](const CANData& data) { rawCanFrameCapture(data, isCanFd); };
     RefCANChannelInit initCanCh{
         timeStub.getMicroSecondsSinceDeviceStart(), timeStub.getMicroSecondsFromEpochToDeviceStart(), rawFramesCapture};
     canChannel = createWithImplementation<IChannel, RefCANChannelImpl>(this->context, nullptr, "refcanch", initCanCh);
@@ -159,7 +157,7 @@ TEST_F(StreamFbTest, TestPacketsAreSent)
     EXPECT_CALL(*ethernetWrapper, sendPacket(_, _)).Times(AtLeast(0));
 
     ProcedurePtr createProc = interfaceFb.getPropertyValue("AddStream");
-    interfaceFb.setPropertyValue("PayloadType", 1);
+    interfaceFb.setPropertyValue("PayloadType", 1 + isCanFd);
     createProc();
     auto streamFb = interfaceFb.getFunctionBlocks().getItemAt(0);
 
@@ -173,8 +171,8 @@ TEST_F(StreamFbTest, TestPacketsAreSent)
 
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     int framesToSend{5};
+    resetExpectedFramesCnt();
     triggerCanChannel(framesToSend);
-
 
     int receivedCanFrames = 0;
     auto checker = [&]() -> bool
@@ -198,7 +196,7 @@ TEST_F(StreamFbTest, TestPacketsAreSent)
         if (packet.getStreamId() != streamId)
             return false;
 
-        if (packet.getPayload().getRawPayloadType() != uint8_t(ASAM::CMP::PayloadType::can))
+        if (packet.getPayload().getRawPayloadType() != uint8_t((isCanFd ? ASAM::CMP::PayloadType::canFd : ASAM::CMP::PayloadType::can)))
             return false;
 
         if (packet.getInterfaceId() != interfaceId)
@@ -220,17 +218,27 @@ TEST_F(StreamFbTest, TestPacketsAreSent)
         }
 
         ++receivedCanFrames;
-        return receivedCanFrames == framesToSend;
+        return receivedCanFrames == expectedFramesCnt;
     };
 
     size_t timeElapsed = 0;
     auto stTime = std::chrono::steady_clock::now();
-    while (!checker() && timeElapsed < 2500)
+    while (!checker() && timeElapsed < 2500000000)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
         auto curTime = std::chrono::steady_clock::now();
         timeElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(curTime - stTime).count();
     }
 
-    ASSERT_EQ(receivedCanFrames, framesToSend);
+    ASSERT_EQ(receivedCanFrames, expectedFramesCnt);
+}
+
+TEST_F(StreamFbTest, TestCanPacketsAreSent)
+{
+    testCanPacketWithParameter(false);
+}
+
+TEST_F(StreamFbTest, TestCanFdPacketsAreSent)
+{
+    testCanPacketWithParameter(true);
 }

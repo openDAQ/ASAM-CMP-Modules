@@ -60,7 +60,7 @@ void RefCANChannelImpl::propChanged()
     propChangedInternal();
 }
 
-void RefCANChannelImpl::collectSamples(std::chrono::microseconds curTime, size_t samplesCount)
+void RefCANChannelImpl::collectSamples(std::chrono::microseconds curTime, size_t samplesCount, bool allowCanFdFrames)
 {
     std::scoped_lock lock(sync);
     const auto duration = static_cast<int64_t>(curTime.count() - lastCollectTime.count());
@@ -68,7 +68,7 @@ void RefCANChannelImpl::collectSamples(std::chrono::microseconds curTime, size_t
     if (duration > 0 && valueSignal.getActive())
     {
         const auto time = static_cast<int64_t>(lastCollectTime.count()) + static_cast<int64_t>(microSecondsFromEpochToStartTime.count());
-        generateSamples(time, duration, samplesCount);
+        generateSamples(time, duration, samplesCount, true);
     }
 
     lastCollectTime = curTime;
@@ -78,7 +78,7 @@ void RefCANChannelImpl::globalSampleRateChanged(double /* globalSampleRate */)
 {
 }
 
-void RefCANChannelImpl::generateSamples(int64_t curTime, uint64_t duration, size_t newSamples)
+void RefCANChannelImpl::generateSamples(int64_t curTime, uint64_t duration, size_t newSamples, bool allowCanFdFrames)
 {
     const auto domainPacket = DataPacket(timeSignal.getDescriptor(), newSamples, curTime);
     const auto dataPacket = DataPacketWithDomain(domainPacket, valueSignal.getDescriptor(), newSamples);
@@ -92,7 +92,7 @@ void RefCANChannelImpl::generateSamples(int64_t curTime, uint64_t duration, size
     for (size_t i = 0; i < newSamples; i++)
     {
         dataBuffer->arbId = 12;
-        dataBuffer->length = 8;
+        dataBuffer->length = 8 + allowCanFdFrames * (i % 2) * 8;
 
         int32_t* dataPtr = reinterpret_cast<int32_t*>(&(dataBuffer->data[0]));
         *dataPtr++ = counter1++;

@@ -102,6 +102,8 @@ bool validateInputDescriptor(DataDescriptorPtr inputDataDescriptor, const ASAM::
     {
         case uint8_t(ASAM::CMP::PayloadType::can):
             return validateStructureSampleType(inputDataDescriptor, canStructureReference);
+        case uint8_t(ASAM::CMP::PayloadType::canFd):
+            return validateStructureSampleType(inputDataDescriptor, canStructureReference);
         default:
             return false;
     }

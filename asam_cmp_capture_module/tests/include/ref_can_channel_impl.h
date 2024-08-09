@@ -42,7 +42,7 @@ static_assert(sizeof(CANData) == 69);
 
 DECLARE_OPENDAQ_INTERFACE(IRefChannel, IBaseObject)
 {
-    virtual void collectSamples(std::chrono::microseconds curTime, size_t samplesCount) = 0;
+    virtual void collectSamples(std::chrono::microseconds curTime, size_t samplesCount, bool allowCanFdFrames) = 0;
     virtual void globalSampleRateChanged(double globalSampleRate) = 0;
 };
 
@@ -55,7 +55,7 @@ public:
                                const RefCANChannelInit& init);
 
     // IRefChannel
-    void collectSamples(std::chrono::microseconds curTime, size_t samplesCount) override;
+    void collectSamples(std::chrono::microseconds curTime, size_t samplesCount, bool allowCanFdFrames) override;
     void globalSampleRateChanged(double globalSampleRate) override;
 
     static std::string getEpoch();
@@ -79,7 +79,7 @@ private:
     void propChangedInternal();
     void propChanged();
     void createSignals();
-    void generateSamples(int64_t curTime, uint64_t duration, size_t newSamples);
+    void generateSamples(int64_t curTime, uint64_t duration, size_t newSamples, bool allowCanFdFrames);
     void buildSignalDescriptors();
 
     std::function<void(const CANData&)> rawFrameCapture;
