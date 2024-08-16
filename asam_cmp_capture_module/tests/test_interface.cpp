@@ -81,6 +81,7 @@ TEST_F(InterfaceFbTest, CaptureModuleProperties)
 
 TEST_F(InterfaceFbTest, TestSetId)
 {
+    EXPECT_CALL(*ethernetWrapper, sendPacket(_, _)).Times(AtLeast(0));
     ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
     createProc();
 
