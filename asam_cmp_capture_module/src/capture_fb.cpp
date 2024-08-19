@@ -103,11 +103,7 @@ void CaptureFb::updateCaptureData()
 
 void CaptureFb::initEncoders()
 {
-    for (int i = 0; i < encoders.size(); ++i)
-    {
-        encoders[i].setDeviceId(deviceId);
-        encoders[i].setStreamId(i);
-    }
+    encoders.init(deviceId);
 }
 
 void CaptureFb::initStatusPacket()
@@ -149,20 +145,20 @@ void CaptureFb::statusLoop()
         if (!stopStatusSending)
         {
             auto encodeAndSend = [&](const ASAM::CMP::Packet& packet) {
-                auto encodedData = encoders[1].encode(packet, encoderContext);
+                auto encodedData = encoders.encode(1, packet, encoderContext);
                 for (const auto& e : encodedData)
                     ethernetWrapper->sendPacket(selectedEthernetDeviceName, e);
             };
 
 
-            auto encodedData = encoders[1].encode(captureStatus.getPacket(), encoderContext);
+            auto encodedData = encoders.encode(1, captureStatus.getPacket(), encoderContext);
             for (const auto& e : encodedData)
                 ethernetWrapper->sendPacket(selectedEthernetDeviceName, e);
 
            
             for (int i = 0; i < captureStatus.getInterfaceStatusCount(); ++i)
             {
-                encodedData = encoders[1].encode(captureStatus.getInterfaceStatus(i).getPacket(), encoderContext);
+                encodedData = encoders.encode(1, captureStatus.getInterfaceStatus(i).getPacket(), encoderContext);
                 for (const auto& e : encodedData)
                     ethernetWrapper->sendPacket(selectedEthernetDeviceName, e);
             }

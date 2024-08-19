@@ -11,6 +11,7 @@ set(SRC_Cpp module_dll.cpp
     stream_fb.cpp
     capture_fb.cpp
     input_descriptors_validator.cpp
+    encoder_bank.cpp
 )
 
 set(SRC_PublicHeaders module_dll.h
@@ -66,6 +67,7 @@ if (${REPO_OPTION_PREFIX}_ENABLE_TESTS)
                     stream_fb.cpp
                     capture_fb.cpp
                     input_descriptors_validator.cpp
+                    encoder_bank.cpp
     )
 
     set(SRC_Lib_PublicHeaders capture_module_fb.h

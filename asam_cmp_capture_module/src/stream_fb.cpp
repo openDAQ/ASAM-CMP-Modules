@@ -31,7 +31,6 @@ StreamFb::StreamFb(const ContextPtr& ctx,
     , allowJumboFrames(internalInit.allowJumboFrames)
     , selectedDeviceName(internalInit.selectedDeviceName)
     , encoders(internalInit.encoderBank)
-    , encoder(&(*encoders)[streamId])
 {
     createInputPort();
     initStatuses();
@@ -49,7 +48,6 @@ void StreamFb::updateStreamIdInternal()
     streamIdsList.erase(streamId);
     StreamCommonFbImpl::updateStreamIdInternal();
     streamIdsList.insert(objPtr.getPropertyValue("StreamId"));
-    encoder = &(*encoders)[streamId];
 }
 
 void StreamFb::initStatuses()
@@ -237,7 +235,7 @@ void StreamFb::processCanPacket(const DataPacketPtr& packet, bool isCanFd)
 
     }
 
-    for (auto& rawFrame : encoder->encode(packets.begin(), packets.end(), dataContext))
+    for (auto& rawFrame : encoders->encode(streamId, packets.begin(), packets.end(), dataContext))
         ethernetWrapper->sendPacket(selectedDeviceName, rawFrame);
 }
 

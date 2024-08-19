@@ -80,7 +80,6 @@ private:
     std::unordered_set<uint8_t>& streamIdsList;
     std::mutex& statusSync;
     const EncoderBankPtr encoders;
-    ASAM::CMP::Encoder* encoder;
 
     InputPortPtr inputPort;
     DataDescriptorPtr inputDataDescriptor;
