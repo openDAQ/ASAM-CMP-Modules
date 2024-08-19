@@ -59,6 +59,10 @@ install(TARGETS ${PROJECT_NAME}
         PUBLIC_HEADER DESTINATION include/${TARGET_FOLDER_NAME}
 )
 
+if (MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE /bigobj)
+endif()
+
 if (${REPO_OPTION_PREFIX}_ENABLE_TESTS)
 
 set(SRC_Lib_Cpp data_sink_module.cpp
@@ -112,5 +116,9 @@ install(TARGETS ${PROJECT_NAME}_lib
         ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
         PUBLIC_HEADER DESTINATION include/${TARGET_FOLDER_NAME}
 )
+
+if (MSVC)
+    target_compile_options(${PROJECT_NAME}_lib PRIVATE /bigobj)
+endif()
 
 endif()
