@@ -44,9 +44,6 @@ void StreamFb::createInputPort()
 
 void StreamFb::updateStreamIdInternal()
 {
-    if (isInternalUpdate)
-        return;
-
     std::scoped_lock lock(statusSync, sync);
 
     streamIdsList.erase(streamId);

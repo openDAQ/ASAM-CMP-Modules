@@ -19,7 +19,6 @@ InterfaceCommonFb::InterfaceCommonFb(const ContextPtr& ctx,
     , payloadType(0)
     , isUpdating(false)
     , needsPropertyChanged(false)
-    , isInternalPropertyUpdate(false)
     , createdStreams(0)
 {
     initProperties();
@@ -84,9 +83,11 @@ void InterfaceCommonFb::updateInterfaceIdInternal()
     }
     else
     {
-        isInternalPropertyUpdate = true;
-        objPtr.setPropertyValue("InterfaceId", interfaceId);
-        isInternalPropertyUpdate = false;
+        setPropertyValueInternal(String("InterfaceId").asPtr<IString>(true),
+                                 BaseObjectPtr(interfaceId).asPtr<IBaseObject>(true),
+                                 false,
+                                 false,
+                                 false);
     }
 }
 
@@ -96,9 +97,11 @@ void InterfaceCommonFb::updatePayloadTypeInternal()
 
     if (newType < 0 || static_cast<size_t>(newType) > payloadTypeToAsamPayloadType.size())
     {
-        isInternalPropertyUpdate = true;
-        objPtr.setPropertyValue("PayloadType", asamPayloadTypeToPayloadType.at(payloadType.getType()));
-        isInternalPropertyUpdate = false;
+        setPropertyValueInternal(String("PayloadType").asPtr<IString>(true),
+                                 BaseObjectPtr(asamPayloadTypeToPayloadType.at(payloadType.getType())).asPtr<IBaseObject>(true),
+                                 false,
+                                 false,
+                                 false);
     }
     else
     {
@@ -148,11 +151,8 @@ void InterfaceCommonFb::propertyChangedIfNotUpdating()
 {
     if (!isUpdating)
     {
-        if (!isInternalPropertyUpdate)
-        {
-            std::scoped_lock lock{sync};
-            propertyChanged();
-        }
+        std::scoped_lock lock{sync};
+        propertyChanged();
     }
     else
         needsPropertyChanged = true;

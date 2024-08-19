@@ -57,7 +57,6 @@ private:
 
 protected:
     uint32_t streamId;
-    bool isInternalUpdate;
     PayloadType payloadType{0};
 
 private:
@@ -75,7 +74,6 @@ StreamCommonFbImpl<Interfaces...>::StreamCommonFbImpl(const ContextPtr& ctx,
     , streamIdManager(init.streamIdManager)
     , streamId(init.id)
     , payloadType(init.payloadType)
-    , isInternalUpdate(false)
 {
     initProperties();
 }
@@ -118,9 +116,8 @@ void StreamCommonFbImpl<Interfaces...>::updateStreamIdInternal()
     }
     else
     {
-        isInternalUpdate = true;
-        objPtr.setPropertyValue("StreamId", streamId);
-        isInternalUpdate = false;
+        setPropertyValueInternal(
+            String("StreamId").asPtr<IString>(true), BaseObjectPtr(streamId).asPtr<IBaseObject>(true), false, false, false);
     }
 }
 

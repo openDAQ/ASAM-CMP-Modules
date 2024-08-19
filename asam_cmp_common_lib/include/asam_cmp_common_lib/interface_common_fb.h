@@ -71,7 +71,6 @@ protected:
 
     std::atomic_bool isUpdating;
     std::atomic_bool needsPropertyChanged;
-    std::atomic_bool isInternalPropertyUpdate;
 
     // temporary solution once not full list of types is immplemented (or not in case values missmatch due to reserved values)
     inline static std::map<int, int> payloadTypeToAsamPayloadType = {
