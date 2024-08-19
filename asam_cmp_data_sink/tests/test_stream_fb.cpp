@@ -33,6 +33,13 @@ bool waitForSamples(const GenericReaderPtr<IReader>& reader, std::chrono::millis
     return curTime - startTime < timeout;
 }
 
+StreamReaderPtr StreamReaderSkipEvents(SignalPtr signal,
+                                       SampleType valueType = SampleType::Float64,
+                                       SampleType domainType = SampleType::Int64)
+{
+    return StreamReaderBuilder().setSignal(signal).setValueReadType(valueType).setDomainReadType(domainType).setSkipEvents(true).build();
+}
+
 class StreamFbTest : public testing::Test
 {
 protected:
@@ -133,7 +140,7 @@ TEST_F(StreamFbTest, ReceivePacketWithWrongPayloadType)
 TEST_F(StreamFbTest, ReadOutputSignal)
 {
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
-    const StreamReaderPtr reader = StreamReader(outputSignal, SampleType::Struct, SampleType::Int64);
+    const StreamReaderPtr reader = StreamReaderSkipEvents(outputSignal, SampleType::Struct, SampleType::Int64);
 
     callsMultiMap.processPacket(packet);
     const bool haveSamples = waitForSamples(reader);
@@ -156,7 +163,7 @@ TEST_F(StreamFbTest, ChangeStreamId)
     funcBlock.setPropertyValue("StreamId", newStreamId);
 
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
-    const StreamReaderPtr reader = StreamReader(outputSignal, SampleType::Struct, SampleType::Int64);
+    const StreamReaderPtr reader = StreamReaderSkipEvents(outputSignal, SampleType::Struct, SampleType::Int64);
 
     callsMultiMap.processPacket(packet);
     bool haveSamples = waitForSamples(reader);
@@ -174,7 +181,7 @@ TEST_F(StreamFbTest, ChangeInterfaceId)
     interfaceFb.setPropertyValue("InterfaceId", newInterfaceId);
 
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
-    const StreamReaderPtr reader = StreamReader(outputSignal, SampleType::Struct, SampleType::Int64);
+    const StreamReaderPtr reader = StreamReaderSkipEvents(outputSignal, SampleType::Struct, SampleType::Int64);
 
     callsMultiMap.processPacket(packet);
     bool haveSamples = waitForSamples(reader);
@@ -192,7 +199,7 @@ TEST_F(StreamFbTest, ChangeDeviceId)
     captureFb.setPropertyValue("DeviceId", newDeviceId);
 
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
-    const StreamReaderPtr reader = StreamReader(outputSignal, SampleType::Struct, SampleType::Int64);
+    const StreamReaderPtr reader = StreamReaderSkipEvents(outputSignal, SampleType::Struct, SampleType::Int64);
 
     callsMultiMap.processPacket(packet);
     bool haveSamples = waitForSamples(reader);
