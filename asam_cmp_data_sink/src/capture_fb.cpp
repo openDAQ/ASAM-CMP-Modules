@@ -63,6 +63,8 @@ void CaptureFb::removeInterfaceInternal(size_t nInd)
 
 void CaptureFb::createFbs()
 {
+    objPtr.setPropertyValue("DeviceId", deviceStatus.getPacket().getDeviceId());
+
     for (size_t i = 0; i < deviceStatus.getInterfaceStatusCount(); ++i)
     {
         auto ifStatus = deviceStatus.getInterfaceStatus(i);
