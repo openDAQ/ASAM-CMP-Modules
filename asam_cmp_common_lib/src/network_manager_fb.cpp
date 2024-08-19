@@ -38,7 +38,7 @@ void NetworkManagerFb::addNetworkAdaptersProperty()
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) += [this, propName](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args)
     {
-        objPtr.setPropertyValue("NetworkAdaptersNames", objPtr.getPropertyValue(propName));
+        objPtr.setPropertyValue("NetworkAdaptersNames", args.getValue());
         selectedEthernetDeviceName = objPtr.getPropertySelectionValue("NetworkAdaptersNames");
         networkAdapterChangedInternal();
     };

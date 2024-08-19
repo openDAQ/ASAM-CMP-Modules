@@ -76,7 +76,7 @@ private:
     const size_t sendingSyncLoopTime{1000};
     bool stopStatusSending;
     std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf> ethernetWrapper;
-    const StringPtr selectedEthernetDeviceName;
+    const StringPtr& selectedEthernetDeviceName;
 };
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

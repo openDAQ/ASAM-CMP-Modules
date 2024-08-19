@@ -67,8 +67,10 @@ ListPtr<StringPtr> EthernetPcppImpl::getEthernetDevicesDescriptionsList()
 
 void EthernetPcppImpl::sendPacket(const StringPtr& deviceName, const std::vector<uint8_t>& data)
 {
+    auto device = getPcapLiveDevice(deviceName);
+  
     // create a new Ethernet layer
-    pcpp::EthLayer newEthernetLayer(pcpp::MacAddress("00:50:43:11:22:33"), pcpp::MacAddress("FF:FF:FF:FF:FF:FF"), asamCmpEtherType);
+    pcpp::EthLayer newEthernetLayer(pcpp::MacAddress(device->getMacAddress()), pcpp::MacAddress("FF:FF:FF:FF:FF:FF"), asamCmpEtherType);
     pcpp::PayloadLayer payloadLayer(data.data(), data.size());
     // create a packet with initial capacity of 100 bytes (will grow automatically if needed)
     pcpp::Packet newPacket(100);
@@ -79,7 +81,6 @@ void EthernetPcppImpl::sendPacket(const StringPtr& deviceName, const std::vector
     // compute all calculated fields
     newPacket.computeCalculateFields();
 
-    auto device = getPcapLiveDevice(deviceName);
     device->sendPacket(&newPacket);
 }
 

@@ -47,7 +47,7 @@ void StreamFb::updateStreamIdInternal()
 
     streamIdsList.erase(streamId);
     StreamCommonFbImpl::updateStreamIdInternal();
-    streamIdsList.insert(objPtr.getPropertyValue("StreamId"));
+    streamIdsList.insert(streamId);
 }
 
 void StreamFb::initStatuses()

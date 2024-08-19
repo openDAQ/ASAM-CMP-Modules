@@ -61,8 +61,13 @@ void InterfaceFb::initProperties()
 void InterfaceFb::updateInterfaceIdInternal()
 {
     std::scoped_lock lock(statusSync);
-
+    auto oldId = interfaceId;
     asam_cmp_common_lib::InterfaceCommonFb::updateInterfaceIdInternal();
+
+    if (oldId != interfaceId)
+    {
+        deviceStatus.removeInterfaceById(oldId);
+    }
     updateInterfaceData();
 }
 
