@@ -43,6 +43,7 @@ struct StreamInit
     const bool& allowJumboFrames;
     const StringPtr& selectedDeviceName;
     const EncoderBankPtr encoderBank;
+    std::function<void()> parentInterfaceUpdater;
 };
 
 class StreamFb final : public asam_cmp_common_lib::StreamCommonFb
@@ -80,6 +81,7 @@ private:
     std::unordered_set<uint8_t>& streamIdsList;
     std::mutex& statusSync;
     const EncoderBankPtr encoders;
+    std::function<void()> parentInterfaceUpdater;
 
     InputPortPtr inputPort;
     DataDescriptorPtr inputDataDescriptor;

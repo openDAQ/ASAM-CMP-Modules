@@ -31,6 +31,7 @@ StreamFb::StreamFb(const ContextPtr& ctx,
     , allowJumboFrames(internalInit.allowJumboFrames)
     , selectedDeviceName(internalInit.selectedDeviceName)
     , encoders(internalInit.encoderBank)
+    , parentInterfaceUpdater(internalInit.parentInterfaceUpdater)
 {
     createInputPort();
     initStatuses();
@@ -46,8 +47,15 @@ void StreamFb::updateStreamIdInternal()
     std::scoped_lock lock(statusSync, sync);
 
     streamIdsList.erase(streamId);
+    auto oldId = streamId;
     StreamCommonFbImpl::updateStreamIdInternal();
-    streamIdsList.insert(streamId);
+
+    if (oldId != streamId)
+    {
+        streamIdsList.erase(streamId);
+        streamIdsList.insert(streamId);
+        parentInterfaceUpdater();
+    }
 }
 
 void StreamFb::initStatuses()
