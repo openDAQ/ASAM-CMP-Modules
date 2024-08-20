@@ -9,6 +9,7 @@
 #include <asam_cmp_capture_module/input_descriptors_validator.h>
 #include <asam_cmp/can_payload.h>
 #include <asam_cmp/can_fd_payload.h>
+#include <asam_cmp/analog_payload.h>
 #include <asam_cmp_common_lib/ethernet_pcpp_itf.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
@@ -143,12 +144,26 @@ void StreamFb::configure()
         if (!validateInputDescriptor(inputDataDescriptor, payloadType))
             throw std::runtime_error("Invalid data descriptor fields structure");
 
+        configureCustomParameters();
+
         setInputStatus(InputConnected.data());
     }
     catch (const std::exception& e)
     {
         LOG_W("Failed to set descriptor for trigger signal: {}", e.what())
         setInputStatus(InputInvalid.data());
+    }
+}
+
+void StreamFb::configureCustomParameters()
+{
+    switch (payloadType.getType())
+    {
+        case ASAM::CMP::PayloadType::analog:
+            constexpr double invertedTickResolution = 1'000'000;
+            int64_t delta = inputDomainDataDescriptor.getRule().getParameters().get("delta");
+            sampleRate = delta/invertedTickResolution;
+            break;
     }
 }
 
@@ -165,9 +180,9 @@ void StreamFb::processEventPacket(const EventPacketPtr& packet)
 
 ASAM::CMP::DataContext StreamFb::createEncoderDataContext() const
 {
+    constexpr int minFrameSize{64}, maxFrameSize{1500};
     assert(!allowJumboFrames);
-    //TODO: name them \/
-    return {64, 1500};
+    return {minFrameSize, maxFrameSize};
 }
 
 void StreamFb::processCanPacket(const DataPacketPtr& packet)
@@ -248,6 +263,33 @@ void StreamFb::processCanFdPacket(const DataPacketPtr& packet)
         ethernetWrapper->sendPacket(rawFrame);
 }
 
+void StreamFb::processAnalogPacket(const DataPacketPtr& packet, bool isCanFd)
+{
+    auto* rawData = reinterpret_cast<uint8_t*>(packet.getData());
+    const size_t sampleCount = packet.getSampleCount();
+    const size_t sampleSize = inputDataDescriptor.getSampleSize();
+
+    uint64_t* rawTimeBuffer = reinterpret_cast<uint64_t*>(packet.getDomainPacket().getRawData());
+
+    ASAM::CMP::Packet asamCmpPacket;
+
+    asamCmpPacket.setInterfaceId(interfaceId);
+
+    ASAM::CMP::Payload payload;
+    payload.setMessageType(ASAM::CMP::CmpHeader::MessageType::data);
+    payload.setType(ASAM::CMP::PayloadType::analog);
+    asamCmpPacket.setPayload(payload);
+    asamCmpPacket.setTimestamp((*rawTimeBuffer) * 1000);
+    //TODO: Add SampleDT - in standard we have A_INT16 and A_INT32 probably validator should be updated
+
+    static_cast<ASAM::CMP::AnalogPayload&>(asamCmpPacket.getPayload()).setSampleInterval(sampleRate);
+    static_cast<ASAM::CMP::AnalogPayload&>(asamCmpPacket.getPayload()).setData(rawData, sampleCount * sampleSize);
+
+
+    for (auto& rawFrame : encoders->encode(streamId, asamCmpPacket, dataContext))
+        ethernetWrapper->sendPacket(selectedDeviceName, rawFrame);
+}
+
 void StreamFb::processDataPacket(const DataPacketPtr& packet)
 {
     switch (payloadType.getType())
@@ -257,6 +299,8 @@ void StreamFb::processDataPacket(const DataPacketPtr& packet)
             break;
         case ASAM::CMP::PayloadType::canFd:
             processCanFdPacket(packet);
+        case ASAM::CMP::PayloadType::analog:
+            processAnalogPacket(packet, true);
             break;
     }
 }

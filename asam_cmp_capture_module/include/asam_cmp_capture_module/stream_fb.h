@@ -67,10 +67,12 @@ private:
     void onDisconnected(const InputPortPtr& port) override;
     void processSignalDescriptorChanged(DataDescriptorPtr inputDataDescriptor, DataDescriptorPtr inputDomainDataDescriptor);
     void configure();
+    void configureCustomParameters();
 
     void processDataPacket(const DataPacketPtr& packet);
     void processCanPacket(const DataPacketPtr& packet);
     void processCanFdPacket(const DataPacketPtr& packet);
+    void processAnalogPacket(const DataPacketPtr& packet, bool isCanFd);
 
     void processEventPacket(const EventPacketPtr& packet);
     ASAM::CMP::Packet createPacket() const;

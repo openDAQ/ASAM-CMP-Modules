@@ -62,10 +62,6 @@ void CaptureFb::initProperties()
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) +=
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
-
-    propName = "AllowJumboFrames";
-    prop = BoolPropertyBuilder(propName, allowJumboFrames).setReadOnly(true).build();
-    objPtr.addProperty(prop);
 }
 
 void CaptureFb::propertyChanged()

@@ -94,6 +94,20 @@ namespace
 
         return true;
     }
+
+    bool validateAnalogSampleType(DataDescriptorPtr inputDataDescriptor)
+    {
+        if (inputDataDescriptor.getSampleType() == SampleType::Struct)
+            throw std::runtime_error("Struct sample type is not allowed");
+
+        if (inputDataDescriptor.getDimensions().getCount() > 0)
+            throw std::runtime_error("Arrays not supported");
+
+        if (!inputDataDescriptor.getRule().assigned() || inputDataDescriptor.getRule().getType() != DataRuleType::Linear)
+            throw std::runtime_error("Linear rule not used");
+
+        return true;
+    }
 }
 
 bool validateInputDescriptor(DataDescriptorPtr inputDataDescriptor, const ASAM::CMP::PayloadType& type)
@@ -104,6 +118,8 @@ bool validateInputDescriptor(DataDescriptorPtr inputDataDescriptor, const ASAM::
             return validateStructureSampleType(inputDataDescriptor, canStructureReference);
         case ASAM::CMP::PayloadType::canFd:
             return validateStructureSampleType(inputDataDescriptor, canStructureReference);
+        case ASAM::CMP::PayloadType::analog:
+            return validateAnalogSampleType(inputDataDescriptor);
         default:
             return false;
     }
