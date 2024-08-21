@@ -42,10 +42,11 @@ public:
     virtual ~EthernetItf() = default;
     virtual ListPtr<StringPtr> getEthernetDevicesNamesList() = 0;
     virtual ListPtr<StringPtr> getEthernetDevicesDescriptionsList() = 0;
-    virtual void sendPacket(const StringPtr& deviceName, const std::vector<uint8_t>& data) = 0;
-    virtual void startCapture(const StringPtr& deviceName, OnPacketReceivedCallbackType packetReceivedCb) = 0;
-    virtual void stopCapture(const StringPtr& deviceName) = 0;
-    virtual bool isDeviceCapturing(const StringPtr& deviceName) = 0;
+    virtual void sendPacket(const std::vector<uint8_t>& data) = 0;
+    virtual void startCapture(OnPacketReceivedCallbackType packetReceivedCb) = 0;
+    virtual void stopCapture() = 0;
+    virtual bool isDeviceCapturing() const = 0;
+    virtual bool setDevice(const StringPtr& deviceName) = 0;
 };
 
 END_NAMESPACE_ASAM_CMP_COMMON

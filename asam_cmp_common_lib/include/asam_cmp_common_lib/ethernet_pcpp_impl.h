@@ -22,16 +22,19 @@ BEGIN_NAMESPACE_ASAM_CMP_COMMON
 class EthernetPcppImpl : public EthernetPcppItf
 {
 public:
+    EthernetPcppImpl();
     ListPtr<StringPtr> getEthernetDevicesNamesList() override;
     ListPtr<StringPtr> getEthernetDevicesDescriptionsList() override;
-    void sendPacket(const StringPtr& deviceName, const std::vector<uint8_t>& data) override;
-    void startCapture(const StringPtr& deviceName,
-                      std::function<void(pcpp::RawPacket*, pcpp::PcapLiveDevice*, void*)> onPacketReceivedCb) override;
-    void stopCapture(const StringPtr& deviceName) override;
-    bool isDeviceCapturing(const StringPtr& deviceName) override;
+    void sendPacket(const std::vector<uint8_t>& data) override;
+    void startCapture(std::function<void(pcpp::RawPacket*, pcpp::PcapLiveDevice*, void*)> onPacketReceivedCb) override;
+    void stopCapture() override;
+    bool isDeviceCapturing() const override;
+    bool setDevice(const StringPtr& deviceName) override;
 
 private:
-    pcpp::PcapLiveDevice* getPcapLiveDevice(StringPtr deviceName);
+    std::vector<pcpp::PcapLiveDevice*> createAvailableDevicesList() const;
+    pcpp::PcapLiveDevice* getFirstAvailableDevice() const;
+    pcpp::PcapLiveDevice* getPcapLiveDevice(const StringPtr& deviceName) const;
 
 public:
     inline static const pcpp::MacAddress broadcastMac{"FF:FF:FF:FF:FF:FF"};
@@ -39,6 +42,8 @@ public:
 
 private:
     pcpp::PcapLiveDeviceList& pcapDeviceList{pcpp::PcapLiveDeviceList::getInstance()};
+    const std::vector<pcpp::PcapLiveDevice*> deviceList;
+    pcpp::PcapLiveDevice* activeDevice;
 };
 
 END_NAMESPACE_ASAM_CMP_COMMON

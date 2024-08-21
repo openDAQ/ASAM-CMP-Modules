@@ -29,6 +29,17 @@ void NetworkManagerFb::addNetworkAdaptersProperty()
     ListPtr<StringPtr> devicesNames = ethernetWrapper->getEthernetDevicesNamesList();
     ListPtr<StringPtr> devicesDescriptions = ethernetWrapper->getEthernetDevicesDescriptionsList();
 
+    int selectedDeviceInd = 0;
+    for (int i = 0; i < devicesNames.getCount(); ++i)
+    {
+        if (ethernetWrapper->setDevice(devicesNames[i]))
+        {
+            selectedDeviceInd = i;
+            selectedEthernetDeviceName = devicesNames[i];
+            break;
+        }
+    }
+
     StringPtr propName = "NetworkAdaptersNames";
     auto prop = SelectionPropertyBuilder(propName, devicesNames, 0).setVisible(false).build();
     objPtr.addProperty(prop);
@@ -38,9 +49,12 @@ void NetworkManagerFb::addNetworkAdaptersProperty()
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) += [this, propName](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args)
     {
-        objPtr.setPropertyValue("NetworkAdaptersNames", args.getValue());
-        selectedEthernetDeviceName = objPtr.getPropertySelectionValue("NetworkAdaptersNames");
-        networkAdapterChangedInternal();
+        if (ethernetWrapper->setDevice(args.getValue()))
+        {
+            objPtr.setPropertyValue("NetworkAdaptersNames", args.getValue());
+            selectedEthernetDeviceName = objPtr.getPropertySelectionValue("NetworkAdaptersNames");
+            networkAdapterChangedInternal();
+        }
     };
 }
 

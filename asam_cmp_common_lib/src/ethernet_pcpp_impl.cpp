@@ -6,6 +6,51 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_COMMON
 
+EthernetPcppImpl::EthernetPcppImpl()
+    : deviceList(createAvailableDevicesList())
+    , activeDevice(getFirstAvailableDevice())
+{
+
+}
+
+std::vector<pcpp::PcapLiveDevice*> EthernetPcppImpl::createAvailableDevicesList() const
+{
+    auto& deviceList = pcapDeviceList.getPcapLiveDevicesList();
+    std::vector<pcpp::PcapLiveDevice*> devices;
+    for (const auto& device : deviceList)
+    {
+        try
+        {
+            auto newDevice = getPcapLiveDevice(device->getName());
+            devices.push_back(newDevice);
+            newDevice->close();
+        }
+        catch (...)
+        {
+
+        }
+    }
+
+    return devices;
+}
+
+pcpp::PcapLiveDevice* EthernetPcppImpl::getFirstAvailableDevice() const
+{
+    for (const auto& device : deviceList)
+    {
+        try
+        {
+            return getPcapLiveDevice(device->getName());
+        }
+        catch (...)
+        {
+            continue;
+        }
+    }
+
+    return nullptr;
+}
+
 void setFilters(pcpp::PcapLiveDevice* device)
 {
     // create a filters
@@ -20,7 +65,7 @@ void setFilters(pcpp::PcapLiveDevice* device)
     device->setFilter(andFilter);
 }
 
-pcpp::PcapLiveDevice* EthernetPcppImpl::getPcapLiveDevice(StringPtr deviceName)
+pcpp::PcapLiveDevice* EthernetPcppImpl::getPcapLiveDevice(const StringPtr& deviceName) const
 {
     auto pcapLiveDevice = pcapDeviceList.getPcapLiveDeviceByName(deviceName);
     if (!pcapLiveDevice)
@@ -39,7 +84,6 @@ pcpp::PcapLiveDevice* EthernetPcppImpl::getPcapLiveDevice(StringPtr deviceName)
 
 ListPtr<StringPtr> EthernetPcppImpl::getEthernetDevicesNamesList()
 {
-    auto& deviceList = pcapDeviceList.getPcapLiveDevicesList();
     ListPtr<StringPtr> devicesNames = List<IString>();
     for (const auto& device : deviceList)
         devicesNames.pushBack(device->getName());
@@ -57,7 +101,6 @@ void addDeviceDescription(ListPtr<StringPtr>& devicesNames, const StringPtr& nam
 
 ListPtr<StringPtr> EthernetPcppImpl::getEthernetDevicesDescriptionsList()
 {
-    auto& deviceList = pcapDeviceList.getPcapLiveDevicesList();
     ListPtr<StringPtr> devicesDescriptions = List<IString>();
     for (const auto& device : deviceList)
         addDeviceDescription(devicesDescriptions, device->getDesc());
@@ -65,12 +108,27 @@ ListPtr<StringPtr> EthernetPcppImpl::getEthernetDevicesDescriptionsList()
     return devicesDescriptions;
 }
 
-void EthernetPcppImpl::sendPacket(const StringPtr& deviceName, const std::vector<uint8_t>& data)
+bool EthernetPcppImpl::setDevice(const StringPtr& deviceName)
 {
-    auto device = getPcapLiveDevice(deviceName);
-  
+    pcpp::PcapLiveDevice* oldDevice = activeDevice;
+    try
+    {
+        activeDevice = getPcapLiveDevice(deviceName);
+    }
+    catch (...)
+    {
+        activeDevice = oldDevice;
+        return false;
+    }
+
+    return true;
+}
+
+void EthernetPcppImpl::sendPacket(const std::vector<uint8_t>& data)
+{
     // create a new Ethernet layer
-    pcpp::EthLayer newEthernetLayer(pcpp::MacAddress(device->getMacAddress()), pcpp::MacAddress("FF:FF:FF:FF:FF:FF"), asamCmpEtherType);
+    pcpp::EthLayer newEthernetLayer(
+        pcpp::MacAddress(activeDevice->getMacAddress()), pcpp::MacAddress("FF:FF:FF:FF:FF:FF"), asamCmpEtherType);
     pcpp::PayloadLayer payloadLayer(data.data(), data.size());
     // create a packet with initial capacity of 100 bytes (will grow automatically if needed)
     pcpp::Packet newPacket(100);
@@ -81,28 +139,26 @@ void EthernetPcppImpl::sendPacket(const StringPtr& deviceName, const std::vector
     // compute all calculated fields
     newPacket.computeCalculateFields();
 
-    device->sendPacket(&newPacket);
+    activeDevice->sendPacket(&newPacket);
 }
 
-void EthernetPcppImpl::startCapture(const StringPtr& deviceName, std::function<void(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie)> onPacketReceivedCb)
+void EthernetPcppImpl::startCapture(std::function<void(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie)> onPacketReceivedCb)
 {
-    stopCapture(deviceName);
+    stopCapture();
+    setFilters(activeDevice);
 
-    auto device = getPcapLiveDevice(deviceName);
-    setFilters(device);
-
-    device->startCapture(onPacketReceivedCb, nullptr);
+    activeDevice->startCapture(onPacketReceivedCb, nullptr);
 }
 
-void EthernetPcppImpl::stopCapture(const StringPtr& deviceName)
+void EthernetPcppImpl::stopCapture()
 {
-    if (isDeviceCapturing(deviceName))
-        getPcapLiveDevice(deviceName)->stopCapture();
+    if (isDeviceCapturing())
+        activeDevice->stopCapture();
 }
 
-bool EthernetPcppImpl::isDeviceCapturing(const StringPtr& deviceName)
+bool EthernetPcppImpl::isDeviceCapturing() const
 {
-    return getPcapLiveDevice(deviceName)->captureActive();
+    return activeDevice->captureActive();
 }
 
 END_NAMESPACE_ASAM_CMP_COMMON

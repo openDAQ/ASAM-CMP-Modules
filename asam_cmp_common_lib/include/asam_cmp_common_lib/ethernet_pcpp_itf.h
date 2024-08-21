@@ -29,10 +29,11 @@ class EthernetPcppItf: public EthernetItf<PcppPacketReceivedCallbackType>
 
     ListPtr<StringPtr> getEthernetDevicesNamesList() override = 0;
     ListPtr<StringPtr> getEthernetDevicesDescriptionsList() override = 0;
-    void sendPacket(const StringPtr& deviceName, const std::vector<uint8_t>& data) override = 0;
-    void startCapture(const StringPtr& deviceName, PcppPacketReceivedCallbackType packetReceivedCb) override = 0;
-    void stopCapture(const StringPtr& deviceName) override = 0;
-    bool isDeviceCapturing(const StringPtr& deviceName) override = 0;
+    void sendPacket(const std::vector<uint8_t>& data) override = 0;
+    void startCapture(PcppPacketReceivedCallbackType packetReceivedCb) override = 0;
+    void stopCapture() override = 0;
+    bool isDeviceCapturing() const override = 0;
+    bool setDevice(const StringPtr& deviceName) override = 0;
 };
 
 END_NAMESPACE_ASAM_CMP_COMMON
