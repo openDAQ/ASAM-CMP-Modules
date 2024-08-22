@@ -1,6 +1,5 @@
 #include <asam_cmp/can_payload.h>
 #include <opendaq/dimension_factory.h>
-#include <opendaq/packet_factory.h>
 
 #include <asam_cmp_data_sink/stream_fb.h>
 
@@ -34,24 +33,10 @@ void StreamFb::processData(const std::shared_ptr<ASAM::CMP::Packet>& packet)
     if (packet->getPayload().getType() != payloadType)
         return;
 
-    constexpr uint64_t newSamples = 1;
-    auto& canPayload = static_cast<const ASAM::CMP::CanPayload&>(packet->getPayload());
-    auto timestamp = packet->getTimestamp();
-
-    const auto domainPacket = DataPacket(domainSignal.getDescriptor(), newSamples, timestamp);
-    const auto dataPacket = DataPacketWithDomain(domainPacket, dataSignal.getDescriptor(), newSamples);
-
-    auto outDomainPacketBuf = static_cast<int64_t*>(domainPacket.getRawData());
-    if (outDomainPacketBuf)
-        *outDomainPacketBuf = timestamp;
-
-    auto dataBuffer = static_cast<CANData*>(dataPacket.getRawData());
-    dataBuffer->arbId = canPayload.getId();
-    dataBuffer->length = canPayload.getDataLength();
-    memcpy(dataBuffer->data, canPayload.getData(), dataBuffer->length);
-
-    dataSignal.sendPacket(dataPacket);
-    domainSignal.sendPacket(domainPacket);
+    if (payloadType != PayloadType::analog)
+        processAsyncData(packet);
+    else
+        processSyncData(packet);
 }
 
 void StreamFb::updateStreamIdInternal()
@@ -88,7 +73,7 @@ void StreamFb::buildDataDescriptor()
 void StreamFb::buildDomainDescriptor()
 {
     const auto domainDescriptor = DataDescriptorBuilder()
-                                      .setSampleType(SampleType::Int64)
+                                      .setSampleType(SampleType::UInt64)
                                       .setUnit(Unit("s", -1, "seconds", "time"))
                                       .setTickResolution(Ratio(1, 1000000000))
                                       .setOrigin(getEpoch())
@@ -116,6 +101,52 @@ void StreamFb::buildCanDescriptor()
                                       .build();
 
     dataSignal.setDescriptor(canMsgDescriptor);
+}
+
+void StreamFb::processAsyncData(const std::shared_ptr<ASAM::CMP::Packet>& packet)
+{
+    constexpr uint64_t newSamples = 1;
+    auto timestamp = packet->getTimestamp();
+
+    const auto domainPacket = createAsyncDomainPacket(timestamp, newSamples);
+    const auto dataPacket = DataPacketWithDomain(domainPacket, dataSignal.getDescriptor(), newSamples);
+    const auto buffer = dataPacket.getRawData();
+
+    switch (payloadType.getType())
+    {
+        case PayloadType::can:
+        case PayloadType::canFd:
+            fillCanData(buffer, packet);
+            break;
+    }
+
+    dataSignal.sendPacket(dataPacket);
+    domainSignal.sendPacket(domainPacket);
+}
+
+DataPacketPtr StreamFb::createAsyncDomainPacket(uint64_t timestamp, uint64_t sampleCount)
+{
+    const auto domainPacket = DataPacket(domainSignal.getDescriptor(), sampleCount, timestamp);
+
+    const auto outDomainPacketBuf = static_cast<uint64_t*>(domainPacket.getRawData());
+    if (outDomainPacketBuf)
+        *outDomainPacketBuf = timestamp;
+
+    return domainPacket;
+}
+
+void StreamFb::fillCanData(void* const data, const std::shared_ptr<ASAM::CMP::Packet>& packet)
+{
+    const auto dataBuffer = static_cast<CANData*>(data);
+    auto& payload = static_cast<const ASAM::CMP::CanPayload&>(packet->getPayload());
+
+    dataBuffer->arbId = payload.getId();
+    dataBuffer->length = payload.getDataLength();
+    memcpy(dataBuffer->data, payload.getData(), dataBuffer->length);
+}
+
+void StreamFb::processSyncData(const std::shared_ptr<ASAM::CMP::Packet>& packet)
+{
 }
 
 StringPtr StreamFb::getEpoch() const

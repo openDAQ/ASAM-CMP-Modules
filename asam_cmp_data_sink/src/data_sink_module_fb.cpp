@@ -88,6 +88,8 @@ void DataSinkModuleFb::onPacketArrives(pcpp::RawPacket* packet, pcpp::PcapLiveDe
 {
     auto acPackets = decode(packet);
 
+    // "Aggregation of multiple CMP Messages can be realized for different DATA_MESSAGE_PAYLOAD_TYPEs"
+    // Therefore, we need to process packet by packet from the vector
     for (const auto& acPacket : acPackets)
     {
         switch (acPacket->getMessageType())

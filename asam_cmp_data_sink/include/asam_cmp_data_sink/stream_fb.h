@@ -16,6 +16,7 @@
 
 #pragma once
 #include <asam_cmp/packet.h>
+#include <opendaq/packet_factory.h>
 
 #include <asam_cmp_common_lib/stream_common_fb_impl.h>
 #include <asam_cmp_data_sink/calls_multi_map.h>
@@ -54,12 +55,17 @@ protected:
 
     void updateStreamIdInternal() override;
 
-protected:
+private:
     void createSignals();
     void buildDataDescriptor();
     void buildDomainDescriptor();
     void buildCanDescriptor();
-    StringPtr getEpoch() const;
+    void processAsyncData(const std::shared_ptr<ASAM::CMP::Packet>& packet);
+    DataPacketPtr createAsyncDomainPacket(uint64_t timestamp, uint64_t sampleCount);
+    void fillCanData(void* const data, const std::shared_ptr<ASAM::CMP::Packet>& packet);
+    void processSyncData(const std::shared_ptr<ASAM::CMP::Packet>& packet);
+
+    [[nodiscard]] StringPtr getEpoch() const;
 
 private:
     const uint16_t& deviceId;
