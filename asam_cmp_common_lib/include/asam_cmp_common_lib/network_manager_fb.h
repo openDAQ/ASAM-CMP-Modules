@@ -40,8 +40,8 @@ protected:
     virtual void networkAdapterChangedInternal() = 0;
 
 protected:
-    StringPtr selectedEthernetDeviceName;
     std::shared_ptr<EthernetPcppItf> ethernetWrapper;
+    StringPtr selectedEthernetDeviceName;
 };
 
 END_NAMESPACE_ASAM_CMP_COMMON

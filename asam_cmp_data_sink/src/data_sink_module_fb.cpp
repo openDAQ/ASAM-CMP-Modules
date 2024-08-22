@@ -63,16 +63,14 @@ void DataSinkModuleFb::startCapture()
     std::scoped_lock lock{sync};
 
     stopCapture();
-
     ethernetWrapper->startCapture(
-        selectedEthernetDeviceName,
         [this](pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie) { onPacketArrives(packet, dev, cookie); }
     );
 }
 
 void DataSinkModuleFb::stopCapture()
 {
-    ethernetWrapper->stopCapture(selectedEthernetDeviceName);
+    ethernetWrapper->stopCapture();
 }
 
 void DataSinkModuleFb::onPacketArrives(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie)

@@ -49,11 +49,24 @@ void NetworkManagerFb::addNetworkAdaptersProperty()
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) += [this, propName](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args)
     {
-        if (ethernetWrapper->setDevice(args.getValue()))
+ //       setPropertyValueInternal(
+ //           String("InterfaceId").asPtr<IString>(true), BaseObjectPtr(interfaceId).asPtr<IBaseObject>(true), false, false, false);
+
+        StringPtr oldName = objPtr.getPropertySelectionValue("NetworkAdaptersNames");
+        int oldInd = objPtr.getPropertyValue("NetworkAdaptersNames");
+
+        setPropertyValueInternal(String("NetworkAdaptersNames"), args.getValue(), false, false, false);
+        std::string newName = objPtr.getPropertySelectionValue("NetworkAdaptersNames");
+
+        if (ethernetWrapper->setDevice(newName))
         {
-            objPtr.setPropertyValue("NetworkAdaptersNames", args.getValue());
-            selectedEthernetDeviceName = objPtr.getPropertySelectionValue("NetworkAdaptersNames");
+            selectedEthernetDeviceName = newName;
             networkAdapterChangedInternal();
+        }
+        else
+        {
+            setPropertyValueInternal(String("NetworkAdaptersNames"), BaseObjectPtr(oldInd), false, false, false);
+            setPropertyValueInternal(String("NetworkAdapters"), BaseObjectPtr(oldInd), false, false, false);
         }
     };
 }

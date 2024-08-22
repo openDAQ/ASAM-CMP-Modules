@@ -25,14 +25,14 @@ protected:
                 std::cout << "default PacketReceivedCallback is triggered\n";
         };
 
-        ON_CALL(*ethernetWrapper, startCapture(_, _)).WillByDefault(startStub);
-        ON_CALL(*ethernetWrapper, stopCapture(_)).WillByDefault(stopStub);
+        ON_CALL(*ethernetWrapper, startCapture(_)).WillByDefault(startStub);
+        ON_CALL(*ethernetWrapper, stopCapture()).WillByDefault(stopStub);
         ON_CALL(*ethernetWrapper, getEthernetDevicesNamesList()).WillByDefault(Return(names));
         ON_CALL(*ethernetWrapper, getEthernetDevicesDescriptionsList()).WillByDefault(Return(descriptions));
-        ON_CALL(*ethernetWrapper, sendPacket(_, _))
-            .WillByDefault(WithArgs<0, 1>(Invoke(
-                [&](StringPtr deviceName, const std::vector<uint8_t>& data){
-            this->onPacketSendCb(deviceName, data);}
+        ON_CALL(*ethernetWrapper, sendPacket(_))
+            .WillByDefault(WithArgs<0>(Invoke(
+                [&](const std::vector<uint8_t>& data){
+            this->onPacketSendCb(data);}
         )));
 
         auto logger = Logger();
@@ -58,7 +58,7 @@ protected:
     ASAM::CMP::Packet lastReceivedPacket;
     ASAM::CMP::Decoder decoder;
 
-    void onPacketSendCb(StringPtr deviceName, const std::vector<uint8_t>& data)
+    void onPacketSendCb(const std::vector<uint8_t>& data)
     {
         std::scoped_lock lock(packedReceivedSync);
         std::cout << "onPacketSend detected\n";
@@ -97,7 +97,7 @@ TEST_F(CaptureFbTest, TestCreateInterface)
 
 TEST_F(CaptureFbTest, TestCaptureStatusReceived)
 {
-    EXPECT_CALL(*ethernetWrapper, sendPacket(_, _)).Times(AtLeast(1));
+    EXPECT_CALL(*ethernetWrapper, sendPacket(_)).Times(AtLeast(1));
 
     uint64_t deviceId = captureFb.getPropertyValue("DeviceId");
     std::string deviceDescription = captureFb.getPropertyValue("DeviceDescription");
@@ -186,7 +186,7 @@ TEST_F(CaptureFbTest, TestCaptureStatusReceived)
 
 TEST_F(CaptureFbTest, TestBeginUpdateEndUpdate)
 {
-    EXPECT_CALL(*ethernetWrapper, sendPacket(_, _)).Times(AtLeast(0));
+    EXPECT_CALL(*ethernetWrapper, sendPacket(_)).Times(AtLeast(0));
 
     uint32_t oldDeviceId = captureFb.getPropertyValue("DeviceId");
     std::string oldDeviceDescription = captureFb.getPropertyValue("DeviceDescription");
@@ -238,7 +238,7 @@ TEST_F(CaptureFbTest, TestBeginUpdateEndUpdate)
 
 TEST_F(CaptureFbTest, TestInterfaceIdManager)
 {
-    EXPECT_CALL(*ethernetWrapper, sendPacket(_, _)).Times(AtLeast(0));
+    EXPECT_CALL(*ethernetWrapper, sendPacket(_)).Times(AtLeast(0));
 
     ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
     createProc();
@@ -262,7 +262,7 @@ TEST_F(CaptureFbTest, TestInterfaceIdManager)
 
 TEST_F(CaptureFbTest, TestStatusPacketConsistency)
 {
-    EXPECT_CALL(*ethernetWrapper, sendPacket(_, _)).Times(AtLeast(1));
+    EXPECT_CALL(*ethernetWrapper, sendPacket(_)).Times(AtLeast(1));
 
     uint32_t oldDeviceId = captureFb.getPropertyValue("DeviceId");
     std::string oldDeviceDescription = captureFb.getPropertyValue("DeviceDescription");

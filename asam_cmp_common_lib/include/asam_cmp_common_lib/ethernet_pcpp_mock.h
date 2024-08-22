@@ -25,13 +25,14 @@ class EthernetPcppMock : public EthernetPcppItf
 public:
     MOCK_METHOD(ListPtr<StringPtr>, getEthernetDevicesNamesList, (), (override));
     MOCK_METHOD(ListPtr<StringPtr>, getEthernetDevicesDescriptionsList, (), (override));
-    MOCK_METHOD(void, sendPacket, (const StringPtr& deviceName, const std::vector<uint8_t>& data), (override));
+    MOCK_METHOD(void, sendPacket, (const std::vector<uint8_t>& data), (override));
     MOCK_METHOD(void,
                 startCapture,
-                (const StringPtr& deviceName, (std::function<void(pcpp::RawPacket*, pcpp::PcapLiveDevice*, void*)> onPacketReceivedCb)),
+                ((std::function<void(pcpp::RawPacket*, pcpp::PcapLiveDevice*, void*)> onPacketReceivedCb)),
                 (override));
-    MOCK_METHOD(void, stopCapture, (const StringPtr& deviceName), (override));
-    MOCK_METHOD(bool, isDeviceCapturing, (const StringPtr& deviceName), (override));
+    MOCK_METHOD(void, stopCapture, (), (override));
+    MOCK_METHOD(bool, isDeviceCapturing, (), (const, override));
+    MOCK_METHOD(bool, setDevice, (const StringPtr& deviceName), (override));
 };
 
 END_NAMESPACE_ASAM_CMP_COMMON

@@ -147,20 +147,20 @@ void CaptureFb::statusLoop()
             auto encodeAndSend = [&](const ASAM::CMP::Packet& packet) {
                 auto encodedData = encoders.encode(1, packet, encoderContext);
                 for (const auto& e : encodedData)
-                    ethernetWrapper->sendPacket(selectedEthernetDeviceName, e);
+                    ethernetWrapper->sendPacket(e);
             };
 
 
             auto encodedData = encoders.encode(1, captureStatus.getPacket(), encoderContext);
             for (const auto& e : encodedData)
-                ethernetWrapper->sendPacket(selectedEthernetDeviceName, e);
+                ethernetWrapper->sendPacket(e);
 
            
             for (int i = 0; i < captureStatus.getInterfaceStatusCount(); ++i)
             {
                 encodedData = encoders.encode(1, captureStatus.getInterfaceStatus(i).getPacket(), encoderContext);
                 for (const auto& e : encodedData)
-                    ethernetWrapper->sendPacket(selectedEthernetDeviceName, e);
+                    ethernetWrapper->sendPacket(e);
             }
         }
     }

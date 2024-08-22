@@ -33,7 +33,7 @@ void InterfaceFb::addStreamInternal()
     std::scoped_lock lock(statusSync);
 
     auto newId = streamIdManager->getFirstUnusedId();
-    StreamInit internalInit{streamIdsList, statusSync, interfaceId, ethernetWrapper, allowJumboFrames, selectedDeviceName, encoders, [&]() {
+    StreamInit internalInit{streamIdsList, statusSync, interfaceId, ethernetWrapper, allowJumboFrames, encoders, [&]() {
                                 this->updateInterfaceData();
                             }};
     addStreamWithParams<StreamFb>(newId, internalInit);

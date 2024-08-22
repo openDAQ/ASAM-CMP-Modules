@@ -56,13 +56,13 @@ protected:
 
         auto sendPacketStub = [](StringPtr deviceName, const std::vector<uint8_t>& data) {};
 
-        ON_CALL(*ethernetWrapper, startCapture(_, _)).WillByDefault(startStub);
-        ON_CALL(*ethernetWrapper, stopCapture(_)).WillByDefault(stopStub);
+        ON_CALL(*ethernetWrapper, startCapture(_)).WillByDefault(startStub);
+        ON_CALL(*ethernetWrapper, stopCapture()).WillByDefault(stopStub);
         ON_CALL(*ethernetWrapper, getEthernetDevicesNamesList()).WillByDefault(Return(names));
         ON_CALL(*ethernetWrapper, getEthernetDevicesDescriptionsList()).WillByDefault(Return(descriptions));
-        ON_CALL(*ethernetWrapper, sendPacket(_, _))
-            .WillByDefault(WithArgs<0, 1>(
-                Invoke([&](StringPtr deviceName, const std::vector<uint8_t>& data) { this->onPacketSendCb(deviceName, data); })));
+        ON_CALL(*ethernetWrapper, sendPacket(_))
+            .WillByDefault(WithArgs<0>(
+                Invoke([&](const std::vector<uint8_t>& data) { this->onPacketSendCb(data); })));
 
         auto logger = Logger();
         context = Context(Scheduler(logger), logger, TypeManager(), nullptr, nullptr);
@@ -91,7 +91,7 @@ protected:
         expectedFramesCnt = 0;
     }
 
-    void onPacketSendCb(StringPtr deviceName, const std::vector<uint8_t>& data)
+    void onPacketSendCb(const std::vector<uint8_t>& data)
     {
         std::scoped_lock lock(packedReceivedSync);
         std::cout << "onPacketSend detected\n";
@@ -154,7 +154,7 @@ void StreamFbTest::testCanPacketWithParameter(bool isCanFd)
         timeStub.getMicroSecondsSinceDeviceStart(), timeStub.getMicroSecondsFromEpochToDeviceStart(), rawFramesCapture};
     canChannel = createWithImplementation<IChannel, RefCANChannelImpl>(this->context, nullptr, "refcanch", initCanCh);
 
-    EXPECT_CALL(*ethernetWrapper, sendPacket(_, _)).Times(AtLeast(0));
+    EXPECT_CALL(*ethernetWrapper, sendPacket(_)).Times(AtLeast(0));
 
     ProcedurePtr createProc = interfaceFb.getPropertyValue("AddStream");
     interfaceFb.setPropertyValue("PayloadType", 1 + isCanFd);

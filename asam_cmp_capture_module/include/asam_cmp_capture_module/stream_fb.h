@@ -41,7 +41,6 @@ struct StreamInit
     const uint32_t& interfaceId;
     const std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf>& ethernetWrapper;
     const bool& allowJumboFrames;
-    const StringPtr& selectedDeviceName;
     const EncoderBankPtr encoderBank;
     std::function<void()> parentInterfaceUpdater;
 };
@@ -92,7 +91,6 @@ private:
     std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf> ethernetWrapper;
     const bool allowJumboFrames;
     ASAM::CMP::DataContext dataContext;
-    const StringPtr& selectedDeviceName;
 };
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

@@ -29,7 +29,6 @@ StreamFb::StreamFb(const ContextPtr& ctx,
     , ethernetWrapper(internalInit.ethernetWrapper)
     , dataContext(createEncoderDataContext())
     , allowJumboFrames(internalInit.allowJumboFrames)
-    , selectedDeviceName(internalInit.selectedDeviceName)
     , encoders(internalInit.encoderBank)
     , parentInterfaceUpdater(internalInit.parentInterfaceUpdater)
 {
@@ -246,7 +245,7 @@ void StreamFb::processCanFdPacket(const DataPacketPtr& packet)
     }
 
     for (auto& rawFrame : encoders->encode(streamId, packets.begin(), packets.end(), dataContext))
-        ethernetWrapper->sendPacket(selectedDeviceName, rawFrame);
+        ethernetWrapper->sendPacket(rawFrame);
 }
 
 void StreamFb::processDataPacket(const DataPacketPtr& packet)

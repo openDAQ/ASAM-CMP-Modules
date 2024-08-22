@@ -28,13 +28,13 @@ protected:
         auto startStub = []() { };
         auto stopStub = []() {};
 
-        ON_CALL(*ethernetWrapper, startCapture(_, _)).WillByDefault(startStub);
-        ON_CALL(*ethernetWrapper, stopCapture(_)).WillByDefault(stopStub);
+        ON_CALL(*ethernetWrapper, startCapture(_)).WillByDefault(startStub);
+        ON_CALL(*ethernetWrapper, stopCapture()).WillByDefault(stopStub);
         ON_CALL(*ethernetWrapper, getEthernetDevicesNamesList()).WillByDefault(Return(names));
         ON_CALL(*ethernetWrapper, getEthernetDevicesDescriptionsList()).WillByDefault(Return(descriptions));
 
-        EXPECT_CALL(*ethernetWrapper, startCapture(_, _)).Times(AtLeast(1));
-        EXPECT_CALL(*ethernetWrapper, stopCapture(_)).Times(AtLeast(1));
+        EXPECT_CALL(*ethernetWrapper, startCapture(_)).Times(AtLeast(1));
+        EXPECT_CALL(*ethernetWrapper, stopCapture()).Times(AtLeast(1));
         EXPECT_CALL(*ethernetWrapper, getEthernetDevicesNamesList()).Times(AtLeast(1));
         EXPECT_CALL(*ethernetWrapper, getEthernetDevicesDescriptionsList()).Times(AtLeast(1));
 
