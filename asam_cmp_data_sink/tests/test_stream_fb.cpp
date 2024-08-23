@@ -20,7 +20,7 @@ using ASAM::CMP::Packet;
 using daq::modules::asam_cmp_data_sink_module::CallsMultiMap;
 using daq::modules::asam_cmp_data_sink_module::IDataHandler;
 
-bool waitForSamples(const GenericReaderPtr<IReader>& reader, std::chrono::milliseconds timeout = 100ms)
+size_t waitForSamples(const GenericReaderPtr<IReader>& reader, std::chrono::milliseconds timeout = 100ms)
 {
     auto startTime = std::chrono::steady_clock::now();
     auto curTime = startTime;
@@ -30,7 +30,7 @@ bool waitForSamples(const GenericReaderPtr<IReader>& reader, std::chrono::millis
         curTime = std::chrono::steady_clock::now();
     }
 
-    return curTime - startTime < timeout;
+    return reader.getAvailableCount();
 }
 
 StreamReaderPtr StreamReaderSkipEvents(SignalPtr signal,
@@ -67,18 +67,23 @@ protected:
         captureFb.setPropertyValue("DeviceId", deviceId);
         interfaceFb.setPropertyValue("InterfaceId", interfaceId);
         funcBlock.setPropertyValue("StreamId", streamId);
-        interfaceFb.setPropertyValue("PayloadType", 1);
 
+        createCanPacket();
+    }
+
+    void createCanPacket()
+    {
         CanPayload canPayload;
-        canPayload.setData(reinterpret_cast<const uint8_t*>(&data), sizeof(data));
+        canPayload.setData(reinterpret_cast<const uint8_t*>(&canData), sizeof(canData));
+        canPayload.setId(arbId);
 
-        packet = std::make_shared<Packet>();
-        packet->setPayload(canPayload);
-        timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-        packet->setTimestamp(timestamp);
-        packet->setDeviceId(deviceId);
-        packet->setInterfaceId(interfaceId);
-        packet->setStreamId(streamId);
+        canPacket = std::make_shared<Packet>();
+        canPacket->setPayload(canPayload);
+        auto timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        canPacket->setTimestamp(timestamp);
+        canPacket->setDeviceId(deviceId);
+        canPacket->setInterfaceId(interfaceId);
+        canPacket->setStreamId(streamId);
     }
 
 protected:
@@ -86,15 +91,20 @@ protected:
     static constexpr uint32_t interfaceId = 1;
     static constexpr uint8_t streamId = 2;
 
+    static constexpr uint32_t arbId = 45;
+
+    static constexpr int canPayloadType = 1;
+    static constexpr int analogPayloadType = 3;
+
 protected:
     CallsMultiMap callsMultiMap;
     FunctionBlockPtr captureFb;
     FunctionBlockPtr interfaceFb;
     FunctionBlockPtr funcBlock;
 
-    std::shared_ptr<Packet> packet;
+    std::shared_ptr<Packet> canPacket;
     long long timestamp;
-    const uint32_t data = 33;
+    const uint32_t canData = 33;
 };
 
 TEST_F(StreamFbTest, NotNull)
@@ -124,91 +134,117 @@ TEST_F(StreamFbTest, SignalsCount)
     ASSERT_EQ(outputSignals.getCount(), 1);
 }
 
+TEST_F(StreamFbTest, SignalName)
+{
+    const StringPtr signalName = "Data";
+
+    const auto outputSignal = funcBlock.getSignalsRecursive()[0];
+    ASSERT_EQ(outputSignal.getName(), signalName);
+}
+
+TEST_F(StreamFbTest, CanSignalDescriptor)
+{
+    const StringPtr name = "CAN";
+    constexpr SampleType sampleType = SampleType::Struct;
+
+    interfaceFb.setPropertyValue("PayloadType", canPayloadType);
+
+    const auto descriptor = funcBlock.getSignalsRecursive()[0].getDescriptor();
+    ASSERT_EQ(descriptor.getName(), name);
+    ASSERT_EQ(descriptor.getSampleType(), sampleType);
+    ASSERT_EQ(descriptor.getSampleSize(), sizeof(CANData));
+}
+
 TEST_F(StreamFbTest, ReceivePacketWithWrongPayloadType)
 {
-    interfaceFb.setPropertyValue("PayloadType", 3);
+    interfaceFb.setPropertyValue("PayloadType", analogPayloadType);
     const auto dataHandler = funcBlock.as<IDataHandler>(true);
 
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReader(outputSignal);
 
-    dataHandler->processData(packet);
+    dataHandler->processData(canPacket);
     const bool haveSamples = waitForSamples(reader);
     ASSERT_FALSE(haveSamples);
 }
 
-TEST_F(StreamFbTest, ReadOutputSignal)
+TEST_F(StreamFbTest, ReadOutputCanSignal)
 {
+    interfaceFb.setPropertyValue("PayloadType", canPayloadType);
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
-    const StreamReaderPtr reader = StreamReaderSkipEvents(outputSignal, SampleType::Struct, SampleType::Int64);
+    const StreamReaderPtr reader = StreamReaderSkipEvents(outputSignal, SampleType::Struct, SampleType::UInt64);
 
-    callsMultiMap.processPacket(packet);
-    const bool haveSamples = waitForSamples(reader);
-    ASSERT_TRUE(haveSamples);
+    callsMultiMap.processPacket(canPacket);
+    const auto samplesCount = waitForSamples(reader);
+    ASSERT_EQ(samplesCount, 1);
 
     CANData sample;
-    int64_t domainSample;
+    uint64_t domainSample;
     size_t count = 1;
     reader.readWithDomain(&sample, &domainSample, &count);
     ASSERT_EQ(count, 1);
-    ASSERT_EQ(domainSample, timestamp);
-    ASSERT_EQ(sample.length, sizeof(data));
+    ASSERT_EQ(domainSample, canPacket->getTimestamp());
+    ASSERT_EQ(sample.arbId, arbId);
+    ASSERT_EQ(sample.length, sizeof(canData));
     uint32_t checkData = *reinterpret_cast<uint32_t*>(sample.data);
-    ASSERT_EQ(checkData, data);
+    ASSERT_EQ(checkData, canData);
 }
 
 TEST_F(StreamFbTest, ChangeStreamId)
 {
     constexpr Int newStreamId = 100;
+    interfaceFb.setPropertyValue("PayloadType", canPayloadType);
     funcBlock.setPropertyValue("StreamId", newStreamId);
 
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReaderSkipEvents(outputSignal, SampleType::Struct, SampleType::Int64);
 
-    callsMultiMap.processPacket(packet);
-    bool haveSamples = waitForSamples(reader);
-    ASSERT_FALSE(haveSamples);
+    callsMultiMap.processPacket(canPacket);
+    auto samplesCount = waitForSamples(reader);
+    ASSERT_EQ(samplesCount, 0);
 
-    packet->setStreamId(newStreamId);
-    callsMultiMap.processPacket(packet);
-    haveSamples = waitForSamples(reader);
-    ASSERT_TRUE(haveSamples);
+    canPacket->setStreamId(newStreamId);
+    callsMultiMap.processPacket(canPacket);
+    samplesCount = waitForSamples(reader);
+    ASSERT_EQ(samplesCount, 1);
 }
 
 TEST_F(StreamFbTest, ChangeInterfaceId)
 {
     constexpr Int newInterfaceId = 100;
     interfaceFb.setPropertyValue("InterfaceId", newInterfaceId);
+    interfaceFb.setPropertyValue("PayloadType", canPayloadType);
 
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReaderSkipEvents(outputSignal, SampleType::Struct, SampleType::Int64);
 
-    callsMultiMap.processPacket(packet);
-    bool haveSamples = waitForSamples(reader);
-    ASSERT_FALSE(haveSamples);
+    callsMultiMap.processPacket(canPacket);
+    auto samplesCount = waitForSamples(reader);
+    ASSERT_EQ(samplesCount, 0);
 
-    packet->setInterfaceId(newInterfaceId);
-    callsMultiMap.processPacket(packet);
-    haveSamples = waitForSamples(reader);
-    ASSERT_TRUE(haveSamples);
+    canPacket->setInterfaceId(newInterfaceId);
+    callsMultiMap.processPacket(canPacket);
+    samplesCount = waitForSamples(reader);
+    ASSERT_EQ(samplesCount, 1);
 }
 
 TEST_F(StreamFbTest, ChangeDeviceId)
 {
     constexpr Int newDeviceId = 100;
     captureFb.setPropertyValue("DeviceId", newDeviceId);
+    interfaceFb.setPropertyValue("PayloadType", canPayloadType);
 
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReaderSkipEvents(outputSignal, SampleType::Struct, SampleType::Int64);
 
-    callsMultiMap.processPacket(packet);
-    bool haveSamples = waitForSamples(reader);
-    ASSERT_FALSE(haveSamples);
+    callsMultiMap.processPacket(canPacket);
+    auto samplesCount = waitForSamples(reader);
+    ASSERT_EQ(samplesCount, 0);
 
-    packet->setDeviceId(newDeviceId);
-    callsMultiMap.processPacket(packet);
-    haveSamples = waitForSamples(reader);
-    ASSERT_TRUE(haveSamples);
+    canPacket->setDeviceId(newDeviceId);
+    callsMultiMap.processPacket(canPacket);
+    samplesCount = waitForSamples(reader);
+    ASSERT_EQ(samplesCount, 1);
 }
 
 TEST_F(StreamFbTest, RemoveStream)
