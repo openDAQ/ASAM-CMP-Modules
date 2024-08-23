@@ -223,7 +223,7 @@ void StreamFbTest::testCanPacketWithParameter(bool isCanFd)
 
     size_t timeElapsed = 0;
     auto stTime = std::chrono::steady_clock::now();
-    while (!checker() && timeElapsed < 2500)
+    while (!checker() && timeElapsed < 2500'000'000)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
         auto curTime = std::chrono::steady_clock::now();

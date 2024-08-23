@@ -171,32 +171,7 @@ ASAM::CMP::DataContext StreamFb::createEncoderDataContext() const
     return {64, 1500};
 }
 
-/*
-//TODO:
-
-#pragma pack(push, 1)
-    struct CANData
-    {
-        uint32_t arbId;
-        uint8_t length;
-        uint8_t data[64];
-    };
-#pragma pack(pop)
-
-this structure is the same for CAN and CAN-FD we don't know which kind of CAN exactly
-until we read length (if length > 8 this is CAN FD)
-
-Since we cannot read length before we open packet, however PayloadType is already set (CAN or CAN-FD)
-we should:
-
-for PayloadType CAN - ignore every frame with length > 8
-
-for PayloadType CAN-FD - ignore nothing
-
-REMOVE JUMBO from public interface (opendaq property)
-*/
-
-void StreamFb::processCanPacket(const DataPacketPtr& packet, bool isCanFd)
+void StreamFb::processCanPacket(const DataPacketPtr& packet)
 {
 #pragma pack(push, 1)
     struct CANData
@@ -217,30 +192,57 @@ void StreamFb::processCanPacket(const DataPacketPtr& packet, bool isCanFd)
 
     for (size_t i = 0; i < sampleCount; i++)
     {
-        if (isCanFd || canData->length <= 8)
+        if (canData->length <= 8)
         {
+            ASAM::CMP::CanPayload payload;
+            payload.setData(canData->data, canData->length);
+            payload.setId(canData->arbId);
+
             packets.emplace_back();
             packets.back().setInterfaceId(interfaceId);
-
-            ASAM::CMP::Payload payload;
-            payload.setMessageType(ASAM::CMP::CmpHeader::MessageType::data);
-            payload.setType(isCanFd ? ASAM::CMP::PayloadType::canFd : ASAM::CMP::PayloadType::can);
             packets.back().setPayload(payload);
             packets.back().setTimestamp((*rawTimeBuffer) * 1000);
-            if (isCanFd)
-            {
-                static_cast<ASAM::CMP::CanFdPayload&>(packets.back().getPayload()).setData(canData->data, canData->length);
-                static_cast<ASAM::CMP::CanFdPayload&>(packets.back().getPayload()).setId(canData->arbId);
-            }
-            else
-            {
-                static_cast<ASAM::CMP::CanPayload&>(packets.back().getPayload()).setData(canData->data, canData->length);
-                static_cast<ASAM::CMP::CanPayload&>(packets.back().getPayload()).setId(canData->arbId);
-            }
         }
         canData++;
         rawTimeBuffer++;
+    }
 
+    for (auto& rawFrame : encoders->encode(streamId, packets.begin(), packets.end(), dataContext))
+        ethernetWrapper->sendPacket(selectedDeviceName, rawFrame);
+}
+
+void StreamFb::processCanFdPacket(const DataPacketPtr& packet)
+{
+#pragma pack(push, 1)
+    struct CANData
+    {
+        uint32_t arbId;
+        uint8_t length;
+        uint8_t data[64];
+    };
+#pragma pack(pop)
+
+    auto* canData = reinterpret_cast<CANData*>(packet.getData());
+    const size_t sampleCount = packet.getSampleCount();
+
+    uint64_t* rawTimeBuffer = reinterpret_cast<uint64_t*>(packet.getDomainPacket().getRawData());
+
+    std::vector<ASAM::CMP::Packet> packets;
+    packets.reserve(sampleCount);
+
+    for (size_t i = 0; i < sampleCount; i++)
+    {
+        ASAM::CMP::CanFdPayload payload;
+        payload.setData(canData->data, canData->length);
+        payload.setId(canData->arbId);
+
+        packets.emplace_back();
+        packets.back().setInterfaceId(interfaceId);
+        packets.back().setPayload(payload);
+        packets.back().setTimestamp((*rawTimeBuffer) * 1000);
+
+        canData++;
+        rawTimeBuffer++;
     }
 
     for (auto& rawFrame : encoders->encode(streamId, packets.begin(), packets.end(), dataContext))
@@ -252,24 +254,12 @@ void StreamFb::processDataPacket(const DataPacketPtr& packet)
     switch (payloadType.getType())
     {
         case ASAM::CMP::PayloadType::can:
-            processCanPacket(packet, false);
+            processCanPacket(packet);
             break;
         case ASAM::CMP::PayloadType::canFd:
-            processCanPacket(packet, true);
+            processCanFdPacket(packet);
             break;
     }
-}
-
-ASAM::CMP::Packet StreamFb::createPacket() const
-{
-    ASAM::CMP::Packet packet;
-    packet.setInterfaceId(interfaceId);
-
-    ASAM::CMP::Payload payload;
-    payload.setType(ASAM::CMP::PayloadType::can);
-    payload.setMessageType(ASAM::CMP::CmpHeader::MessageType::data);
-
-    return packet;
 }
 
 void StreamFb::setPayloadType(ASAM::CMP::PayloadType type)
