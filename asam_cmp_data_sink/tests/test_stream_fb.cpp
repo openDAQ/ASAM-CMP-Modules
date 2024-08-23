@@ -3,10 +3,12 @@
 #include <asam_cmp_data_sink/common.h>
 #include <asam_cmp_data_sink/data_handler.h>
 
+#include <asam_cmp/analog_payload.h>
 #include <asam_cmp/can_payload.h>
 #include <asam_cmp/packet.h>
 #include <gtest/gtest.h>
 #include <opendaq/context_factory.h>
+#include <opendaq/event_packet_ids.h>
 #include <opendaq/module_ptr.h>
 #include <opendaq/reader_factory.h>
 #include <opendaq/scheduler_factory.h>
@@ -15,6 +17,7 @@
 using namespace std::chrono_literals;
 
 using namespace daq;
+using ASAM::CMP::AnalogPayload;
 using ASAM::CMP::CanPayload;
 using ASAM::CMP::Packet;
 using daq::modules::asam_cmp_data_sink_module::CallsMultiMap;
@@ -53,6 +56,9 @@ protected:
 #pragma pack(pop)
 
 protected:
+    using AnalogType = int16_t;
+
+protected:
     void SetUp()
     {
         auto logger = Logger();
@@ -69,6 +75,7 @@ protected:
         funcBlock.setPropertyValue("StreamId", streamId);
 
         createCanPacket();
+        createAnalogPacket();
     }
 
     void createCanPacket()
@@ -86,12 +93,41 @@ protected:
         canPacket->setStreamId(streamId);
     }
 
+    void createAnalogPacket()
+    {
+        analogData.resize(analogDataSize);
+        std::iota(analogData.begin(), analogData.end(), 0);
+
+        AnalogPayload payload;
+        payload.setData(reinterpret_cast<uint8_t*>(analogData.data()), analogData.size() * sizeof(AnalogType));
+        payload.setSampleDt(AnalogPayload::SampleDtFromType<AnalogType>::sampleDtType);
+        payload.setUnit(AnalogPayload::Unit::kilogram);
+        payload.setSampleInterval(sampleInterval);
+        payload.setSampleOffset(sampleOffset);
+        payload.setSampleScalar(sampleScalar);
+
+        analogPacket = std::make_shared<Packet>();
+        analogPacket->setPayload(payload);
+        auto timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        analogPacket->setTimestamp(timestamp);
+        analogPacket->setDeviceId(deviceId);
+        analogPacket->setInterfaceId(interfaceId);
+        analogPacket->setStreamId(streamId);
+    }
+
 protected:
     static constexpr uint16_t deviceId = 0;
     static constexpr uint32_t interfaceId = 1;
     static constexpr uint8_t streamId = 2;
+    static constexpr uint64_t resolution = 1e9;
 
     static constexpr uint32_t arbId = 45;
+
+    static constexpr size_t analogDataSize = 80;
+    static constexpr float sampleInterval = 20.f * 1e-6f;
+    static constexpr float sampleOffset = 50;
+    static constexpr float sampleScalar = 0.3f;
+    static constexpr SampleType analogSampleType = SampleTypeFromType<AnalogType>::SampleType;
 
     static constexpr int canPayloadType = 1;
     static constexpr int analogPayloadType = 3;
@@ -103,8 +139,9 @@ protected:
     FunctionBlockPtr funcBlock;
 
     std::shared_ptr<Packet> canPacket;
-    long long timestamp;
+    std::shared_ptr<Packet> analogPacket;
     const uint32_t canData = 33;
+    std::vector<AnalogType> analogData;
 };
 
 TEST_F(StreamFbTest, NotNull)
@@ -155,6 +192,17 @@ TEST_F(StreamFbTest, CanSignalDescriptor)
     ASSERT_EQ(descriptor.getSampleSize(), sizeof(CANData));
 }
 
+TEST_F(StreamFbTest, AnalogSignalDescriptor)
+{
+    const StringPtr name = "Analog";
+
+    interfaceFb.setPropertyValue("PayloadType", analogPayloadType);
+    funcBlock.as<IDataHandler>(true)->processData(analogPacket);
+
+    const auto descriptor = funcBlock.getSignalsRecursive()[0].getDescriptor();
+    ASSERT_EQ(descriptor.getName(), name);
+}
+
 TEST_F(StreamFbTest, ReceivePacketWithWrongPayloadType)
 {
     interfaceFb.setPropertyValue("PayloadType", analogPayloadType);
@@ -188,6 +236,35 @@ TEST_F(StreamFbTest, ReadOutputCanSignal)
     ASSERT_EQ(sample.length, sizeof(canData));
     uint32_t checkData = *reinterpret_cast<uint32_t*>(sample.data);
     ASSERT_EQ(checkData, canData);
+}
+
+TEST_F(StreamFbTest, ReadOutputAnalogSignal)
+{
+    interfaceFb.setPropertyValue("PayloadType", analogPayloadType);
+    const auto outputSignal = funcBlock.getSignalsRecursive()[0];
+    const StreamReaderPtr reader = StreamReaderSkipEvents(outputSignal, SampleType::Float64, SampleType::UInt64);
+
+    const auto& analogPayload = static_cast<const AnalogPayload&>(analogPacket->getPayload());
+
+    callsMultiMap.processPacket(analogPacket);
+    const auto samplesCount = waitForSamples(reader);
+    ASSERT_EQ(samplesCount, analogPayload.getSamplesCount());
+
+    std::vector<double> samples(samplesCount);
+    std::vector<int64_t> domainSample(samplesCount);
+    size_t count = samplesCount;
+    reader.readWithDomain(samples.data(), domainSample.data(), &count);
+    ASSERT_EQ(count, samplesCount);
+
+    std::vector<uint64_t> checkDomain(samplesCount);
+    uint64_t dt = resolution * sampleInterval;
+    std::generate(checkDomain.begin(), checkDomain.end(), [t = analogPacket->getTimestamp() - dt, dt]() mutable { return t += dt; });
+    ASSERT_TRUE(std::equal(domainSample.begin(), domainSample.end(), checkDomain.begin()));
+
+    std::vector<double> checkSamples(samplesCount);
+    std::transform(
+        analogData.begin(), analogData.end(), checkSamples.begin(), [](const double val) { return val * sampleScalar + sampleOffset; });
+    ASSERT_TRUE(std::equal(samples.begin(), samples.end(), checkSamples.begin()));
 }
 
 TEST_F(StreamFbTest, ChangeStreamId)

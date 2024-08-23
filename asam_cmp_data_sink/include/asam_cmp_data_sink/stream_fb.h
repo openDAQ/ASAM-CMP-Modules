@@ -15,6 +15,8 @@
  */
 
 #pragma once
+#include <asam_cmp/analog_payload.h>
+#include <asam_cmp/can_payload.h>
 #include <asam_cmp/packet.h>
 #include <opendaq/packet_factory.h>
 
@@ -36,6 +38,11 @@ struct CANData
 
 class StreamFb final : public asam_cmp_common_lib::StreamCommonFbImpl<IDataHandler>
 {
+private:
+    using Packet = ASAM::CMP::Packet;
+    using CanPayload = ASAM::CMP::CanPayload;
+    using AnalogPayload = ASAM::CMP::AnalogPayload;
+
 public:
     explicit StreamFb(const ContextPtr& ctx,
                       const ComponentPtr& parent,
@@ -51,21 +58,26 @@ protected:
     void setPayloadType(PayloadType type) override;
 
     // IDataHandler
-    void processData(const std::shared_ptr<ASAM::CMP::Packet>& packet) override;
+    void processData(const std::shared_ptr<Packet>& packet) override;
 
     void updateStreamIdInternal() override;
 
 private:
     void createSignals();
     void buildDataDescriptor();
-    void buildDomainDescriptor();
     void buildCanDescriptor();
-    void processAsyncData(const std::shared_ptr<ASAM::CMP::Packet>& packet);
+    void buildAnalogDescriptor(const AnalogPayload& payload);
+    void buildSyncDomainDescriptor();
+    void buildAsyncDomainDescriptor(const float sampleInterval);
+    void processAsyncData(const std::shared_ptr<Packet>& packet);
     DataPacketPtr createAsyncDomainPacket(uint64_t timestamp, uint64_t sampleCount);
-    void fillCanData(void* const data, const std::shared_ptr<ASAM::CMP::Packet>& packet);
-    void processSyncData(const std::shared_ptr<ASAM::CMP::Packet>& packet);
+    void fillCanData(void* const data, const std::shared_ptr<Packet>& packet);
+    void processSyncData(const std::shared_ptr<Packet>& packet);
 
     [[nodiscard]] StringPtr getEpoch() const;
+    [[nodiscard]] RatioPtr getResolution();
+    [[nodiscard]] Int getDeltaT(const float sampleInterval);
+    [[nodiscard]] UnitPtr AsamCmpToOpenDaqUnit(AnalogPayload::Unit asamCmpUnit);
 
 private:
     const uint16_t& deviceId;
@@ -74,6 +86,7 @@ private:
 
     SignalConfigPtr dataSignal;
     SignalConfigPtr domainSignal;
+    bool updateDescriptors{false};
 };
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
