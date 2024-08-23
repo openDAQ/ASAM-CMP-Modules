@@ -35,6 +35,7 @@ public:
 
     static FunctionBlockTypePtr CreateType();
     static FunctionBlockPtr create(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
+    ErrCode INTERFACE_FUNC remove() override;
 
 private:
     void createFbs();
@@ -46,6 +47,7 @@ private:
     void networkAdapterChangedInternal() override;
 
 private:
+    bool captureStartedOnThisFb;
     ASAM::CMP::Decoder decoder;
 
     CallsMultiMap callsMap;

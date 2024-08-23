@@ -36,6 +36,12 @@ DataSinkModuleFb::~DataSinkModuleFb()
     stopCapture();
 }
 
+ErrCode INTERFACE_FUNC DataSinkModuleFb::remove()
+{
+    stopCapture();
+    return Super::remove();
+}
+
 void DataSinkModuleFb::networkAdapterChangedInternal()
 {
     startCapture();
@@ -66,11 +72,16 @@ void DataSinkModuleFb::startCapture()
     ethernetWrapper->startCapture(
         [this](pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie) { onPacketArrives(packet, dev, cookie); }
     );
+    captureStartedOnThisFb = true;
 }
 
 void DataSinkModuleFb::stopCapture()
 {
-    ethernetWrapper->stopCapture();
+    if (captureStartedOnThisFb)
+    {
+        ethernetWrapper->stopCapture();
+        captureStartedOnThisFb = false;
+    }
 }
 
 void DataSinkModuleFb::onPacketArrives(pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie)

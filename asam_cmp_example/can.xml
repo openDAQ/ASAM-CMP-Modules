@@ -1,0 +1,49 @@
+<RootNode>
+    <FrameList> 
+        <Frame>
+            <ArbId>12</ArbId>
+            <PduDecoder>
+                <ByteCount>8</ByteCount>
+                <PduList>
+                    <Pdu>
+                        <UniqueId>
+                            <Id>93845739</Id>
+                        </UniqueId>
+                        <PduType>1</PduType>
+                        <ByteCount>8</ByteCount>
+                        <SignalList>
+                            <Signal>
+                                <UniqueId>
+                                    <Id>94903298</Id>
+                                </UniqueId>
+                                <Name>Count up</Name>
+                                <Scale>1.0</Scale>
+                                <Offset>0.0</Offset>
+                                <Min>0.0</Min>
+                                <Max>1000.0</Max>
+                                <BinaryDecoder>
+                                    <LengthBit>32</LengthBit>
+                                </BinaryDecoder>
+                            </Signal>
+                            <Signal>
+                                <UniqueId>
+                                    <Id>198583</Id>
+                                </UniqueId>
+                                <Name>Count down</Name>
+                                <Scale>1.0</Scale>
+                                <Offset>0.0</Offset>
+                                <Min>-1000.0</Min>
+                                <Max>0.0</Max>
+                                <BinaryDecoder>
+                                    <StartBit>32</StartBit>
+                                    <LengthBit>32</LengthBit>
+                                    <DataType>1</DataType>
+                                </BinaryDecoder>
+                            </Signal>
+                        </SignalList>
+                    </Pdu>
+                </PduList>
+            </PduDecoder>
+        </Frame>
+    </FrameList>
+</RootNode>
