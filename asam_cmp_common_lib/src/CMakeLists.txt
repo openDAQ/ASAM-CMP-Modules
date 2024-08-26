@@ -4,6 +4,7 @@ set(SRC_Cpp capture_common_fb.cpp
             interface_common_fb.cpp
             ethernet_pcpp_impl.cpp
             network_manager_fb.cpp
+            unit_converter.cpp
 )
 
 set(SRC_PublicHeaders common.h
@@ -16,6 +17,7 @@ set(SRC_PublicHeaders common.h
                       ethernet_pcpp_mock.h
                       ethernet_itf.h
                       network_manager_fb.h
+                      unit_converter.h
 )
 
 set(SRC_PrivateHeaders
