@@ -1,6 +1,7 @@
 #include <opendaq/dimension_factory.h>
 
 #include <asam_cmp_data_sink/stream_fb.h>
+#include <asam_cmp_common_lib/unit_converter.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
@@ -108,7 +109,7 @@ void StreamFb::buildAnalogDescriptor(const AnalogPayload& payload)
     const auto analogDescriptor = DataDescriptorBuilder()
                                       .setName("Analog")
                                       .setSampleType(SampleType::Float64)
-                                      .setUnit(AsamCmpToOpenDaqUnit(payload.getUnit()))
+                                      .setUnit(asamCmpToOpenDaqUnit(payload.getUnit()))
                                       .setPostScaling(LinearScaling(payload.getSampleScalar(), payload.getSampleOffset(), inputDataType))
                                       .build();
 
@@ -232,14 +233,10 @@ Int StreamFb::getDeltaT(float sampleInterval)
     return deltaT;
 }
 
-UnitPtr StreamFb::AsamCmpToOpenDaqUnit(AnalogPayload::Unit asamCmpUnit)
+UnitPtr StreamFb::asamCmpToOpenDaqUnit(AnalogPayload::Unit asamCmpUnit)
 {
-    switch (asamCmpUnit)
-    {
-        case AnalogPayload::Unit::kilogram:
-            return Unit("kg", -1, "Kilogram", "Mass");
-    }
-    return UnitPtr();
+    auto symbol = asam_cmp_common_lib::Units::getSymbolById(to_underlying(asamCmpUnit));
+    return Unit(symbol, -1, "", "");
 }
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE

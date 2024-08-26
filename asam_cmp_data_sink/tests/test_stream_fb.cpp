@@ -360,7 +360,7 @@ TYPED_TEST(StreamFbAnalogPayloadTest, AnalogSignalDescriptor)
     const StringPtr name = "Analog";
     constexpr SampleType sampleType = SampleType::Float64;
     constexpr SampleType domainSampleType = SampleType::UInt64;
-    const UnitPtr unit = Unit("kg", -1, "Kilogram", "Mass");
+    const UnitPtr unit = Unit("kg", -1, "", "");
 
     interfaceFb.setPropertyValue("PayloadType", analogPayloadType);
     funcBlock.as<IDataHandler>(true)->processData(analogPacket);

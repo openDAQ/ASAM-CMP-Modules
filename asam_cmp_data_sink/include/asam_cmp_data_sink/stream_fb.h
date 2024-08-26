@@ -77,7 +77,7 @@ private:
     [[nodiscard]] StringPtr getEpoch() const;
     [[nodiscard]] RatioPtr getResolution();
     [[nodiscard]] Int getDeltaT(const float sampleInterval);
-    [[nodiscard]] UnitPtr AsamCmpToOpenDaqUnit(AnalogPayload::Unit asamCmpUnit);
+    [[nodiscard]] UnitPtr asamCmpToOpenDaqUnit(AnalogPayload::Unit asamCmpUnit);
 
 private:
     const uint16_t& deviceId;
