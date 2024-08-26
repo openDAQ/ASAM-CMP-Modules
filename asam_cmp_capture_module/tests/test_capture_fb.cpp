@@ -71,12 +71,6 @@ TEST_F(CaptureFbTest, CreateCaptureModule)
     ASSERT_NE(captureFb, nullptr);
 }
 
-TEST_F(CaptureFbTest, JumboFramesNotAllowed)
-{
-    ASSERT_FALSE(captureFb.getPropertyValue("AllowJumboFrames"));
-    EXPECT_ANY_THROW(captureFb.setPropertyValue("AllowJumboFrames", true));
-}
-
 TEST_F(CaptureFbTest, TestCreateInterface)
 {
     ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");

@@ -27,6 +27,10 @@ set(SRC_PrivateHeaders
     input_descriptors_validator.h
 )
 
+if (MSVC)
+    add_compile_options(/bigobj)
+endif()
+
 prepend_include(${TARGET_FOLDER_NAME} SRC_PrivateHeaders)
 prepend_include(${TARGET_FOLDER_NAME} SRC_PublicHeaders)
 

@@ -11,6 +11,7 @@
 #include <asam_cmp/can_fd_payload.h>
 #include <asam_cmp/analog_payload.h>
 #include <asam_cmp_common_lib/ethernet_pcpp_itf.h>
+#include <asam_cmp_common_lib/unit_converter.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
@@ -162,7 +163,7 @@ void StreamFb::configureCustomParameters()
         case ASAM::CMP::PayloadType::analog:
             constexpr double invertedTickResolution = 1'000'000;
             int64_t delta = inputDomainDataDescriptor.getRule().getParameters().get("delta");
-            sampleRate = delta/invertedTickResolution;
+            deltaTime = delta/invertedTickResolution;
             break;
     }
 }
@@ -200,6 +201,8 @@ void StreamFb::processCanPacket(const DataPacketPtr& packet)
     const size_t sampleCount = packet.getSampleCount();
 
     uint64_t* rawTimeBuffer = reinterpret_cast<uint64_t*>(packet.getDomainPacket().getRawData());
+    RatioPtr timeResolution = packet.getDomainPacket().getDataDescriptor().getTickResolution();
+    size_t timeScale = 1'000'000'000 / timeResolution.getDenominator();
 
     std::vector<ASAM::CMP::Packet> packets;
     packets.reserve(sampleCount);
@@ -215,7 +218,7 @@ void StreamFb::processCanPacket(const DataPacketPtr& packet)
             packets.emplace_back();
             packets.back().setInterfaceId(interfaceId);
             packets.back().setPayload(payload);
-            packets.back().setTimestamp((*rawTimeBuffer) * 1000);
+            packets.back().setTimestamp((*rawTimeBuffer) * timeScale);
         }
         canData++;
         rawTimeBuffer++;
@@ -240,6 +243,8 @@ void StreamFb::processCanFdPacket(const DataPacketPtr& packet)
     const size_t sampleCount = packet.getSampleCount();
 
     uint64_t* rawTimeBuffer = reinterpret_cast<uint64_t*>(packet.getDomainPacket().getRawData());
+    RatioPtr timeResolution = packet.getDomainPacket().getDataDescriptor().getTickResolution();
+    size_t timeScale = 1'000'000'000 / timeResolution.getDenominator();
 
     std::vector<ASAM::CMP::Packet> packets;
     packets.reserve(sampleCount);
@@ -253,7 +258,7 @@ void StreamFb::processCanFdPacket(const DataPacketPtr& packet)
         packets.emplace_back();
         packets.back().setInterfaceId(interfaceId);
         packets.back().setPayload(payload);
-        packets.back().setTimestamp((*rawTimeBuffer) * 1000);
+        packets.back().setTimestamp((*rawTimeBuffer) * timeScale);
 
         canData++;
         rawTimeBuffer++;
@@ -271,20 +276,25 @@ void StreamFb::processAnalogPacket(const DataPacketPtr& packet, bool isCanFd)
 
     uint64_t* rawTimeBuffer = reinterpret_cast<uint64_t*>(packet.getDomainPacket().getRawData());
 
+    ASAM::CMP::AnalogPayload payload;
+
+    payload.setSampleInterval(deltaTime);
+    payload.setData(rawData, sampleCount * sampleSize);
+    uint8_t unitId = asam_cmp_common_lib::Units::getIdBySymbol(packet.getDataDescriptor().getUnit().getSymbol().toStdString());
+    payload.setUnit(ASAM::CMP::AnalogPayload::Unit(unitId));
+    float sampleScalar = packet.getDataDescriptor().getPostScaling().getParameters().get("scale");
+    float sampleOffset = packet.getDataDescriptor().getPostScaling().getParameters().get("offset");
+    payload.setSampleScalar(sampleScalar);
+    payload.setSampleOffset(sampleOffset);
+
     ASAM::CMP::Packet asamCmpPacket;
-
     asamCmpPacket.setInterfaceId(interfaceId);
-
-    ASAM::CMP::Payload payload;
-    payload.setMessageType(ASAM::CMP::CmpHeader::MessageType::data);
-    payload.setType(ASAM::CMP::PayloadType::analog);
     asamCmpPacket.setPayload(payload);
-    asamCmpPacket.setTimestamp((*rawTimeBuffer) * 1000);
-    //TODO: Add SampleDT - in standard we have A_INT16 and A_INT32 probably validator should be updated
 
-    static_cast<ASAM::CMP::AnalogPayload&>(asamCmpPacket.getPayload()).setSampleInterval(sampleRate);
-    static_cast<ASAM::CMP::AnalogPayload&>(asamCmpPacket.getPayload()).setData(rawData, sampleCount * sampleSize);
-
+    RatioPtr timeResolution = packet.getDomainPacket().getDataDescriptor().getTickResolution();
+    size_t timeScale = 1'000'000'000 / timeResolution.getDenominator();
+    asamCmpPacket.setTimestamp((*rawTimeBuffer) * timeScale);
+    // TODO: Add SampleDT - in standard we have A_INT16 and A_INT32 probably validator should be updated
 
     for (auto& rawFrame : encoders->encode(streamId, asamCmpPacket, dataContext))
         ethernetWrapper->sendPacket(selectedDeviceName, rawFrame);
@@ -299,6 +309,7 @@ void StreamFb::processDataPacket(const DataPacketPtr& packet)
             break;
         case ASAM::CMP::PayloadType::canFd:
             processCanFdPacket(packet);
+            break;
         case ASAM::CMP::PayloadType::analog:
             processAnalogPacket(packet, true);
             break;
