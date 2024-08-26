@@ -18,7 +18,7 @@ StreamFb::StreamFb(const ContextPtr& ctx,
 {
     createSignals();
     buildDataDescriptor();
-    buildSyncDomainDescriptor();
+    buildAsyncDomainDescriptor();
 }
 
 void StreamFb::setPayloadType(PayloadType type)
@@ -31,7 +31,7 @@ void StreamFb::setPayloadType(PayloadType type)
         buildDataDescriptor();
         if (updateDescriptors)
         {
-            buildSyncDomainDescriptor();
+            buildAsyncDomainDescriptor();
             updateDescriptors = false;
         }
     }
@@ -63,8 +63,8 @@ void StreamFb::createSignals()
 {
     dataSignal = createAndAddSignal("data");
     dataSignal.setName("Data");
-    domainSignal = createAndAddSignal("domain", nullptr, false);
-    domainSignal.setName("Domain");
+    domainSignal = createAndAddSignal("time", nullptr, false);
+    domainSignal.setName("Time");
     dataSignal.setDomainSignal(domainSignal);
 }
 
@@ -115,7 +115,7 @@ void StreamFb::buildAnalogDescriptor(const AnalogPayload& payload)
     dataSignal.setDescriptor(analogDescriptor);
 }
 
-void StreamFb::buildSyncDomainDescriptor()
+void StreamFb::buildAsyncDomainDescriptor()
 {
     const auto domainDescriptor = DataDescriptorBuilder()
                                       .setSampleType(SampleType::UInt64)
@@ -128,7 +128,7 @@ void StreamFb::buildSyncDomainDescriptor()
     domainSignal.setDescriptor(domainDescriptor);
 }
 
-void StreamFb::buildAsyncDomainDescriptor(const float sampleInterval)
+void StreamFb::buildSyncDomainDescriptor(const float sampleInterval)
 {
     const auto deltaT = getDeltaT(sampleInterval);
 
@@ -190,7 +190,7 @@ void StreamFb::processSyncData(const std::shared_ptr<Packet>& packet)
 {
     if (updateDescriptors)
     {
-        buildAsyncDomainDescriptor(static_cast<const AnalogPayload&>(packet->getPayload()).getSampleInterval());
+        buildSyncDomainDescriptor(static_cast<const AnalogPayload&>(packet->getPayload()).getSampleInterval());
         buildAnalogDescriptor(static_cast<const AnalogPayload&>(packet->getPayload()));
         updateDescriptors = false;
     }
@@ -237,7 +237,7 @@ UnitPtr StreamFb::AsamCmpToOpenDaqUnit(AnalogPayload::Unit asamCmpUnit)
     switch (asamCmpUnit)
     {
         case AnalogPayload::Unit::kilogram:
-            return Unit("kg", -1, "Kilogramm", "Mass");
+            return Unit("kg", -1, "Kilogram", "Mass");
     }
     return UnitPtr();
 }

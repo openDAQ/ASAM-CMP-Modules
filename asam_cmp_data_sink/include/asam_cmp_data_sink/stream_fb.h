@@ -67,8 +67,8 @@ private:
     void buildDataDescriptor();
     void buildCanDescriptor();
     void buildAnalogDescriptor(const AnalogPayload& payload);
-    void buildSyncDomainDescriptor();
-    void buildAsyncDomainDescriptor(const float sampleInterval);
+    void buildAsyncDomainDescriptor();
+    void buildSyncDomainDescriptor(const float sampleInterval);
     void processAsyncData(const std::shared_ptr<Packet>& packet);
     DataPacketPtr createAsyncDomainPacket(uint64_t timestamp, uint64_t sampleCount);
     void fillCanData(void* const data, const std::shared_ptr<Packet>& packet);
