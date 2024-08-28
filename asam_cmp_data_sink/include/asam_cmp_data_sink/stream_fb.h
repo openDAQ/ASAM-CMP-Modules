@@ -73,6 +73,8 @@ private:
     DataPacketPtr createAsyncDomainPacket(uint64_t timestamp, uint64_t sampleCount);
     void fillCanData(void* const data, const std::shared_ptr<Packet>& packet);
     void processSyncData(const std::shared_ptr<Packet>& packet);
+    bool domainChanged(const AnalogPayload& payload);
+    bool dataChanged(const AnalogPayload& payload);
 
     [[nodiscard]] StringPtr getEpoch() const;
     [[nodiscard]] RatioPtr getResolution();
@@ -87,6 +89,7 @@ private:
     SignalConfigPtr dataSignal;
     SignalConfigPtr domainSignal;
     bool updateDescriptors{false};
+    AnalogPayload::Header analogHeader{};
 };
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE

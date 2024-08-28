@@ -1,7 +1,7 @@
 #include <opendaq/dimension_factory.h>
 
-#include <asam_cmp_data_sink/stream_fb.h>
 #include <asam_cmp_common_lib/unit_converter.h>
+#include <asam_cmp_data_sink/stream_fb.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
@@ -102,6 +102,7 @@ void StreamFb::buildCanDescriptor()
 
     dataSignal.setDescriptor(canMsgDescriptor);
 }
+
 void StreamFb::buildAnalogDescriptor(const AnalogPayload& payload)
 {
     auto inputDataType = payload.getSampleDt() == AnalogPayload::SampleDt::aInt16 ? SampleType::Int16 : SampleType::Int32;
@@ -112,8 +113,12 @@ void StreamFb::buildAnalogDescriptor(const AnalogPayload& payload)
                                       .setUnit(asamCmpToOpenDaqUnit(payload.getUnit()))
                                       .setPostScaling(LinearScaling(payload.getSampleScalar(), payload.getSampleOffset(), inputDataType))
                                       .build();
-
     dataSignal.setDescriptor(analogDescriptor);
+
+    analogHeader.setSampleDt(payload.getSampleDt());
+    analogHeader.setUnit(payload.getUnit());
+    analogHeader.setSampleOffset(payload.getSampleOffset());
+    analogHeader.setSampleScalar(payload.getSampleScalar());
 }
 
 void StreamFb::buildAsyncDomainDescriptor()
@@ -141,8 +146,9 @@ void StreamFb::buildSyncDomainDescriptor(const float sampleInterval)
                                       .setOrigin(getEpoch())
                                       .setName("Time")
                                       .build();
-
     domainSignal.setDescriptor(domainDescriptor);
+
+    analogHeader.setSampleInterval(sampleInterval);
 }
 
 void StreamFb::processAsyncData(const std::shared_ptr<Packet>& packet)
@@ -189,14 +195,23 @@ void StreamFb::fillCanData(void* const data, const std::shared_ptr<Packet>& pack
 
 void StreamFb::processSyncData(const std::shared_ptr<Packet>& packet)
 {
+    auto& analogPayload = static_cast<const AnalogPayload&>(packet->getPayload());
+
     if (updateDescriptors)
     {
-        buildSyncDomainDescriptor(static_cast<const AnalogPayload&>(packet->getPayload()).getSampleInterval());
-        buildAnalogDescriptor(static_cast<const AnalogPayload&>(packet->getPayload()));
+        buildSyncDomainDescriptor(analogPayload.getSampleInterval());
+        buildAnalogDescriptor(analogPayload);
         updateDescriptors = false;
     }
+    else if (domainChanged(analogPayload))
+    {
+        buildSyncDomainDescriptor(analogPayload.getSampleInterval());
+    }
+    else if (dataChanged(analogPayload))
+    {
+        buildAnalogDescriptor(analogPayload);
+    }
 
-    const auto& analogPayload = static_cast<const AnalogPayload&>(packet->getPayload());
     auto sampleCount = analogPayload.getSamplesCount();
     auto timestamp = packet->getTimestamp();
 
@@ -208,6 +223,17 @@ void StreamFb::processSyncData(const std::shared_ptr<Packet>& packet)
 
     dataSignal.sendPacket(dataPacket);
     domainSignal.sendPacket(domainPacket);
+}
+
+bool StreamFb::domainChanged(const AnalogPayload& payload)
+{
+    return payload.getSampleInterval() != analogHeader.getSampleInterval();
+}
+
+bool StreamFb::dataChanged(const AnalogPayload& payload)
+{
+    return payload.getSampleDt() != analogHeader.getSampleDt() || payload.getUnit() != analogHeader.getUnit() ||
+           payload.getSampleOffset() != analogHeader.getSampleOffset() || payload.getSampleScalar() != analogHeader.getSampleScalar();
 }
 
 StringPtr StreamFb::getEpoch() const
