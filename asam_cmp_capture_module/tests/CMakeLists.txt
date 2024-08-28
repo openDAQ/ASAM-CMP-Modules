@@ -6,10 +6,12 @@ set(TEST_SOURCES
                  test_capture_fb.cpp
                  test_app.cpp
                  ref_can_channel_impl.cpp
+                 ref_channel_impl.cpp
 )
 
 set(TEST_HEADERS 
     include/ref_can_channel_impl.h 
+    include/ref_channel_impl.h
 )
 
 if (MSVC)
