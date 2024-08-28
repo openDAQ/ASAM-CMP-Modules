@@ -103,8 +103,28 @@ namespace
         if (inputDataDescriptor.getDimensions().getCount() > 0)
             throw std::runtime_error("Arrays not supported");
 
-        if (!inputDataDescriptor.getRule().assigned() || inputDataDescriptor.getRule().getType() != DataRuleType::Linear)
-            throw std::runtime_error("Linear rule not used");
+        if (!inputDataDescriptor.getRule().assigned() || inputDataDescriptor.getRule().getType() != DataRuleType::Explicit)
+            throw std::runtime_error("Only explicit data rule is used");
+
+        auto postScaling = inputDataDescriptor.getPostScaling();
+
+
+        if (postScaling != nullptr)
+        {
+            auto inputRawSampleType = postScaling.getInputSampleType();
+            auto postScalingParams = postScaling.getParameters();
+            if (!postScalingParams.hasKey("offset") || !postScalingParams.hasKey("scale"))
+                throw std::runtime_error("Incomplete post scaling params");
+
+            if (!(inputRawSampleType == SampleType::Int32 || inputRawSampleType == SampleType::Int16))
+                throw std::runtime_error("Only int16 and int32 sample types are allowed");
+        }
+        else
+        {
+            auto sampleType = inputDataDescriptor.getSampleType();
+            if (!(sampleType == SampleType::Int32 || sampleType == SampleType::Int16))
+                throw std::runtime_error("Only int16 and int32 sample types are allowed");
+        }
 
         return true;
     }

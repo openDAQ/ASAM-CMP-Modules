@@ -60,8 +60,13 @@ private:
     void createInputPort();
     void updateStreamIdInternal() override;
 
+    void initProperties();
+    void updateMinMax();
+
     void initStatuses();
     void setInputStatus(const StringPtr& value);
+    void onAnalogSignalConnected();
+    void onAnalogSignalDisconnected();
 
     void onPacketReceived(const InputPortPtr& port) override;
     void onDisconnected(const InputPortPtr& port) override;
@@ -93,6 +98,16 @@ private:
     std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf> ethernetWrapper;
     const bool allowJumboFrames;
     ASAM::CMP::DataContext dataContext;
+    const StringPtr& selectedDeviceName;
+
+    //for analog data
+    double analogDataDeltaTime;
+    double analogDataMin;
+    double analogDataMax;
+    double analogDataScale;
+    double analogDataOffset;
+    size_t analogDataSampleDt = 32;
+    bool analogDataHasPostScaling;
 };
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

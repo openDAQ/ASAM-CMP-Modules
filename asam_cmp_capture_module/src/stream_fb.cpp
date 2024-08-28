@@ -36,6 +36,46 @@ StreamFb::StreamFb(const ContextPtr& ctx,
 {
     createInputPort();
     initStatuses();
+    initProperties();
+}
+
+void StreamFb::initProperties()
+{
+    auto prop = BoolPropertyBuilder("IsConnectedAnalogSignal", false).setReadOnly(true).setVisible(false).build();
+    objPtr.addProperty(prop);
+
+    auto propName = "MinValue";
+    prop = FloatPropertyBuilder(propName, 0).setVisible(EvalValue("$IsConnectedAnalogSignal == true")).build();
+    objPtr.addProperty(prop);
+    objPtr.getOnPropertyValueWrite(propName) +=
+        [this](PropertyObjectPtr & obj, PropertyValueEventArgsPtr & args) { updateMinMax(); };
+
+    propName = "MaxValue";
+    prop = FloatPropertyBuilder(propName, 0).setVisible(EvalValue("$IsConnectedAnalogSignal == true")).build();
+    objPtr.addProperty(prop);
+    objPtr.getOnPropertyValueWrite(propName) += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateMinMax(); };
+}
+
+void StreamFb::updateMinMax()
+{
+    Float newMn = objPtr.getPropertyValue("MinValue"), newMx = objPtr.getPropertyValue("MaxValue");
+    if (newMn <= newMx)
+    {
+        analogDataMin = newMn;
+        analogDataMax = newMx;
+        if (analogDataHasPostScaling)
+        {
+            analogDataOffset = analogDataMin;
+            analogDataScale = (analogDataMax - analogDataMin) / analogDataSampleDt;
+        }
+    }
+    else
+    {
+        setPropertyValueInternal(
+            String("MinValue").asPtr<IString>(true), BaseObjectPtr(analogDataMin).asPtr<IBaseObject>(true), false, false, false);
+        setPropertyValueInternal(
+            String("MaxValue").asPtr<IString>(true), BaseObjectPtr(analogDataMax).asPtr<IBaseObject>(true), false, false, false);
+    }
 }
 
 void StreamFb::createInputPort()
@@ -82,10 +122,46 @@ void StreamFb::setInputStatus(const StringPtr& value)
     thisStatusContainer.setStatus("InputStatus", inputStatusValue);
 }
 
+void StreamFb::onAnalogSignalConnected()
+{
+    setPropertyValueInternal(
+        String("IsConnectedAnalogSignal").asPtr<IString>(true), BaseObjectPtr(true).asPtr<IBaseObject>(true), false, true, false);
+
+    auto postScaling = inputDataDescriptor.getPostScaling();
+    if (postScaling != nullptr)
+    {
+        auto params = postScaling.getParameters();
+        analogDataScale = params.get("scale");
+        analogDataOffset = params.get("offset");
+
+        analogDataSampleDt = inputDataDescriptor.getPostScaling().getInputSampleType() == SampleType::Int16 ? 16 : 32;
+        analogDataMin = analogDataOffset;
+        analogDataMax = analogDataMin + analogDataSampleDt * analogDataScale;
+        analogDataHasPostScaling = true;
+    }
+    else
+    {
+        analogDataMin = -10;
+        analogDataMax = 10;
+        analogDataOffset = 0;
+        analogDataScale = 1;
+        analogDataSampleDt = inputDataDescriptor.getSampleType() == SampleType::Int16 ? 16 : 32;
+        analogDataHasPostScaling = false;
+    }
+}
+
+void StreamFb::onAnalogSignalDisconnected()
+{
+    setPropertyValueInternal(
+        String("IsConnectedAnalogSignal").asPtr<IString>(true), BaseObjectPtr(false).asPtr<IBaseObject>(true), false, true, false);
+}
+
 void StreamFb::onDisconnected(const InputPortPtr& inputPort)
 {
     if (this->inputPort == inputPort)
     {
+        if (payloadType == ASAM::CMP::PayloadType::analog)
+            onAnalogSignalDisconnected();
         setInputStatus(InputDisconnected.data());
     }
 }
@@ -147,6 +223,9 @@ void StreamFb::configure()
 
         configureCustomParameters();
 
+        if (payloadType == ASAM::CMP::PayloadType::analog)
+            onAnalogSignalConnected();
+
         setInputStatus(InputConnected.data());
     }
     catch (const std::exception& e)
@@ -163,7 +242,7 @@ void StreamFb::configureCustomParameters()
         case ASAM::CMP::PayloadType::analog:
             constexpr double invertedTickResolution = 1'000'000;
             int64_t delta = inputDomainDataDescriptor.getRule().getParameters().get("delta");
-            deltaTime = delta/invertedTickResolution;
+            analogDataDeltaTime = delta / invertedTickResolution;
             break;
     }
 }
@@ -270,22 +349,22 @@ void StreamFb::processCanFdPacket(const DataPacketPtr& packet)
 
 void StreamFb::processAnalogPacket(const DataPacketPtr& packet, bool isCanFd)
 {
-    auto* rawData = reinterpret_cast<uint8_t*>(packet.getData());
+    auto* rawData = reinterpret_cast<uint8_t*>(packet.getRawData());
     const size_t sampleCount = packet.getSampleCount();
     const size_t sampleSize = inputDataDescriptor.getSampleSize();
 
-    uint64_t* rawTimeBuffer = reinterpret_cast<uint64_t*>(packet.getDomainPacket().getRawData());
-
     ASAM::CMP::AnalogPayload payload;
 
-    payload.setSampleInterval(deltaTime);
-    payload.setData(rawData, sampleCount * sampleSize);
+    payload.setSampleInterval(analogDataDeltaTime);
     uint8_t unitId = asam_cmp_common_lib::Units::getIdBySymbol(packet.getDataDescriptor().getUnit().getSymbol().toStdString());
     payload.setUnit(ASAM::CMP::AnalogPayload::Unit(unitId));
-    float sampleScalar = packet.getDataDescriptor().getPostScaling().getParameters().get("scale");
-    float sampleOffset = packet.getDataDescriptor().getPostScaling().getParameters().get("offset");
-    payload.setSampleScalar(sampleScalar);
-    payload.setSampleOffset(sampleOffset);
+    payload.setSampleDt(analogDataSampleDt == 16 ? ASAM::CMP::AnalogPayload::SampleDt::aInt16 : ASAM::CMP::AnalogPayload::SampleDt::aInt32);
+    payload.setSampleScalar(analogDataScale);
+    payload.setSampleOffset(analogDataOffset);
+
+    auto domainPacket = packet.getDomainPacket();
+    uint8_t rawTime = domainPacket.getOffset();
+    payload.setData(rawData, sampleCount * sampleSize);
 
     ASAM::CMP::Packet asamCmpPacket;
     asamCmpPacket.setInterfaceId(interfaceId);
@@ -293,8 +372,10 @@ void StreamFb::processAnalogPacket(const DataPacketPtr& packet, bool isCanFd)
 
     RatioPtr timeResolution = packet.getDomainPacket().getDataDescriptor().getTickResolution();
     size_t timeScale = 1'000'000'000 / timeResolution.getDenominator();
-    asamCmpPacket.setTimestamp((*rawTimeBuffer) * timeScale);
-    // TODO: Add SampleDT - in standard we have A_INT16 and A_INT32 probably validator should be updated
+    asamCmpPacket.setTimestamp(rawTime * timeScale);
+
+
+    
 
     for (auto& rawFrame : encoders->encode(streamId, asamCmpPacket, dataContext))
         ethernetWrapper->sendPacket(selectedDeviceName, rawFrame);
