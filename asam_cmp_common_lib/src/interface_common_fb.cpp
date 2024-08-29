@@ -115,7 +115,10 @@ void InterfaceCommonFb::updatePayloadTypeInternal()
 
 void InterfaceCommonFb::removeStreamInternal(size_t nInd)
 {
-    functionBlocks.removeItem(functionBlocks.getItems().getItemAt(nInd));
+    auto fb = functionBlocks.getItems().getItemAt(nInd);
+    Int streamId = fb.getPropertyValue("StreamId");
+    functionBlocks.removeItem(fb);
+    streamIdManager->removeId(streamId);
 }
 
 daq::ErrCode INTERFACE_FUNC InterfaceCommonFb::beginUpdate()

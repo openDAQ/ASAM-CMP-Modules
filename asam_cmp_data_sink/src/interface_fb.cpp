@@ -59,8 +59,8 @@ void InterfaceFb::removeStreamInternal(size_t nInd)
 {
     auto fb = functionBlocks.getItems().getItemAt(nInd);
     Int streamId = fb.getPropertyValue("StreamId");
+    InterfaceCommonFb::removeStreamInternal(nInd);
     callsMap.erase(deviceId, interfaceId, streamId, fb.asPtr<IDataHandler>(true));
-    functionBlocks.removeItem(fb);
 }
 
 void InterfaceFb::createFbs()

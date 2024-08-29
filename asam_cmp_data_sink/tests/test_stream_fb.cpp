@@ -141,6 +141,17 @@ TEST_F(StreamFbTest, RemoveStream)
     ASSERT_EQ(callsMultiMap.size(), 0);
 }
 
+TEST_F(StreamFbTest, RemoveAddStream)
+{
+    interfaceFb.getPropertyValue("RemoveStream").execute(0);
+    interfaceFb.getPropertyValue("AddStream").execute();
+    funcBlock = interfaceFb.getFunctionBlocks().getItemAt(0);
+
+    funcBlock.setPropertyValue("StreamId", streamId);
+    Int curStreamId = funcBlock.getPropertyValue("StreamId");
+    ASSERT_EQ(curStreamId, streamId);
+}
+
 TEST_F(StreamFbTest, RemoveInterface)
 {
     captureFb.getPropertyValue("RemoveInterface").execute(0);
