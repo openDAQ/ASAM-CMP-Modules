@@ -351,7 +351,9 @@ void StreamFb::processAnalogPacket(const DataPacketPtr& packet, bool isCanFd)
 {
     auto* rawData = reinterpret_cast<uint8_t*>(packet.getRawData());
     const size_t sampleCount = packet.getSampleCount();
-    const size_t sampleSize = inputDataDescriptor.getSampleSize();
+    const auto inputSampleType = inputDataDescriptor.getPostScaling().assigned() ? inputDataDescriptor.getPostScaling().getInputSampleType()
+                                                                                 : inputDataDescriptor.getSampleType();
+    const size_t sampleSize = inputSampleType == SampleType::Int16 ? 2 : 4;
 
     ASAM::CMP::AnalogPayload payload;
 
@@ -363,7 +365,7 @@ void StreamFb::processAnalogPacket(const DataPacketPtr& packet, bool isCanFd)
     payload.setSampleOffset(analogDataOffset);
 
     auto domainPacket = packet.getDomainPacket();
-    uint8_t rawTime = domainPacket.getOffset();
+    uint64_t rawTime = domainPacket.getOffset();
     payload.setData(rawData, sampleCount * sampleSize);
 
     ASAM::CMP::Packet asamCmpPacket;
