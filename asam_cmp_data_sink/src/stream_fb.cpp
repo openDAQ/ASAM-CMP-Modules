@@ -13,9 +13,10 @@ StreamFb::StreamFb(const ContextPtr& ctx,
                    const uint16_t& deviceId,
                    const uint32_t& interfaceId)
     : StreamCommonFbImpl(ctx, parent, localId, init)
-    , callsMap(callsMap)
     , deviceId(deviceId)
     , interfaceId(interfaceId)
+    , callsMap(callsMap)
+    , updateDescriptors(init.payloadType == PayloadType::analog)
 {
     createSignals();
     buildDataDescriptor();
@@ -203,13 +204,16 @@ void StreamFb::processSyncData(const std::shared_ptr<Packet>& packet)
         buildAnalogDescriptor(analogPayload);
         updateDescriptors = false;
     }
-    else if (domainChanged(analogPayload))
+    else
     {
-        buildSyncDomainDescriptor(analogPayload.getSampleInterval());
-    }
-    else if (dataChanged(analogPayload))
-    {
-        buildAnalogDescriptor(analogPayload);
+        if (domainChanged(analogPayload))
+        {
+            buildSyncDomainDescriptor(analogPayload.getSampleInterval());
+        }
+        if (dataChanged(analogPayload))
+        {
+            buildAnalogDescriptor(analogPayload);
+        }
     }
 
     auto sampleCount = analogPayload.getSamplesCount();

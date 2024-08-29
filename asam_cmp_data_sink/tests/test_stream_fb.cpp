@@ -570,3 +570,16 @@ TYPED_TEST(StreamFbAnalogPayloadTest, PostScalingChanged)
     ASSERT_EQ(descriptor.getPostScaling().getParameters().get("offset"), newSampleOffset);
     ASSERT_EQ(descriptor.getPostScaling().getParameters().get("scale"), newSampleScalar);
 }
+
+using StreamFbAnalogPayloadInt32Test = StreamFbAnalogPayloadTest<int32_t>;
+
+TEST_F(StreamFbAnalogPayloadInt32Test, PostScalingChanged2)
+{
+    interfaceFb.getPropertyValue("RemoveStream").execute(0);
+    interfaceFb.setPropertyValue("PayloadType", analogPayloadType);
+    interfaceFb.getPropertyValue("AddStream").execute();
+    funcBlock = interfaceFb.getFunctionBlocks().getItemAt(0);
+
+    funcBlock.setPropertyValue("StreamId", streamId);
+    ASSERT_NO_THROW(callsMultiMap.processPacket(analogPacket));
+}
