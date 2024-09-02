@@ -387,9 +387,13 @@ TYPED_TEST_SUITE(StreamFbAnalogPayloadTest, AnalogTypes);
 TYPED_TEST(StreamFbAnalogPayloadTest, AnalogSignalDescriptor)
 {
     const StringPtr name = "Analog";
-    constexpr SampleType sampleType = SampleType::Float64;
-    constexpr SampleType domainSampleType = SampleType::UInt64;
-    const UnitPtr unit = Unit("kg", -1, "", "");
+    constexpr auto sampleType = SampleType::Float64;
+    constexpr auto rawSampleType = SampleTypeFromType<TypeParam>::SampleType;
+    constexpr auto domainSampleType = SampleType::UInt64;
+    const auto unit = Unit("kg", -1, "", "");
+    constexpr auto intSize = rawSampleType == SampleType::Int16 ? 16 : 32;
+    constexpr auto minValue = sampleOffset;
+    const auto maxValue = sampleScalar * pow(2, intSize) + sampleOffset;
 
     interfaceFb.setPropertyValue("PayloadType", analogPayloadType);
     funcBlock.as<IDataHandler>(true)->processData(analogPacket);
@@ -398,7 +402,8 @@ TYPED_TEST(StreamFbAnalogPayloadTest, AnalogSignalDescriptor)
     ASSERT_EQ(descriptor.getName(), name);
     ASSERT_EQ(descriptor.getSampleType(), sampleType);
     ASSERT_EQ(descriptor.getSampleSize(), sizeof(double));
-    ASSERT_EQ(descriptor.getPostScaling().getType(), ScalingType::Linear);
+    ASSERT_EQ(descriptor.getPostScaling(), LinearScaling(sampleScalar, sampleOffset, rawSampleType));
+    ASSERT_EQ(descriptor.getValueRange(), Range(minValue, maxValue));
     ASSERT_EQ(descriptor.getUnit(), unit);
 
     const auto domainDescr = funcBlock.getSignalsRecursive()[0].getDomainSignal().getDescriptor();
@@ -548,6 +553,11 @@ TYPED_TEST(StreamFbAnalogPayloadTest, PostScalingChanged)
     constexpr float newSampleOffset = sampleOffset * 2;
     constexpr float newSampleScalar = sampleScalar * 2;
 
+    constexpr auto rawSampleType = SampleTypeFromType<TypeParam>::SampleType;
+    constexpr auto intSize = rawSampleType == SampleType::Int16 ? 16 : 32;
+    constexpr auto minValue = newSampleOffset;
+    const auto maxValue = newSampleScalar * pow(2, intSize) + newSampleOffset;
+
     interfaceFb.setPropertyValue("PayloadType", analogPayloadType);
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReader(outputSignal, SampleType::Float64, SampleType::UInt64);
@@ -567,19 +577,8 @@ TYPED_TEST(StreamFbAnalogPayloadTest, PostScalingChanged)
     callsMultiMap.processPacket(analogPacket);
 
     auto descriptor = readDataDescriptor(reader, "DataDescriptor");
-    ASSERT_EQ(descriptor.getPostScaling().getParameters().get("offset"), newSampleOffset);
-    ASSERT_EQ(descriptor.getPostScaling().getParameters().get("scale"), newSampleScalar);
+
+    ASSERT_EQ(descriptor.getPostScaling(), LinearScaling(newSampleScalar, newSampleOffset, rawSampleType));
+    ASSERT_EQ(descriptor.getValueRange(), Range(minValue, maxValue));
 }
 
-using StreamFbAnalogPayloadInt32Test = StreamFbAnalogPayloadTest<int32_t>;
-
-TEST_F(StreamFbAnalogPayloadInt32Test, PostScalingChanged2)
-{
-    interfaceFb.getPropertyValue("RemoveStream").execute(0);
-    interfaceFb.setPropertyValue("PayloadType", analogPayloadType);
-    interfaceFb.getPropertyValue("AddStream").execute();
-    funcBlock = interfaceFb.getFunctionBlocks().getItemAt(0);
-
-    funcBlock.setPropertyValue("StreamId", streamId);
-    ASSERT_NO_THROW(callsMultiMap.processPacket(analogPacket));
-}
