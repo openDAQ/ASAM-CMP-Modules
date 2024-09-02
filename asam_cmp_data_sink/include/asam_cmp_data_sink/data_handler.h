@@ -10,6 +10,7 @@ BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 DECLARE_OPENDAQ_INTERFACE(IDataHandler, IBaseObject)
 {
     virtual void processData(const std::shared_ptr<ASAM::CMP::Packet>& packet) = 0;
+    virtual void processData(const std::vector<std::shared_ptr<ASAM::CMP::Packet>>& packets) = 0;
 };
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE

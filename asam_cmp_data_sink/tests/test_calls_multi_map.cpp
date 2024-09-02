@@ -14,6 +14,7 @@ using DataHandlerImpl = ImplementationOf<IDataHandler>;
 struct DataHandlerMock : public DataHandlerImpl
 {
     MOCK_METHOD((void), processData, (const std::shared_ptr<ASAM::CMP::Packet>& packet), (override));
+    MOCK_METHOD((void), processData, (const std::vector<std::shared_ptr<ASAM::CMP::Packet>>& packets), (override));
 };
 
 class CallsMultiMapTest : public testing::Test
@@ -73,6 +74,19 @@ TEST_F(CallsMultiMapTest, ProcessWrongPacket)
 
     EXPECT_CALL(handler, processData(packet)).Times(0);
     callsMap.processPacket(packet);
+}
+
+TEST_F(CallsMultiMapTest, ProcessPackets)
+{
+    DataHandlerMock handler;
+    callsMap.insert(deviceId, interfaceId, streamId, &handler);
+
+    std::vector<std::shared_ptr<Packet>> packets;
+    packets.push_back(packet);
+    packets.push_back(packet);
+    packets.push_back(packet);
+    EXPECT_CALL(handler, processData(packets));
+    callsMap.processPackets(packets);
 }
 
 TEST_F(CallsMultiMapTest, SamePacketMultipleHandler)

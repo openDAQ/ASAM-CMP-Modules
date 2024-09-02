@@ -59,6 +59,7 @@ protected:
 
     // IDataHandler
     void processData(const std::shared_ptr<Packet>& packet) override;
+    void processData(const std::vector<std::shared_ptr<Packet>>& packets) override;
 
     void updateStreamIdInternal() override;
 
@@ -69,9 +70,8 @@ private:
     void buildAnalogDescriptor(const AnalogPayload& payload);
     void buildAsyncDomainDescriptor();
     void buildSyncDomainDescriptor(const float sampleInterval);
-    void processAsyncData(const std::shared_ptr<Packet>& packet);
-    DataPacketPtr createAsyncDomainPacket(uint64_t timestamp, uint64_t sampleCount);
-    void fillCanData(void* const data, const std::shared_ptr<Packet>& packet);
+    void processAsyncData(const std::vector<std::shared_ptr<Packet>>& packets);
+    void fillCanData(CANData* const data, const std::shared_ptr<Packet>& packet);
     void processSyncData(const std::shared_ptr<Packet>& packet);
     bool domainChanged(const AnalogPayload& payload);
     bool dataChanged(const AnalogPayload& payload);
