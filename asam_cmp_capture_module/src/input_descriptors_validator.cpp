@@ -98,36 +98,48 @@ namespace
     bool validateAnalogSampleType(DataDescriptorPtr inputDataDescriptor)
     {
         if (inputDataDescriptor.getSampleType() == SampleType::Struct)
-            throw std::runtime_error("Struct sample type is not allowed");
+            return false;  // throw std::runtime_error("Struct sample type is not allowed");
 
         if (inputDataDescriptor.getDimensions().getCount() > 0)
-            throw std::runtime_error("Arrays not supported");
+            return false;  // throw std::runtime_error("Arrays not supported");
 
         if (!inputDataDescriptor.getRule().assigned() || inputDataDescriptor.getRule().getType() != DataRuleType::Explicit)
-            throw std::runtime_error("Only explicit data rule is used");
+            return false;  // throw std::runtime_error("Only explicit data rule is used");
 
-        auto postScaling = inputDataDescriptor.getPostScaling();
-
-
-        if (postScaling != nullptr)
+        if (!hasCorrectPostScaling(inputDataDescriptor.getPostScaling()))
         {
-            auto inputRawSampleType = postScaling.getInputSampleType();
-            auto postScalingParams = postScaling.getParameters();
-            if (!postScalingParams.hasKey("offset") || !postScalingParams.hasKey("scale"))
-                throw std::runtime_error("Incomplete post scaling params");
-
-            if (!(inputRawSampleType == SampleType::Int32 || inputRawSampleType == SampleType::Int16))
-                throw std::runtime_error("Only int16 and int32 sample types are allowed");
-        }
-        else
-        {
-            auto sampleType = inputDataDescriptor.getSampleType();
-            if (!(sampleType == SampleType::Int32 || sampleType == SampleType::Int16))
-                throw std::runtime_error("Only int16 and int32 sample types are allowed");
+            if (!hasCorrectSampleType(inputDataDescriptor.getSampleType()) && !hasCorrectValueRange(inputDataDescriptor.getValueRange()))
+                return false;  // throw std::runtime_error("MinMax range should be assigned");
         }
 
         return true;
     }
+}
+
+bool hasCorrectValueRange(const RangePtr& range)
+{
+    if (!range.assigned())
+        return false;  // throw std::runtime_error("MinMax range should be assigned");
+
+    if (!range.getLowValue().assigned() || !range.getHighValue().assigned())
+        return false;  // throw std::runtime_error("MinMax range should be assigned");
+
+    return true;
+}
+
+bool hasCorrectSampleType(const SampleType& sampleType)
+{
+    return sampleType == SampleType::Int16 || sampleType == SampleType::Int32;
+}
+
+bool hasCorrectPostScaling(const ScalingPtr& postScaling)
+{
+    if (!postScaling.assigned())
+        return false;
+
+    auto postScalingParams = postScaling.getParameters();
+    return hasCorrectSampleType(postScaling.getInputSampleType()) && postScalingParams.hasKey("offset") &&
+           postScalingParams.hasKey("scale");
 }
 
 bool validateInputDescriptor(DataDescriptorPtr inputDataDescriptor, const ASAM::CMP::PayloadType& type)

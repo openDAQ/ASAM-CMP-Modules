@@ -25,6 +25,7 @@ set(SRC_PublicHeaders module_dll.h
 set(SRC_PrivateHeaders
     encoder_bank.h
     input_descriptors_validator.h
+    dispatch.h
 )
 
 if (MSVC)
@@ -84,6 +85,7 @@ if (${REPO_OPTION_PREFIX}_ENABLE_TESTS)
     set(SRC_Lib_PrivateHeaders 
         encoder_bank.h
         input_descriptors_validator.h
+        dispatch.h
     )
 
     prepend_include(${TARGET_FOLDER_NAME} SRC_Lib_PrivateHeaders)
