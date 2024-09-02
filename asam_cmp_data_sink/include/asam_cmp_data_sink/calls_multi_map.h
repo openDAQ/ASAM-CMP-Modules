@@ -43,6 +43,18 @@ public:
         }
     }
 
+    void processPackets(const std::vector<std::shared_ptr<ASAM::CMP::Packet>>& packets)
+    {
+        std::scoped_lock lock(callMapMutex);
+
+        auto range =
+            callsMap.equal_range({packets.front()->getDeviceId(), packets.front()->getInterfaceId(), packets.front()->getStreamId()});
+        for (auto& it = range.first; it != range.second; ++it)
+        {
+            it->second->processData(packets);
+        }
+    }
+
     size_t size() const
     {
         std::scoped_lock lock(callMapMutex);

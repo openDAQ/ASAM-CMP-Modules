@@ -44,10 +44,30 @@ void StreamFb::processData(const std::shared_ptr<Packet>& packet)
     if (packet->getPayload().getType() != payloadType)
         return;
 
-    if (payloadType != PayloadType::analog)
-        processAsyncData(packet);
-    else
+    if (payloadType == PayloadType::analog)
         processSyncData(packet);
+    else
+    {
+        std::vector<std::shared_ptr<Packet>> packets;
+        packets.emplace_back(packet);
+        processData(packets);
+    }
+}
+
+void StreamFb::processData(const std::vector<std::shared_ptr<Packet>>& packets)
+{
+    if (packets.front()->getPayload().getType() != payloadType)
+        return;
+
+    if (payloadType == PayloadType::analog)
+    {
+        for (auto& packet: packets)
+            processSyncData(packet);
+    }
+    else
+    {
+        processAsyncData(packets);
+    }
 }
 
 void StreamFb::updateStreamIdInternal()
@@ -158,46 +178,41 @@ void StreamFb::buildSyncDomainDescriptor(const float sampleInterval)
     analogHeader.setSampleInterval(sampleInterval);
 }
 
-void StreamFb::processAsyncData(const std::shared_ptr<Packet>& packet)
+void StreamFb::processAsyncData(const std::vector<std::shared_ptr<Packet>>& packets)
 {
-    constexpr uint64_t newSamples = 1;
-    const auto timestamp = packet->getTimestamp();
+    const uint64_t newSamples = packets.size();
+    auto timestamp = packets.front()->getTimestamp();
 
-    const auto domainPacket = createAsyncDomainPacket(timestamp, newSamples);
+    const auto domainPacket = DataPacket(domainSignal.getDescriptor(), newSamples, timestamp);
+    auto domainBuffer = static_cast<uint64_t*>(domainPacket.getRawData());
+
     const auto dataPacket = DataPacketWithDomain(domainPacket, dataSignal.getDescriptor(), newSamples);
-    const auto buffer = dataPacket.getRawData();
+    auto buffer = reinterpret_cast<CANData*>(dataPacket.getRawData());
 
-    switch (payloadType.getType())
+    for (auto& packet : packets)
     {
-        case PayloadType::can:
-        case PayloadType::canFd:
-            fillCanData(buffer, packet);
-            break;
+        switch (payloadType.getType())
+        {
+            case PayloadType::can:
+            case PayloadType::canFd:
+                fillCanData(buffer, packet);
+                break;
+        }
+        *domainBuffer++ = packet->getTimestamp();
+        buffer++;
     }
 
     dataSignal.sendPacket(dataPacket);
     domainSignal.sendPacket(domainPacket);
 }
 
-DataPacketPtr StreamFb::createAsyncDomainPacket(uint64_t timestamp, uint64_t sampleCount)
+void StreamFb::fillCanData(CANData* const data, const std::shared_ptr<Packet>& packet)
 {
-    const auto domainPacket = DataPacket(domainSignal.getDescriptor(), sampleCount, timestamp);
-
-    const auto outDomainPacketBuf = static_cast<uint64_t*>(domainPacket.getRawData());
-    if (outDomainPacketBuf)
-        *outDomainPacketBuf = timestamp;
-
-    return domainPacket;
-}
-
-void StreamFb::fillCanData(void* const data, const std::shared_ptr<Packet>& packet)
-{
-    const auto dataBuffer = static_cast<CANData*>(data);
     auto& payload = static_cast<const CanPayload&>(packet->getPayload());
 
-    dataBuffer->arbId = payload.getId();
-    dataBuffer->length = payload.getDataLength();
-    memcpy(dataBuffer->data, payload.getData(), dataBuffer->length);
+    data->arbId = payload.getId();
+    data->length = payload.getDataLength();
+    memcpy(data->data, payload.getData(), data->length);
 }
 
 void StreamFb::processSyncData(const std::shared_ptr<Packet>& packet)
