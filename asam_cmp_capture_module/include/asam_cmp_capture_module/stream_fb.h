@@ -97,7 +97,6 @@ private:
     std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf> ethernetWrapper;
     const bool allowJumboFrames;
     ASAM::CMP::DataContext dataContext;
-    const StringPtr& selectedDeviceName;
 
     //for analog data
     double analogDataDeltaTime;

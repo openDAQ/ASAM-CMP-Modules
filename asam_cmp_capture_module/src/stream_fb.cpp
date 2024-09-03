@@ -161,7 +161,7 @@ void StreamFb::configureMinMaxAnalogSignal()
     else
     {
         analogDataSampleDt = 32;
-        analogDataScale = (analogDataMax - analogDataMin) / (1LL << analogDataSampleDt);
+        analogDataScale = (analogDataMax - analogDataMin) / (1LL << (analogDataSampleDt - 1));
         analogDataOffset = analogDataMin;
         analogDataHasInternalPostScaling = true;
     }
@@ -397,7 +397,7 @@ void createAnalogPayloadWithInternalScaling(ASAM::CMP::AnalogPayload& payload,
         scaledData[i] = std::round((rawData[i] - analogDataOffset) / analogDataScale);
     }
 
-    payload.setData(reinterpret_cast<uint8_t*>(scaledData.data()), sampleCount * sampleSize);
+    payload.setData(reinterpret_cast<uint8_t*>(scaledData.data()), sampleCount * sizeof(int32_t));
 }
 
 void createAnalogPayload(ASAM::CMP::AnalogPayload& payload,
@@ -446,7 +446,7 @@ void StreamFb::processAnalogPacket(const DataPacketPtr& packet)
     asamCmpPacket.setTimestamp(rawTime * timeScale);
 
     for (auto& rawFrame : encoders->encode(streamId, asamCmpPacket, dataContext))
-        ethernetWrapper->sendPacket(selectedDeviceName, rawFrame);
+        ethernetWrapper->sendPacket(rawFrame);
 }
 
 void StreamFb::processDataPacket(const DataPacketPtr& packet)

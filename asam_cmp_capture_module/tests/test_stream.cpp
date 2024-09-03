@@ -260,7 +260,7 @@ TEST_F(StreamFbTest, TestCanFdPacketsAreSent)
 
 void StreamFbTest::testAnalogPackets()
 {
-    EXPECT_CALL(*ethernetWrapper, sendPacket(_, _)).Times(AtLeast(0));
+    EXPECT_CALL(*ethernetWrapper, sendPacket(_)).Times(AtLeast(0));
 
     ProcedurePtr createProc = interfaceFb.getPropertyValue("AddStream");
     interfaceFb.setPropertyValue("PayloadType", 3);
