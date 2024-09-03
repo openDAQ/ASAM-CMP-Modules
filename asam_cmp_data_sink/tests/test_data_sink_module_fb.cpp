@@ -32,7 +32,7 @@ protected:
         descriptions.pushBack("desc1");
         descriptions.pushBack("desc2");
 
-        auto startStub = [this](const StringPtr& deviceName, PcppPacketReceivedCallbackType callback)
+        auto startStub = [this](PcppPacketReceivedCallbackType callback)
         { packetReceivedCallback = callback; };
 
         auto stopStub = []() {};
