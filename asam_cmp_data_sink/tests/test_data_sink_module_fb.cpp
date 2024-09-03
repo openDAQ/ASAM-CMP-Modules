@@ -35,6 +35,7 @@ protected:
 
         EXPECT_CALL(*ethernetWrapper, startCapture(_)).Times(AtLeast(1));
         EXPECT_CALL(*ethernetWrapper, stopCapture()).Times(AtLeast(1));
+        EXPECT_CALL(*ethernetWrapper, setDevice(_)).Times(AtLeast(1)).WillRepeatedly(Return(true));
         EXPECT_CALL(*ethernetWrapper, getEthernetDevicesNamesList()).Times(AtLeast(1));
         EXPECT_CALL(*ethernetWrapper, getEthernetDevicesDescriptionsList()).Times(AtLeast(1));
 
