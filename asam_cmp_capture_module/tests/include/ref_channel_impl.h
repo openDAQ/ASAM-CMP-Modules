@@ -63,6 +63,8 @@ namespace daq
         void endApplyProperties(const UpdatingActions& propsAndValues, bool parentUpdating) override;
 
     private:
+        bool clientSideScaling;
+        StructPtr customRange;
         double sampleRate;
         size_t index;
         double globalSampleRate;
@@ -73,7 +75,7 @@ namespace daq
         std::chrono::microseconds lastCollectTime;
         uint64_t samplesGenerated;
 
-        StringPtr channelType;
+        SampleType sampleType;
         SignalConfigPtr valueSignal;
         SignalConfigPtr timeSignal;
         bool isDescriptorsInitialized;

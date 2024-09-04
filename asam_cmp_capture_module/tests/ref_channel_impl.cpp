@@ -13,6 +13,9 @@
 #include <opendaq/signal_factory.h>
 #include "include/ref_channel_impl.h"
 
+#include <asam_cmp_capture_module/dispatch.h>
+#include <opendaq/sample_type_traits.h>
+
 namespace daq
 {
 
@@ -23,20 +26,18 @@ namespace daq
         : ChannelImpl(FunctionBlockType("ref_channel", fmt::format("AI{}", init.index + 1), ""), context, parent, localId)
         , index(init.index)
         , sampleRate(init.sampleRate)
-        , counter(0)
         , startTime(init.startTime)
         , microSecondsFromEpochToStartTime(init.microSecondsFromEpochToStartTime)
         , lastCollectTime(0)
         , samplesGenerated(0)
         , needsSignalTypeChanged(false)
         , generateFunc(init.generateFunc)
-        , isSuperCounter(false)
         , isDescriptorsInitialized(false)
+        , sampleType(SampleType::Int16)
     {
         initProperties();
         signalTypeChangedInternal();
         packetSizeChangedInternal();
-        resetCounter();
         createSignals();
         buildDefaultDescriptors();
     }
@@ -100,9 +101,17 @@ namespace daq
         objPtr.getOnPropertyValueWrite("ClientSideScaling") +=
             [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { signalTypeChangedIfNotUpdating(args); };
 
-        const auto defaultCustomRange = Range(-10.0, 10.0);
-        objPtr.addProperty(StructPropertyBuilder("CustomRange", defaultCustomRange).build());
+        customRange = Range(-10.0, 10.0);
+        objPtr.addProperty(StructPropertyBuilder("CustomRange", customRange).build());
         objPtr.getOnPropertyValueWrite("CustomRange") +=
+            [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { signalTypeChangedIfNotUpdating(args); };
+
+        objPtr.addProperty(IntPropertyBuilder("Delta", 0).setReadOnly(true).build());
+        objPtr.getOnPropertyValueWrite("Delta") +=
+            [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { deltaT = args.getValue(); };
+
+        objPtr.addProperty(IntPropertyBuilder("SampleType", 0).build());
+        objPtr.getOnPropertyValueWrite("SampleType") +=
             [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { signalTypeChangedIfNotUpdating(args); };
 
         objPtr.addProperty(BoolPropertyBuilder("FixedPacketSize", False).build());
@@ -112,46 +121,6 @@ namespace daq
         objPtr.addProperty(IntPropertyBuilder("PacketSize", 1000).setVisible(EvalValue("$FixedPacketSize")).build());
         objPtr.getOnPropertyValueWrite("PacketSize") +=
             [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { packetSizeChanged(); };
-
-        objPtr.addProperty(BoolProperty("HasZeroPulse", False));
-        objPtr.getOnPropertyValueWrite("HasZeroPulse") += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args)
-        {
-            std::scoped_lock lock(sync);
-            buildSignalDescriptors();
-        };
-
-        objPtr.addProperty(IntProperty("SensorMode", 0));
-        objPtr.getOnPropertyValueWrite("SensorMode") += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args)
-        {
-            std::scoped_lock lock(sync);
-            buildSignalDescriptors();
-        };
-
-        objPtr.addProperty(IntPropertyBuilder("Delta", 0).setReadOnly(true).build());
-        objPtr.getOnPropertyValueWrite("Delta") +=
-            [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { deltaT = args.getValue(); };
-
-        objPtr.addProperty(FloatPropertyBuilder("EdgeBaseClock", 100e6).build());
-        objPtr.getOnPropertyValueWrite("EdgeBaseClock") += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args)
-        {
-            std::scoped_lock lock(sync);
-            buildSignalDescriptors();
-        };
-
-        objPtr.addProperty(StringPropertyBuilder("CounterId", "CounterTest").build());
-        objPtr.getOnPropertyValueWrite("CounterId") += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args)
-        {
-            std::scoped_lock lock(sync);
-            buildSignalDescriptors();
-        };
-
-        objPtr.addProperty(StringPropertyBuilder("CounterChannelType", "DefaultName").build());
-        objPtr.getOnPropertyValueWrite("CounterChannelType") += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args)
-        {
-            std::scoped_lock lock(sync);
-            isSuperCounter = (args.getValue() == "RawSuperCounter");
-            buildSignalDescriptors();
-        };
     }
 
     void InputChannelStubImpl::packetSizeChangedInternal()
@@ -184,6 +153,9 @@ namespace daq
     void InputChannelStubImpl::signalTypeChangedInternal()
     {
         sampleRate = objPtr.getPropertyValue("SampleRate");
+        sampleType = objPtr.getPropertyValue("SampleType");
+        clientSideScaling = objPtr.getPropertyValue("ClientSideScaling");
+        customRange = objPtr.getPropertyValue("CustomRange");
     }
 
     void InputChannelStubImpl::resetCounter()
@@ -232,25 +204,63 @@ namespace daq
         lastCollectTime = curTime;
     }
 
-    void InputChannelStubImpl::generateSamples(int64_t curTime, uint64_t samplesGenerated, uint64_t newSamples)
+    template <SampleType SrcType>
+    void generateSamplesInternal(SignalConfigPtr& timeSignal,
+                                 SignalConfigPtr& valueSignal,
+                                 int64_t curTime,
+                                 uint64_t samplesGenerated,
+                                 uint64_t newSamples,
+                                 const std::function<int()>& generateFunc)
+    {
+        using SourceType = typename SampleTypeToType<SrcType>::Type;
+
+        const auto domainPacket = DataPacket(timeSignal.getDescriptor(), newSamples, curTime);
+        const auto dataPacket = DataPacketWithDomain(domainPacket, valueSignal.getDescriptor(), newSamples);
+
+        auto buffer = static_cast<SourceType*>(dataPacket.getRawData());
+        for (uint64_t i = 0; i < newSamples; i++)
+            buffer[i] = generateFunc();
+
+        valueSignal.sendPacket(dataPacket);
+        timeSignal.sendPacket(domainPacket);
+    }
+
+    void generateScaledSamplesInternal(SignalConfigPtr& timeSignal,
+                                       SignalConfigPtr& valueSignal,
+                                       int64_t curTime,
+                                       uint64_t samplesGenerated,
+                                       uint64_t newSamples,
+                                       const std::function<int()>& generateFunc)
     {
         const auto domainPacket = DataPacket(timeSignal.getDescriptor(), newSamples, curTime);
         const auto dataPacket = DataPacketWithDomain(domainPacket, valueSignal.getDescriptor(), newSamples);
 
-        int* buffer;
-
-        buffer = static_cast<int*>(dataPacket.getRawData());
-
+        auto buffer = static_cast<double*>(std::malloc(newSamples * sizeof(double)));
         for (uint64_t i = 0; i < newSamples; i++)
-        {
-            if (isSuperCounter)
-                buffer[i << 1] = buffer[(i << 1) + 1] = generateFunc();
-            else
-                buffer[i] = generateFunc();
-        }
+            buffer[i] = generateFunc();
+
+        double f = std::pow(2, 24);
+        auto packetBuffer = static_cast<uint32_t*>(dataPacket.getRawData());
+        for (size_t i = 0; i < newSamples; i++)
+            *packetBuffer++ = static_cast<uint32_t>((buffer[i] + 10.0) / 20.0 * f);
+
+        std::free(static_cast<void*>(buffer));
 
         valueSignal.sendPacket(dataPacket);
         timeSignal.sendPacket(domainPacket);
+    }
+
+    void InputChannelStubImpl::generateSamples(int64_t curTime, uint64_t samplesGenerated, uint64_t newSamples)
+    {
+        if (clientSideScaling)
+        {
+            generateScaledSamplesInternal(timeSignal, valueSignal, curTime, samplesGenerated, newSamples, generateFunc);
+        }
+        else
+        {
+            SAMPLE_TYPE_DISPATCH(sampleType, generateSamplesInternal, timeSignal, valueSignal, curTime, samplesGenerated, newSamples, generateFunc)
+        }
+
     }
 
     Int InputChannelStubImpl::getDeltaT(const double sr) const
@@ -266,40 +276,21 @@ namespace daq
     {
         if (!isDescriptorsInitialized)
             return;
-        auto metadataBuilder = [&]()
-        {
-            daq::DictPtr<IString, IString> ptr = Dict<IString, IString>();
-            ptr.set("CounterId", objPtr.getPropertyValue("CounterId"));
-            ptr.set("CounterChannelType", objPtr.getPropertyValue("CounterChannelType"));
-            ptr.set("EdgeBaseClock", objPtr.getPropertyValue("EdgeBaseClock").toString());
-            ptr.set("HasZeroPulse", objPtr.getPropertyValue("HasZeroPulse").toString());
-            ptr.set("SensorMode", objPtr.getPropertyValue("SensorMode").toString());
-
-            return ptr;
-        };
 
         const auto valueDescriptorBuilder = DataDescriptorBuilder()
-                                                .setSampleType(SampleType::Int32)
-                                                .setUnit(Unit("t", -1, "test", "count"))
-                                                .setMetadata(metadataBuilder())
-                                                .setName("AI " + std::to_string(index + 1));
+                                         .setSampleType(sampleType)
+                                         .setValueRange(customRange)
+                                         .setUnit(Unit("t", -1, "test", "count"))
+                                         .setName("AI " + std::to_string(index + 1));
 
-        auto superCounterDescriptorBuilder = [&]() -> DataDescriptorBuilderPtr
+        if (clientSideScaling)
         {
-            const auto rawCountDescriptor = DataDescriptorBuilder().setName("RawCount").setSampleType(SampleType::Int32).build();
+            const double scale = 20.0 / std::pow(2, 24);
+            constexpr double offset = -10.0;
+            valueDescriptorBuilder.setPostScaling(LinearScaling(scale, offset, SampleType::Int32, ScaledSampleType::Float64));
+        }
 
-            const auto rawEdgeSeparationDescriptor =
-                DataDescriptorBuilder().setName("RawEdgeSeparation").setSampleType(SampleType::Int32).build();
-
-            const auto superCounterDescriptor = DataDescriptorBuilder()
-                                                    .setSampleType(SampleType::Struct)
-                                                    .setStructFields(List<IDataDescriptor>(rawCountDescriptor, rawEdgeSeparationDescriptor))
-                                                    .setName("RawSuperCounter")
-                                                    .setMetadata(metadataBuilder());
-            return superCounterDescriptor;
-        };
-
-        valueSignal.setDescriptor((isSuperCounter ? superCounterDescriptorBuilder() : valueDescriptorBuilder).build());
+        valueSignal.setDescriptor(valueDescriptorBuilder.build());
 
         deltaT = getDeltaT(sampleRate);
 

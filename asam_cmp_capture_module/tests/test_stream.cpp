@@ -1,4 +1,3 @@
-#include <asam_cmp/analog_payload.h>
 #include <asam_cmp_capture_module/common.h>
 #include <asam_cmp_capture_module/capture_fb.h>
 #include <asam_cmp_capture_module/interface_fb.h>
@@ -12,40 +11,12 @@
 #include <asam_cmp/decoder.h>
 #include <asam_cmp/interface_payload.h>
 #include "include/ref_can_channel_impl.h"
-#include "include/ref_channel_impl.h"
+#include "include/time_stub.h"
 #include <asam_cmp/can_payload.h>
 #include <asam_cmp/can_fd_payload.h>
 
 using namespace daq;
 using namespace testing;
-
-
-class TimeStub
-{
-public:
-    TimeStub()
-    {
-        startTime = std::chrono::steady_clock::now();
-        auto startAbsTime = std::chrono::system_clock::now();
-        microSecondsFromEpochToDeviceStart = std::chrono::duration_cast<std::chrono::microseconds>(startAbsTime.time_since_epoch());
-    }
-
-    std::chrono::microseconds getMicroSecondsSinceDeviceStart() const
-    {
-        auto currentTime = std::chrono::steady_clock::now();
-        auto microSecondsSinceDeviceStart = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - startTime);
-        return microSecondsSinceDeviceStart;
-    }
-
-    std::chrono::microseconds getMicroSecondsFromEpochToDeviceStart() const
-    {
-        return microSecondsFromEpochToDeviceStart;
-    }
-
-private:
-    std::chrono::steady_clock::time_point startTime;
-    std::chrono::microseconds microSecondsFromEpochToDeviceStart;
-};
 
 class StreamFbTest: public testing::Test
 {
@@ -116,17 +87,7 @@ protected:
         }
     }
 
-    int analogCallback()
-    {
-        if (analogValue == 75)
-            analogValue = 0;
-
-        sentAnalogSamples.emplace_back(analogValue);
-        return analogValue++;
-    }
-
     void testCanPacketWithParameter(bool isCanFd);
-    void testAnalogPackets();
 
 protected:
     TimeStub timeStub;
@@ -145,9 +106,6 @@ protected:
     std::mutex packedReceivedSync;
     std::queue<std::shared_ptr<ASAM::CMP::Packet>> receivedPackets;
     ASAM::CMP::Decoder decoder;
-
-    int analogValue{0};
-    std::vector<int> sentAnalogSamples;
 };
 
 TEST_F(StreamFbTest, CreateStream)
@@ -256,104 +214,4 @@ TEST_F(StreamFbTest, TestCanPacketsAreSent)
 TEST_F(StreamFbTest, TestCanFdPacketsAreSent)
 {
     testCanPacketWithParameter(true);
-}
-
-void StreamFbTest::testAnalogPackets()
-{
-    EXPECT_CALL(*ethernetWrapper, sendPacket(_)).Times(AtLeast(0));
-
-    ProcedurePtr createProc = interfaceFb.getPropertyValue("AddStream");
-    interfaceFb.setPropertyValue("PayloadType", 3);
-    createProc();
-    auto streamFb = interfaceFb.getFunctionBlocks().getItemAt(0);
-
-    uint8_t streamId = streamFb.getPropertyValue("StreamId");
-    uint32_t interfaceId = interfaceFb.getPropertyValue("InterfaceId");
-    uint16_t deviceId = captureFb.getPropertyValue("DeviceId");
-
-    daq::InputChannelStubInit init{
-        0, 200, timeStub.getMicroSecondsSinceDeviceStart(), timeStub.getMicroSecondsFromEpochToDeviceStart(), [&]() {
-            return analogCallback();
-        }};
-    ChannelPtr analogChannel = createWithImplementation<IChannel, InputChannelStubImpl>(this->context, nullptr, "refch", init);
-    analogChannel.asPtr<IInputChannelStub>()->initDescriptors();
-    SignalPtr analogSignal = analogChannel.getSignals()[0];
-
-    streamFb.getInputPorts().getItemAt(0).connect(analogSignal);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
-    auto curTime = timeStub.getMicroSecondsSinceDeviceStart();
-    auto chPrivate = analogChannel.asPtr<IInputChannelStub>();
-    chPrivate->collectSamples(curTime);
-
-    int receivedSamples = 0;
-    auto checker = [&]() -> bool
-    {
-        std::scoped_lock lock(packedReceivedSync);
-        if (receivedPackets.empty())
-            return false;
-
-        auto packet = *(receivedPackets.front());
-        receivedPackets.pop();
-
-        if (!packet.isValid())
-            return false;
-
-        if (packet.getPayload().getMessageType() != ASAM::CMP::CmpHeader::MessageType::data)
-            return false;
-
-        if (packet.getDeviceId() != deviceId)
-            return false;
-
-        if (packet.getStreamId() != streamId)
-            return false;
-
-        if (packet.getPayload().getType() != ASAM::CMP::PayloadType::analog)
-            return false;
-
-        if (packet.getInterfaceId() != interfaceId)
-            return false;
-
-        if (static_cast<ASAM::CMP::AnalogPayload&>(packet.getPayload()).getSampleDt() == ASAM::CMP::AnalogPayload::SampleDt::aInt16)
-        {
-            auto rawData = reinterpret_cast<const int16_t*>(static_cast<ASAM::CMP::AnalogPayload&>(packet.getPayload()).getData());
-            auto receivedSamplesCnt = static_cast<ASAM::CMP::AnalogPayload&>(packet.getPayload()).getSamplesCount();
-
-            for (int i = 0; i < receivedSamplesCnt; ++i, rawData++)
-            {
-                if (sentAnalogSamples[receivedSamples++] != *rawData)
-                    return false;
-            }
-        }
-        else
-        {
-            auto rawData = reinterpret_cast<const int32_t*>(static_cast<ASAM::CMP::AnalogPayload&>(packet.getPayload()).getData());
-            auto receivedSamplesCnt = static_cast<ASAM::CMP::AnalogPayload&>(packet.getPayload()).getSamplesCount();
-
-            for (int i = 0; i < receivedSamplesCnt; ++i, rawData++)
-            {
-                if (sentAnalogSamples[receivedSamples++] != *rawData)
-                    return false;
-            }
-        }
-
-        return receivedSamples == sentAnalogSamples.size();
-    };
-
-    size_t timeElapsed = 0;
-    auto stTime = std::chrono::steady_clock::now();
-    while (!checker() && timeElapsed < 2500'000'000)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
-        auto curTime = std::chrono::steady_clock::now();
-        timeElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(curTime - stTime).count();
-    }
-
-    ASSERT_EQ(receivedSamples, sentAnalogSamples.size());
-}
-
-TEST_F(StreamFbTest, TestAnalogPacketsAreSent)
-{
-    testAnalogPackets();
 }

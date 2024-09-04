@@ -7,11 +7,14 @@ set(TEST_SOURCES
                  test_app.cpp
                  ref_can_channel_impl.cpp
                  ref_channel_impl.cpp
+                 test_analog_messages.cpp
+                 time_stub.cpp
 )
 
 set(TEST_HEADERS 
     include/ref_can_channel_impl.h 
     include/ref_channel_impl.h
+    include/time_stub.h
 )
 
 if (MSVC)
