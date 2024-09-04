@@ -122,6 +122,13 @@ void StreamFb::configureScaledAnalogSignal()
 
     analogDataSampleDt = postScaling.getInputSampleType() == SampleType::Int16 ? 16 : 32;
     analogDataHasInternalPostScaling = false;
+
+    setPropertyValueInternal(
+        String("Scale").asPtr<IString>(true), BaseObjectPtr(analogDataScale).asPtr<IBaseObject>(true), false, true, false);
+
+    setPropertyValueInternal(
+        String("Offset").asPtr<IString>(true), BaseObjectPtr(analogDataOffset).asPtr<IBaseObject>(true), false, true, false);
+
     setPropertyValueInternal(
         String("IsClientPostScaling").asPtr<IString>(true), BaseObjectPtr(true).asPtr<IBaseObject>(true), false, true, false);
 }
@@ -161,10 +168,17 @@ void StreamFb::configureMinMaxAnalogSignal()
     else
     {
         analogDataSampleDt = 32;
-        analogDataScale = (analogDataMax - analogDataMin) / (1LL << (analogDataSampleDt - 1));
+        analogDataScale = (analogDataMax - analogDataMin) / (1LL << 24);
         analogDataOffset = analogDataMin;
         analogDataHasInternalPostScaling = true;
     }
+
+    setPropertyValueInternal(
+        String("MinValue").asPtr<IString>(true), BaseObjectPtr(analogDataMin).asPtr<IBaseObject>(true), false, true, false);
+
+    setPropertyValueInternal(
+        String("MaxValue").asPtr<IString>(true), BaseObjectPtr(analogDataMax).asPtr<IBaseObject>(true), false, true, false);
+
     setPropertyValueInternal(
         String("IsClientPostScaling").asPtr<IString>(true), BaseObjectPtr(false).asPtr<IBaseObject>(true), false, true, false);
 }
