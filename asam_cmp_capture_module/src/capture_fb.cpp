@@ -121,7 +121,8 @@ void CaptureFb::removeInterfaceInternal(size_t nInd)
 {
     std::scoped_lock lock(statusSync);
 
-    auto id = functionBlocks.getItems().getItemAt(nInd).getPropertyValue("InterfaceId");
+    int id = functionBlocks.getItems().getItemAt(nInd).getPropertyValue("InterfaceId");
+    captureStatus.removeInterfaceById(id);
     asam_cmp_common_lib::CaptureCommonFb::removeInterfaceInternal(nInd);
 }
 

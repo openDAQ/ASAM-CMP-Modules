@@ -295,7 +295,7 @@ TEST_F(InterfaceFbTest, TestInterfaceStatusWithStreamsReceived)
     catchInterfaceStatus();
 
     ProcedurePtr removeProc = interfaceFb.getPropertyValue("RemoveStream");
-    removeProc(0);
+    removeProc(1);
     streamsCnt = 1;
     s1 = interfaceFb.getFunctionBlocks().getItemAt(0);
     streams = {s1.getPropertyValue("StreamId")};

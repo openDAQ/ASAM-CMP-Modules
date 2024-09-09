@@ -46,7 +46,7 @@ void InterfaceFb::removeStreamInternal(size_t nInd)
 {
     std::scoped_lock lock(statusSync);
 
-    auto id = functionBlocks.getItems().getItemAt(nInd).getPropertyValue("StreamId");
+    int id = functionBlocks.getItems().getItemAt(nInd).getPropertyValue("StreamId");
     streamIdsList.erase(id);
     asam_cmp_common_lib::InterfaceCommonFb::removeStreamInternal(nInd);
     updateInterfaceData();
