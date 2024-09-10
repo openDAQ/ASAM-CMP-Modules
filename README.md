@@ -30,6 +30,27 @@ cmake --build build
 ```
 
 ## Usage
+### CaptureModule
+To connect your OpendaqSignal to the Capture module follow the steps below:
+    1. Add asam_cmp_capture_module_fb function block
+    2. On the asam_cmp_capture_module_fb chose the network adapter among the suggested to send ASAM CMP messages through it.
+    3. On the asam_cmp_capture_fb run *AddInterface* function to add the interface
+    4. On created asam_cmp_interface function block chose PayloadType among suggested
+    5. Run *AddStream* function to add stream
+    6. asam_cmp_stream_fb has the input port you can connect your signal, capturing data starts immediately
+
+To get ASAM CMP packets from the Ethernet follow the steps below:
+    1. Add asam_cmp_data_sink_module function block
+    2. On the asam_cmp_data_sink_module chose the network adapter you expect to receive acam cmp messages
+    3. There are two ways to configure asam_cmp_data_sink:
+        * go to the asam_cmp_status FB. In the capture module list you can check the *CaptureModuleList* property which contains list of capture modules which status messages was captured. Go to the asam_cmp_data_sink FB and run *AddCaptureModuleFromStatus*. This function requires index as the parameter, available capture modules are 0-indexed in *CaptureModuleList* property of asam_cmp_ctatus. 
+
+        * Selected capture module will be configured into the similar structure (capture_module->interface->stream). Stream will contain OpenDaq signal with decoded ASAM CMP message from the Ethernet
+        * Run *AddCaptureModuleEmpty* function that creates empty capture_module_fb FB. Then repeat steps 3-5 as you do it on the CaptureModule side.
+
+        In case data messages with deviceId interfaceId and streamId you written in your structure exist and payloadType is correct processing of incoming data messages starts immediately
+
+
 You can find a usage example in the `asam_cmp_example` directory.
 
 ## Modules Structure
