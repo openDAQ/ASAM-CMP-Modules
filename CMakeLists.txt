@@ -15,7 +15,6 @@ set(CMAKE_MESSAGE_CONTEXT_SHOW ON CACHE BOOL "Show CMake message context")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(AsamCommonUtils)
-message("INCLUDED")
 setup_repo(${REPO_OPTION_PREFIX})
 
 if (${REPO_OPTION_PREFIX}_ENABLE_EXAMPLE)
@@ -29,9 +28,11 @@ add_subdirectory(external)
 add_subdirectory(asam_cmp_common_lib)
 
 if (${REPO_OPTION_PREFIX}_BUILD_CAPTURE_MODULE)
+        message("Add capture module!!!")
         add_subdirectory(asam_cmp_capture_module)
 endif()
 
 if (${REPO_OPTION_PREFIX}_BUILD_DATA_SINK)
+        message("Add data sink!!!")
         add_subdirectory(asam_cmp_data_sink)
 endif()

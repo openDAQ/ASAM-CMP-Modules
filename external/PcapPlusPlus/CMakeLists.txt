@@ -3,6 +3,7 @@ list(APPEND CMAKE_MESSAGE_CONTEXT PcapPlusPlus)
 
 if(MSVC)
     add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:/W1>)
+    add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:/wd4068>)
 endif()
 
 if(WIN32)
