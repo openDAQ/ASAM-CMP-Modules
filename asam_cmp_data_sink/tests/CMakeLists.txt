@@ -15,6 +15,8 @@ add_executable(${TEST_APP} ${TEST_SOURCES}
 
 target_link_libraries(${TEST_APP} PRIVATE daq::test_utils
                                           asam_cmp_data_sink_lib
+                                          asam_cmp_data_sink
+                                          daq::opendaq
 )
 
 add_test(NAME ${TEST_APP}

@@ -70,6 +70,25 @@ protected:
     PcppPacketReceivedCallbackType packetReceivedCallback;
 };
 
+TEST_F(DataSinkModuleFbTest, CreateModule)
+{
+    ModulePtr module;
+    ErrCode errCode = createModule(&module, NullContext());
+    ASSERT_TRUE(OPENDAQ_SUCCEEDED(errCode));
+
+    ASSERT_NE(module, nullptr);
+}
+
+TEST_F(DataSinkModuleFbTest, CreateFunctionBlock)
+{
+    ModulePtr module;
+    auto logger = Logger();
+    auto typeManager = TypeManager();
+    createModule(&module, Context(Scheduler(logger), logger, typeManager, nullptr));
+    funcBlock = module.createFunctionBlock("asam_cmp_data_sink_module", nullptr, "id");
+    context = funcBlock.getContext();
+}
+
 TEST_F(DataSinkModuleFbTest, NotNull)
 {
     ASSERT_NE(ethernetWrapper, nullptr);
