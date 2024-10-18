@@ -14,7 +14,6 @@ InterfaceCommonFb::InterfaceCommonFb(const ContextPtr& ctx,
                                      const InterfaceCommonInit& init)
     : FunctionBlock(CreateType(), ctx, parent, localId)
     , interfaceIdManager(init.interfaceIdManager)
-    , streamIdManager(init.streamIdManager)
     , interfaceId(init.id)
     , payloadType(0)
     , isUpdating(false)
@@ -109,7 +108,7 @@ void InterfaceCommonFb::removeStreamInternal(size_t nInd)
     auto fb = functionBlocks.getItems().getItemAt(nInd);
     uint8_t streamId = static_cast<Int>(fb.getPropertyValue("StreamId"));
     functionBlocks.removeItem(fb);
-    streamIdManager->removeId(streamId);
+    streamIdManager.removeId(streamId);
 }
 
 daq::ErrCode INTERFACE_FUNC InterfaceCommonFb::beginUpdate()

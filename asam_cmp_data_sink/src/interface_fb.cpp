@@ -50,7 +50,7 @@ void InterfaceFb::updateInterfaceIdInternal()
 
 void InterfaceFb::addStreamInternal()
 {
-    auto streamId = streamIdManager->getFirstUnusedId();
+    auto streamId = streamIdManager.getFirstUnusedId();
     auto newFb = addStreamWithParams<StreamFb>(streamId, publisher, deviceId, interfaceId);
     publisher.subscribe({deviceId, interfaceId, streamId}, newFb.as<IAsamCmpPacketsSubscriber>(true));
 }

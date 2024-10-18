@@ -29,7 +29,6 @@ struct InterfaceCommonInit
 {
     const uint32_t id;
     InterfaceIdManagerPtr interfaceIdManager;
-    StreamIdManagerPtr streamIdManager;
 };
 
 class InterfaceCommonFb : public FunctionBlock
@@ -66,7 +65,7 @@ private:
 
 protected:
     InterfaceIdManagerPtr interfaceIdManager;
-    StreamIdManagerPtr streamIdManager;
+    StreamIdManager streamIdManager;
     uint32_t interfaceId;
     PayloadType payloadType;
 
@@ -89,12 +88,12 @@ FunctionBlockPtr InterfaceCommonFb::addStreamWithParams(uint8_t streamId, Params
     if (isUpdating)
         throw std::runtime_error("Adding streams is disabled during update");
 
-    StreamCommonInit init{streamId, payloadType, streamIdManager};
+    StreamCommonInit init{streamId, payloadType, &streamIdManager};
 
     StringPtr fbId = fmt::format("asam_cmp_stream_{}", createdStreams++);
     auto newFb = createWithImplementation<IFunctionBlock, Impl>(context, functionBlocks, fbId, init, std::forward<Params>(params)...);
     functionBlocks.addItem(newFb);
-    streamIdManager->addId(streamId);
+    streamIdManager.addId(streamId);
 
     return newFb;
 }

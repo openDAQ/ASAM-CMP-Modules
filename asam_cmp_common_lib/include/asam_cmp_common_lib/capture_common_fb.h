@@ -55,7 +55,6 @@ private:
 
 protected:
     InterfaceIdManager interfaceIdManager;
-    StreamIdManager streamIdManager;
 
     uint16_t deviceId{0};
     StringPtr deviceDescription{""};
@@ -150,7 +149,7 @@ FunctionBlockPtr CaptureCommonFbImpl<Interfaces...>::addInterfaceWithParams(uint
 {
     if (isUpdating)
         throw std::runtime_error("Adding interfaces is disabled during update");
-    InterfaceCommonInit init{interfaceId, &interfaceIdManager, &streamIdManager};
+    InterfaceCommonInit init{interfaceId, &interfaceIdManager};
 
     StringPtr fbId = fmt::format("asam_cmp_interface_{}", createdInterfaces++);
     auto newFb = createWithImplementation<IFunctionBlock, Impl>(context, functionBlocks, fbId, init, std::forward<Params>(params)...);

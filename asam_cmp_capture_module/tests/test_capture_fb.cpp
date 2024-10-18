@@ -36,7 +36,7 @@ protected:
         )));
 
         auto logger = Logger();
-        context = Context(Scheduler(logger), logger, nullptr, nullptr, nullptr);
+        context = Context(Scheduler(logger), logger, TypeManager(), nullptr, nullptr);
         const StringPtr captureModuleId = "asam_cmp_capture_fb";
         selectedDevice = "device1";
         modules::asam_cmp_capture_module::CaptureFbInit init = {ethernetWrapper, selectedDevice};
@@ -365,4 +365,40 @@ TEST_F(CaptureFbTest, TestStatusPacketConsistency)
     }
 
     ASSERT_FALSE(otherPacketReceived);
+}
+
+TEST_F(CaptureFbTest, TestInterfacesShareSameStreamId)
+{
+    EXPECT_CALL(*ethernetWrapper, sendPacket(_)).Times(AtLeast(0));
+
+    ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
+    createProc();
+    createProc();
+
+    auto itf0 = captureFb.getFunctionBlocks().getItemAt(0), itf1 = captureFb.getFunctionBlocks().getItemAt(1);
+
+    itf0.setPropertyValue("PayloadType", 1);
+    itf1.setPropertyValue("PayloadType", 1);
+
+    ProcedurePtr createStreamProc0 = itf0.getPropertyValue("AddStream"), createStreamProc1 = itf1.getPropertyValue("AddStream");
+    createStreamProc0();
+    createStreamProc0();
+    createStreamProc1();
+
+    auto streamFb00 = itf0.getFunctionBlocks().getItemAt(0),
+         streamFb01 = itf0.getFunctionBlocks().getItemAt(1),
+         streamFb10 = itf1.getFunctionBlocks().getItemAt(0);
+
+    int streamId00 = streamFb00.getPropertyValue("StreamId"),
+        streamId01 = streamFb01.getPropertyValue("StreamId"),
+        streamId10 = streamFb10.getPropertyValue("StreamId");
+
+    EXPECT_NE(streamId00, streamId01);
+    streamFb00.setPropertyValue("StreamId", streamId01);
+    streamId00 = streamFb00.getPropertyValue("StreamId");
+    EXPECT_NE(streamId00, streamId01);
+
+    streamFb10.setPropertyValue("StreamId", streamId00);
+    streamId10 = streamFb10.getPropertyValue("StreamId");
+    EXPECT_EQ(streamId00, streamId10);
 }
