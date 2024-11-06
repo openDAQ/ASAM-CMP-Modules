@@ -34,7 +34,6 @@ void DataSinkFb::addCaptureModuleFromStatus(int index)
     const auto newFb = createWithImplementation<IFunctionBlock, CaptureFb>(
         context, functionBlocks, fbId, dataPacketsPublisher, capturePacketsPublisher, std::move(deviceStatus));
     functionBlocks.addItem(newFb);
-    capturePacketsPublisher.subscribe(newFb.getPropertyValue("DeviceId"), newFb.as<IAsamCmpPacketsSubscriber>(true));
     ++captureModuleId;
 }
 
