@@ -81,11 +81,14 @@ TEST_F(DataSinkFbTest, FunctionBlockType)
     ASSERT_EQ(type.getDescription(), "ASAM CMP Data Sink");
 }
 
-TEST_F(DataSinkFbTest, AddCaptureModuleFromStatus)
+TEST_F(DataSinkFbTest, AddCaptureModuleFromStatusReadOnly)
 {
     auto proc = daq::Procedure([]() {});
     EXPECT_THROW(funcBlock.setPropertyValue("AddCaptureModuleFromStatus", proc), daq::AccessDeniedException);
+}
 
+TEST_F(DataSinkFbTest, AddCaptureModuleFromStatus)
+{
     statusHandler->processStatusPacket(cmPacket);
     statusHandler->processStatusPacket(ifPacket);
 
@@ -158,11 +161,27 @@ TEST_F(DataSinkFbTest, AddCaptureModuleFromStatus)
     ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1);
 }
 
-TEST_F(DataSinkFbTest, AddCaptureModuleEmpty)
+TEST_F(DataSinkFbTest, RemoveCaptureFromStatus)
+{
+    static const uint16_t deviceId = 1;
+    cmPacket->setDeviceId(deviceId);
+    statusHandler->processStatusPacket(cmPacket);
+
+    funcBlock.getPropertyValue("AddCaptureModuleFromStatus").execute(0);
+    capturePacketPublisher.publish(deviceId, cmPacket);
+
+    funcBlock.getPropertyValue("RemoveCaptureModule").execute(0);
+    ASSERT_NO_THROW(capturePacketPublisher.publish(deviceId, cmPacket));
+}
+
+TEST_F(DataSinkFbTest, AddCaptureModuleEmptyReadOnly)
 {
     auto proc = daq::Procedure([]() {});
     EXPECT_THROW(funcBlock.setPropertyValue("AddCaptureModuleEmpty", proc), daq::AccessDeniedException);
+}
 
+TEST_F(DataSinkFbTest, AddCaptureModuleEmpty)
+{
     ProcedurePtr func = funcBlock.getPropertyValue("AddCaptureModuleEmpty");
     func();
     func();
@@ -187,11 +206,14 @@ TEST_F(DataSinkFbTest, UpdateDeviceInfo)
     ASSERT_EQ(propVal.toStdString(), vendorDataAsString);
 }
 
-TEST_F(DataSinkFbTest, RemoveCaptureModule)
+TEST_F(DataSinkFbTest, RemoveCaptureModuleReadOnly)
 {
     auto proc = daq::Procedure([]() {});
     EXPECT_THROW(funcBlock.setPropertyValue("RemoveCaptureModule", proc), daq::AccessDeniedException);
+}
 
+TEST_F(DataSinkFbTest, RemoveCaptureModule)
+{
     ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 0);
     ProcedurePtr addFunc = funcBlock.getPropertyValue("AddCaptureModuleEmpty");
     addFunc();
