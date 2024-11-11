@@ -38,6 +38,7 @@ StreamFb::StreamFb(const ContextPtr& ctx,
     , allowJumboFrames(internalInit.allowJumboFrames)
     , encoders(internalInit.encoderBank)
     , parentInterfaceUpdater(internalInit.parentInterfaceUpdater)
+    , isConfigured(false)
 {
     createInputPort();
     initStatuses();
@@ -277,6 +278,7 @@ void StreamFb::processSignalDescriptorChanged(DataDescriptorPtr inputDataDescrip
 
 void StreamFb::configure()
 {
+    isConfigured = false;
     if (!inputDataDescriptor.assigned() || !inputDomainDataDescriptor.assigned())
     {
         setInputStatus(InputInvalid.data());
@@ -293,6 +295,7 @@ void StreamFb::configure()
             onAnalogSignalConnected();
 
         setInputStatus(InputConnected.data());
+        isConfigured = true;
     }
     catch (const std::exception& e)
     {
@@ -413,7 +416,12 @@ void createAnalogPayloadWithInternalScaling(ASAM::CMP::AnalogPayload& payload,
     auto* rawData = reinterpret_cast<SourceType*>(packet.getRawData());
     const size_t sampleCount = packet.getSampleCount();
 
-    uint8_t unitId = asam_cmp_common_lib::Units::getIdBySymbol(packet.getDataDescriptor().getUnit().getSymbol().toStdString());
+    uint8_t unitId = 0;
+    auto unit = packet.getDataDescriptor().getUnit();
+    if (unit.assigned())
+    {
+        unitId = asam_cmp_common_lib::Units::getIdBySymbol(packet.getDataDescriptor().getUnit().getSymbol().toStdString());
+    }
     payload.setUnit(ASAM::CMP::AnalogPayload::Unit(unitId));
     payload.setSampleDt(ASAM::CMP::AnalogPayload::SampleDt::aInt32);
     payload.setSampleScalar(analogDataScale);
@@ -444,7 +452,12 @@ void createAnalogPayload(ASAM::CMP::AnalogPayload& payload,
                                                                                  : inputDataDescriptor.getSampleType();
     const size_t sampleSize = inputSampleType == SampleType::Int16 ? 2 : 4;
 
-    uint8_t unitId = asam_cmp_common_lib::Units::getIdBySymbol(packet.getDataDescriptor().getUnit().getSymbol().toStdString());
+    uint8_t unitId = 0;
+    auto unit = packet.getDataDescriptor().getUnit();
+    if (unit.assigned())
+    {
+        unitId = asam_cmp_common_lib::Units::getIdBySymbol(packet.getDataDescriptor().getUnit().getSymbol().toStdString());
+    }
     payload.setUnit(ASAM::CMP::AnalogPayload::Unit(unitId));
     payload.setSampleDt(analogDataSampleDt == 16 ? ASAM::CMP::AnalogPayload::SampleDt::aInt16 : ASAM::CMP::AnalogPayload::SampleDt::aInt32);
     payload.setSampleScalar(analogDataScale);
@@ -484,6 +497,10 @@ void StreamFb::processAnalogPacket(const DataPacketPtr& packet)
 
 void StreamFb::processDataPacket(const DataPacketPtr& packet)
 {
+    if (!isConfigured)
+    {
+        return;
+    }
     switch (payloadType.getType())
     {
         case ASAM::CMP::PayloadType::can:
