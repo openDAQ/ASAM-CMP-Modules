@@ -93,6 +93,7 @@ private:
     DataDescriptorPtr inputDataDescriptor;
     DataDescriptorPtr inputDomainDataDescriptor;
     SampleType inputSampleType;
+    bool isConfigured;
 
     std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf> ethernetWrapper;
     const bool allowJumboFrames;
