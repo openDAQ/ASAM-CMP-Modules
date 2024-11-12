@@ -40,7 +40,7 @@ void InterfaceCommonFb::initProperties()
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 
     propName = "PayloadType";
-    ListPtr<StringPtr> payloadTypes{"UNDEFINED", "CAN", "CAN_FD", "ANALOG"};
+    ListPtr<StringPtr> payloadTypes{"Undefined", "CAN", "CAN FD", "Analog"};
     prop = SelectionPropertyBuilder(propName, payloadTypes, 0).build();
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) +=
