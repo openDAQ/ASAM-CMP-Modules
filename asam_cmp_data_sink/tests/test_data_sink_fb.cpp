@@ -76,7 +76,7 @@ TEST_F(DataSinkFbTest, NotNull)
 TEST_F(DataSinkFbTest, FunctionBlockType)
 {
     auto type = funcBlock.getFunctionBlockType();
-    ASSERT_EQ(type.getId(), "asam_cmp_data_sink");
+    ASSERT_EQ(type.getId(), "AsamCmpDataSink");
     ASSERT_EQ(type.getName(), "AsamCmpDataSink");
     ASSERT_EQ(type.getDescription(), "ASAM CMP Data Sink");
 }

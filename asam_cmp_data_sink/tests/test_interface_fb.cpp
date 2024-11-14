@@ -40,7 +40,7 @@ TEST_F(InterfaceFbTest, NotNull)
 TEST_F(InterfaceFbTest, FunctionBlockType)
 {
     auto type = interfaceFb.getFunctionBlockType();
-    ASSERT_EQ(type.getId(), "asam_cmp_interface");
+    ASSERT_EQ(type.getId(), "AsamCmpInterface");
     ASSERT_EQ(type.getName(), "AsamCmpInterface");
     ASSERT_EQ(type.getDescription(), "ASAM CMP Interface");
 }

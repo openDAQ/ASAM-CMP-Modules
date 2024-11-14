@@ -83,7 +83,7 @@ CaptureCommonFbImpl<Interfaces...>::CaptureCommonFbImpl(const ContextPtr& ctx, c
 template <typename... Interfaces>
 FunctionBlockTypePtr CaptureCommonFbImpl<Interfaces...>::CreateType()
 {
-    return FunctionBlockType("asam_cmp_capture", "AsamCmpCapture", "ASAM CMP Capture");
+    return FunctionBlockType("AsamCmpCapture", "AsamCmpCapture", "ASAM CMP Capture");
 }
 
 template <typename... Interfaces>
@@ -151,8 +151,10 @@ FunctionBlockPtr CaptureCommonFbImpl<Interfaces...>::addInterfaceWithParams(uint
         throw std::runtime_error("Adding interfaces is disabled during update");
     InterfaceCommonInit init{interfaceId, &interfaceIdManager};
 
-    StringPtr fbId = fmt::format("asam_cmp_interface_{}", createdInterfaces++);
+    StringPtr fbName = fmt::format("Interface {}", createdInterfaces);
+    StringPtr fbId = fmt::format("Interface_{}", createdInterfaces++);
     auto newFb = createWithImplementation<IFunctionBlock, Impl>(this->context, this->functionBlocks, fbId, init, std::forward<Params>(params)...);
+    newFb.setName(fbName);
     this->functionBlocks.addItem(newFb);
     interfaceIdManager.addId(interfaceId);
 

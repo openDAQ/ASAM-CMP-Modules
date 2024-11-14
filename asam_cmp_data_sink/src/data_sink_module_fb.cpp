@@ -48,17 +48,17 @@ void DataSinkModuleFb::networkAdapterChangedInternal()
 
 FunctionBlockTypePtr DataSinkModuleFb::CreateType()
 {
-    return FunctionBlockType("asam_cmp_data_sink_module", "AsamCmpDataSinkModule", "ASAM CMP Data Sink Module");
+    return FunctionBlockType("AsamCmpDataSinkModule", "AsamCmpDataSinkModule", "ASAM CMP Data Sink Module");
 }
 
 void DataSinkModuleFb::createFbs()
 {
-    const StringPtr statusId = "asam_cmp_status";
+    const StringPtr statusId = "Status";
     auto newFb = createWithImplementation<IFunctionBlock, StatusFbImpl>(context, functionBlocks, statusId);
     functionBlocks.addItem(newFb);
     auto statusMt = functionBlocks.getItems()[0].asPtr<IStatusHandler>(true)->getStatusMt();
 
-    const StringPtr dataSinkId = "asam_cmp_data_sink";
+    const StringPtr dataSinkId = "DataSink";
     newFb = createWithImplementation<IFunctionBlock, DataSinkFb>(
         context, functionBlocks, dataSinkId, statusMt, dataPacketsPublisher, capturePacketsPublisher);
     functionBlocks.addItem(newFb);

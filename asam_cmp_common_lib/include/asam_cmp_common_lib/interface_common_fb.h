@@ -90,8 +90,10 @@ FunctionBlockPtr InterfaceCommonFb::addStreamWithParams(uint8_t streamId, Params
 
     StreamCommonInit init{streamId, payloadType, &streamIdManager};
 
-    StringPtr fbId = fmt::format("asam_cmp_stream_{}", createdStreams++);
+    StringPtr fbName = fmt::format("Stream {}", createdStreams);
+    StringPtr fbId = fmt::format("Stream_{}", createdStreams++);
     auto newFb = createWithImplementation<IFunctionBlock, Impl>(context, functionBlocks, fbId, init, std::forward<Params>(params)...);
+    newFb.setName(fbName);
     functionBlocks.addItem(newFb);
     streamIdManager.addId(streamId);
 

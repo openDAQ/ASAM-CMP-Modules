@@ -59,7 +59,7 @@ TEST_F(StatusFbTest, NotNull)
 TEST_F(StatusFbTest, FunctionBlockType)
 {
     auto type = funcBlock.getFunctionBlockType();
-    ASSERT_EQ(type.getId(), "asam_cmp_status");
+    ASSERT_EQ(type.getId(), "AsamCmpStatus");
     ASSERT_EQ(type.getName(), "AsamCmpStatus");
     ASSERT_EQ(type.getDescription(), "ASAM CMP Status");
 }

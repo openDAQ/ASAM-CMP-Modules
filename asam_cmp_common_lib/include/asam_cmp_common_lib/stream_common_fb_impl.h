@@ -80,7 +80,7 @@ StreamCommonFbImpl<Interfaces...>::StreamCommonFbImpl(const ContextPtr& ctx,
 template <typename... Interfaces>
 FunctionBlockTypePtr StreamCommonFbImpl<Interfaces...>::CreateType()
 {
-    return FunctionBlockType("asam_cmp_stream", "AsamCmpStream", "ASAM CMP Stream");
+    return FunctionBlockType("AsamCmpStream", "AsamCmpStream", "ASAM CMP Stream");
 }
 
 template <typename... Interfaces>

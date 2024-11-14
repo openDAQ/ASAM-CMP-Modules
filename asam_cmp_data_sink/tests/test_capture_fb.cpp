@@ -34,7 +34,7 @@ TEST_F(CaptureFbTest, CreateCaptureModule)
 TEST_F(CaptureFbTest, FunctionBlockType)
 {
     auto type = captureFb.getFunctionBlockType();
-    ASSERT_EQ(type.getId(), "asam_cmp_capture");
+    ASSERT_EQ(type.getId(), "AsamCmpCapture");
     ASSERT_EQ(type.getName(), "AsamCmpCapture");
     ASSERT_EQ(type.getDescription(), "ASAM CMP Capture");
 }
