@@ -413,7 +413,7 @@ void createAnalogPayloadWithInternalScaling(ASAM::CMP::AnalogPayload& payload,
     payload.setSampleInterval(analogDataDeltaTime);
 
     using SourceType = typename SampleTypeToType<SrcType>::Type;
-    auto* rawData = reinterpret_cast<SourceType*>(packet.getRawData());
+    auto* rawData = reinterpret_cast<SourceType*>(packet.getData());
     const size_t sampleCount = packet.getSampleCount();
 
     uint8_t unitId = 0;
