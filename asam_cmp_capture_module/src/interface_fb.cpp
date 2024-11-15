@@ -68,6 +68,11 @@ void InterfaceFb::updateInterfaceIdInternal()
 
     Int newId = objPtr.getPropertyValue("InterfaceId");
 
+    if (oldId == newId)
+    {
+        return;
+    }
+
     if (interfaceIdManager->isValidId(newId))
     {
         asam_cmp_common_lib::InterfaceCommonFb::updateInterfaceIdInternal();
@@ -76,6 +81,7 @@ void InterfaceFb::updateInterfaceIdInternal()
     {
         setPropertyValueInternal(
             String("InterfaceId").asPtr<IString>(true), BaseObjectPtr(interfaceId).asPtr<IBaseObject>(true), false, false, false);
+        throw daq::InvalidPropertyException("Interface Id should be unique");
     }
 
     if (oldId != interfaceId)

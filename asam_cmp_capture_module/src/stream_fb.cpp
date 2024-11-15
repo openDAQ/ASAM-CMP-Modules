@@ -83,6 +83,11 @@ void StreamFb::updateStreamIdInternal()
 
     uint8_t newId = static_cast<Int>(objPtr.getPropertyValue("StreamId"));
 
+    if (oldId == newId)
+    {
+        return;
+    }
+
     if (streamIdManager->isValidId(newId))
     {
         StreamCommonFbImpl::updateStreamIdInternal();
@@ -91,6 +96,7 @@ void StreamFb::updateStreamIdInternal()
     {
         setPropertyValueInternal(
             String("StreamId").asPtr<IString>(true), BaseObjectPtr(static_cast<Int>(streamId)).asPtr<IBaseObject>(true), false, false, false);
+        throw daq::InvalidPropertyException("Stream Id should be unique");
     }
 
     if (oldId != streamId)
