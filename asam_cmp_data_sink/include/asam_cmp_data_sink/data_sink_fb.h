@@ -45,6 +45,7 @@ private:
     void removeCaptureModule(int fbIndex);
 
     [[nodiscard]] static StringPtr getFbId(size_t id);
+    [[nodiscard]] static StringPtr getFbName(size_t id);
 
 private:
     size_t captureModuleId{0};

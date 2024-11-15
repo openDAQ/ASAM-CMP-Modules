@@ -13,7 +13,7 @@ StatusFbImpl::StatusFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, co
 
 FunctionBlockTypePtr StatusFbImpl::CreateType()
 {
-    return FunctionBlockType("asam_cmp_status", "AsamCmpStatus", "ASAM CMP Status");
+    return FunctionBlockType("AsamCmpStatus", "AsamCmpStatus", "ASAM CMP Status");
 }
 
 void StatusFbImpl::processStatusPacket(const std::shared_ptr<ASAM::CMP::Packet>& packet)

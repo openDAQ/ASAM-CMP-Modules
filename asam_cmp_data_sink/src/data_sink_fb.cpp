@@ -22,7 +22,7 @@ DataSinkFb::DataSinkFb(const ContextPtr& ctx,
 
 FunctionBlockTypePtr DataSinkFb::CreateType()
 {
-    return FunctionBlockType("asam_cmp_data_sink", "AsamCmpDataSink", "ASAM CMP Data Sink");
+    return FunctionBlockType("AsamCmpDataSink", "AsamCmpDataSink", "ASAM CMP Data Sink");
 }
 
 void DataSinkFb::addCaptureModuleFromStatus(int index)
@@ -72,7 +72,12 @@ void DataSinkFb::removeCaptureModule(int fbIndex)
 
 StringPtr DataSinkFb::getFbId(size_t id)
 {
-    return fmt::format("asam_cmp_capture_{}", id);
+    return fmt::format("Capture_{}", id);
+}
+
+StringPtr DataSinkFb::getFbName(size_t id)
+{
+    return fmt::format("Capture {}", id);
 }
 
 void DataSinkFb::initProperties()
