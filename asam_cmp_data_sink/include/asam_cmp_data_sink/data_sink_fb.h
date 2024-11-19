@@ -38,6 +38,9 @@ public:
 
     static FunctionBlockTypePtr CreateType();
 
+    DictPtr<IString, IFunctionBlockType> onGetAvailableFunctionBlockTypes() override;
+    FunctionBlockPtr onAddFunctionBlock(const StringPtr& typeId, const PropertyObjectPtr& config) override;
+
 private:
     void initProperties();
     void addCaptureModuleFromStatus(int index);

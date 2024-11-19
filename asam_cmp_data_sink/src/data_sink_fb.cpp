@@ -33,7 +33,7 @@ void DataSinkFb::addCaptureModuleFromStatus(int index)
     const StringPtr fbId = getFbId(captureModuleId);
     const auto newFb = createWithImplementation<IFunctionBlock, CaptureFb>(
         context, functionBlocks, fbId, dataPacketsPublisher, capturePacketsPublisher, std::move(deviceStatus));
-    functionBlocks.addItem(newFb);
+    this->addNestedFunctionBlock(newFb);
     ++captureModuleId;
 }
 
@@ -44,7 +44,7 @@ void DataSinkFb::addCaptureModuleEmpty()
     const StringPtr fbId = getFbId(captureModuleId);
     const auto newFb =
         createWithImplementation<IFunctionBlock, CaptureFb>(context, functionBlocks, fbId, dataPacketsPublisher, capturePacketsPublisher);
-    functionBlocks.addItem(newFb);
+    this->addNestedFunctionBlock(newFb);
     capturePacketsPublisher.subscribe(newFb.getPropertyValue("DeviceId"), newFb.as<IAsamCmpPacketsSubscriber>(true));
     ++captureModuleId;
 }
@@ -98,6 +98,24 @@ void DataSinkFb::initProperties()
     objPtr.addProperty(FunctionPropertyBuilder(propName, ProcedureInfo(arguments)).setReadOnly(true).build());
     proc = Procedure([this](IntPtr nItem) { removeCaptureModule(nItem); });
     objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue(propName, proc);
+}
+
+DictPtr<IString, IFunctionBlockType> DataSinkFb::onGetAvailableFunctionBlockTypes()
+{
+    auto type = CaptureFb::CreateType();
+    return Dict<IString, IFunctionBlockType>({{type.getId(), type}});
+}
+
+FunctionBlockPtr DataSinkFb::onAddFunctionBlock(const StringPtr& typeId, const PropertyObjectPtr& config)
+{
+    if (typeId == CaptureFb::CreateType().getId())
+    {
+        addCaptureModuleEmpty();
+        auto captureFb = this->functionBlocks.getItems().getItemAt(this->functionBlocks.getItems().getCount() - 1);
+        return captureFb;
+    }
+
+    throw NotFoundException("Function block not found");
 }
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
