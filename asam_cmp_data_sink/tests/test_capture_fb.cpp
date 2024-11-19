@@ -39,6 +39,20 @@ TEST_F(CaptureFbTest, FunctionBlockType)
     ASSERT_EQ(type.getDescription(), "ASAM CMP Capture");
 }
 
+TEST_F(CaptureFbTest, AvailableFunctionBlockTypes)
+{
+    auto availableTypes = captureFb.getAvailableFunctionBlockTypes();
+    ASSERT_EQ(availableTypes.getCount(), 1);
+    ASSERT_TRUE(availableTypes.hasKey("AsamCmpInterface"));
+    ASSERT_EQ(availableTypes.get("AsamCmpInterface"), asam_cmp_common_lib::InterfaceCommonFb::CreateType());
+}
+
+TEST_F(CaptureFbTest, OnAddFunctionBlocks)
+{
+    EXPECT_NO_THROW(captureFb.addFunctionBlock("AsamCmpInterface"));
+    EXPECT_THROW(captureFb.addFunctionBlock("AsamCmpStream"), daq::NotFoundException);
+}
+
 TEST_F(CaptureFbTest, CaptureModuleProperties)
 {
     ASSERT_TRUE(captureFb.hasProperty("DeviceId"));

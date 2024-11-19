@@ -1,4 +1,5 @@
 #include <asam_cmp_data_sink/capture_fb.h>
+#include <asam_cmp_data_sink/stream_fb.h>
 #include <asam_cmp_data_sink/common.h>
 
 #include <gtest/gtest.h>
@@ -43,6 +44,20 @@ TEST_F(InterfaceFbTest, FunctionBlockType)
     ASSERT_EQ(type.getId(), "AsamCmpInterface");
     ASSERT_EQ(type.getName(), "AsamCmpInterface");
     ASSERT_EQ(type.getDescription(), "ASAM CMP Interface");
+}
+
+TEST_F(InterfaceFbTest, AvailableFunctionBlockTypes)
+{
+    auto availableTypes = interfaceFb.getAvailableFunctionBlockTypes();
+    ASSERT_EQ(availableTypes.getCount(), 1);
+    ASSERT_TRUE(availableTypes.hasKey("AsamCmpStream"));
+    ASSERT_EQ(availableTypes.get("AsamCmpStream"), modules::asam_cmp_data_sink_module::StreamFb::CreateType());
+}
+
+TEST_F(InterfaceFbTest, OnAddFunctionBlocks)
+{
+    EXPECT_NO_THROW(interfaceFb.addFunctionBlock("AsamCmpStream"));
+    EXPECT_THROW(interfaceFb.addFunctionBlock("AsamCmpCapture"), daq::NotFoundException);
 }
 
 TEST_F(InterfaceFbTest, CaptureModuleProperties)
