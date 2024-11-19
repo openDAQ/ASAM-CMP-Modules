@@ -34,6 +34,9 @@ public:
 
     static FunctionBlockTypePtr CreateType();
 
+    DictPtr<IString, IFunctionBlockType> onGetAvailableFunctionBlockTypes() override;
+    FunctionBlockPtr onAddFunctionBlock(const StringPtr& typeId, const PropertyObjectPtr& config) override;
+
 protected:
     void initDeviceInfoProperties(bool readOnly);
     template <class Impl, typename... Params>
@@ -155,9 +158,8 @@ FunctionBlockPtr CaptureCommonFbImpl<Interfaces...>::addInterfaceWithParams(uint
     StringPtr fbId = fmt::format("Interface_{}", createdInterfaces++);
     auto newFb = createWithImplementation<IFunctionBlock, Impl>(this->context, this->functionBlocks, fbId, init, std::forward<Params>(params)...);
     newFb.setName(fbName);
-    this->functionBlocks.addItem(newFb);
     interfaceIdManager.addId(interfaceId);
-
+    this->addNestedFunctionBlock(newFb);
     return newFb;
 }
 
@@ -246,6 +248,26 @@ void CaptureCommonFbImpl<Interfaces...>::propertyChangedIfNotUpdating()
     }
     else
         needsPropertyChanged = true;
+}
+
+template <typename... Interfaces>
+DictPtr<IString, IFunctionBlockType> CaptureCommonFbImpl<Interfaces...>::onGetAvailableFunctionBlockTypes()
+{
+    auto type = InterfaceCommonFb::CreateType();
+    return Dict<IString, IFunctionBlockType>({{type.getId(), type}});
+}
+
+template <typename... Interfaces>
+FunctionBlockPtr CaptureCommonFbImpl<Interfaces...>::onAddFunctionBlock(const StringPtr& typeId, const PropertyObjectPtr& config)
+{
+    if (typeId == InterfaceCommonFb::CreateType().getId())
+    {
+        addInterface();
+        auto interfaceFb = this->functionBlocks.getItems().getItemAt(this->functionBlocks.getItems().getCount() - 1);
+        return interfaceFb;
+    }
+
+    throw NotFoundException("Function block not found");
 }
 
 END_NAMESPACE_ASAM_CMP_COMMON

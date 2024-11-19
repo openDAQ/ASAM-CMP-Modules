@@ -151,4 +151,23 @@ void InterfaceCommonFb::propertyChangedIfNotUpdating()
         needsPropertyChanged = true;
 }
 
+
+DictPtr<IString, IFunctionBlockType> InterfaceCommonFb::onGetAvailableFunctionBlockTypes()
+{
+    auto type = StreamCommonFb::CreateType();
+    return Dict<IString, IFunctionBlockType>({{type.getId(), type}});
+}
+
+FunctionBlockPtr InterfaceCommonFb::onAddFunctionBlock(const StringPtr& typeId, const PropertyObjectPtr& config)
+{
+    if (typeId == StreamCommonFb::CreateType().getId())
+    {
+        addStream();
+        auto streamFb = this->functionBlocks.getItems().getItemAt(this->functionBlocks.getItems().getCount() - 1);
+        return streamFb;
+    }
+
+    throw NotFoundException("Function block not found");
+}
+
 END_NAMESPACE_ASAM_CMP_COMMON

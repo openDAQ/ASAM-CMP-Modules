@@ -44,6 +44,8 @@ public:
     ~InterfaceCommonFb() override = default;
     static FunctionBlockTypePtr CreateType();
 
+    DictPtr<IString, IFunctionBlockType> onGetAvailableFunctionBlockTypes() override;
+    FunctionBlockPtr onAddFunctionBlock(const StringPtr& typeId, const PropertyObjectPtr& config) override;
 protected:
     template <class Impl, typename... Params>
     FunctionBlockPtr addStreamWithParams(uint8_t streamId, Params&&... params);
@@ -94,9 +96,8 @@ FunctionBlockPtr InterfaceCommonFb::addStreamWithParams(uint8_t streamId, Params
     StringPtr fbId = fmt::format("Stream_{}", createdStreams++);
     auto newFb = createWithImplementation<IFunctionBlock, Impl>(context, functionBlocks, fbId, init, std::forward<Params>(params)...);
     newFb.setName(fbName);
-    functionBlocks.addItem(newFb);
     streamIdManager.addId(streamId);
-
+    this->addNestedFunctionBlock(newFb);
     return newFb;
 }
 

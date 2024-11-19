@@ -18,8 +18,8 @@ DictPtr<IString, IFunctionBlockType> CaptureModule::onGetAvailableFunctionBlockT
 {
     auto types = Dict<IString, IFunctionBlockType>();
 
-    auto typeStatistics = CaptureModuleFb::CreateType();
-    types.set(typeStatistics.getId(), typeStatistics);
+    auto typeCaptureModule = CaptureModuleFb::CreateType();
+    types.set(typeCaptureModule.getId(), typeCaptureModule);
 
     return types;
 }
