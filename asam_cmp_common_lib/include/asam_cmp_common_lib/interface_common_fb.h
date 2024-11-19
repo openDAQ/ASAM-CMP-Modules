@@ -46,6 +46,7 @@ public:
 
     DictPtr<IString, IFunctionBlockType> onGetAvailableFunctionBlockTypes() override;
     FunctionBlockPtr onAddFunctionBlock(const StringPtr& typeId, const PropertyObjectPtr& config) override;
+
 protected:
     template <class Impl, typename... Params>
     FunctionBlockPtr addStreamWithParams(uint8_t streamId, Params&&... params);
@@ -54,11 +55,14 @@ protected:
     virtual void addStreamInternal() = 0;
     virtual void removeStreamInternal(size_t nInd);
 
-    
     daq::ErrCode INTERFACE_FUNC beginUpdate() override;
     void endApplyProperties(const UpdatingActions& propsAndValues, bool parentUpdating) override;
     virtual void propertyChanged();
     void propertyChangedIfNotUpdating();
+
+    [[nodiscard]] uint32_t indexToPayloadType(Int index) const;
+    [[nodiscard]] Int payloadTypeToIndex(PayloadType type) const;
+    [[nodiscard]] size_t maxPayloadIndex() const;
 
 private:
     void initProperties();
@@ -73,12 +77,6 @@ protected:
 
     std::atomic_bool isUpdating;
     std::atomic_bool needsPropertyChanged;
-
-    // temporary solution once not full list of types is immplemented (or not in case values missmatch due to reserved values)
-    inline static std::map<int, int> payloadTypeToAsamPayloadType = {
-        {0, PayloadType::invalid}, {1, PayloadType::can}, {2, PayloadType::canFd}, {3, PayloadType::analog}};
-    inline static std::map<int, int> asamPayloadTypeToPayloadType = {
-        {PayloadType::invalid, 0}, {PayloadType::can, 1}, {PayloadType::canFd, 2}, {PayloadType::analog, 3}};
 
 private:
     size_t createdStreams;

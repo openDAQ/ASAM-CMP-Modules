@@ -8,6 +8,8 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_COMMON
 
+using ASAM::CMP::PayloadType;
+
 InterfaceCommonFb::InterfaceCommonFb(const ContextPtr& ctx,
                                      const ComponentPtr& parent,
                                      const StringPtr& localId,
@@ -85,17 +87,17 @@ void InterfaceCommonFb::updatePayloadTypeInternal()
 {
     Int newType = objPtr.getPropertyValue("PayloadType");
 
-    if (newType < 0 || static_cast<size_t>(newType) > payloadTypeToAsamPayloadType.size())
+    if (newType < 0 || static_cast<size_t>(newType) > maxPayloadIndex())
     {
         setPropertyValueInternal(String("PayloadType").asPtr<IString>(true),
-                                 BaseObjectPtr(asamPayloadTypeToPayloadType.at(payloadType.getType())).asPtr<IBaseObject>(true),
+                                 BaseObjectPtr(payloadTypeToIndex(payloadType.getType())).asPtr<IBaseObject>(true),
                                  false,
                                  false,
                                  false);
     }
     else
     {
-        payloadType.setType(payloadTypeToAsamPayloadType.at(newType));
+        payloadType.setType(indexToPayloadType(newType));
         for (const auto& fb : functionBlocks.getItems())
         {
             fb.as<IStreamCommon>(true)->setPayloadType(payloadType);
@@ -151,7 +153,6 @@ void InterfaceCommonFb::propertyChangedIfNotUpdating()
         needsPropertyChanged = true;
 }
 
-
 DictPtr<IString, IFunctionBlockType> InterfaceCommonFb::onGetAvailableFunctionBlockTypes()
 {
     auto type = StreamCommonFb::CreateType();
@@ -168,6 +169,43 @@ FunctionBlockPtr InterfaceCommonFb::onAddFunctionBlock(const StringPtr& typeId, 
     }
 
     throw NotFoundException("Function block not found");
+}
+
+const static std::unordered_map<uint32_t, Int> payloadTypeToIndexMap = {
+    {PayloadType::invalid, 0}, {PayloadType::can, 1}, {PayloadType::canFd, 2}, {PayloadType::analog, 3}};
+
+const std::vector<uint32_t> indexToPayloadTypeMap = []() {
+    std::vector<uint32_t> vec;
+    vec.resize(payloadTypeToIndexMap.size());
+    for (const auto& [key, value] : payloadTypeToIndexMap)
+    {
+        vec[value] = key;
+    }
+    return vec;
+}();
+
+uint32_t InterfaceCommonFb::indexToPayloadType(Int index) const
+{
+    if (static_cast<size_t>(index) < indexToPayloadTypeMap.size())
+    {
+        return indexToPayloadTypeMap[index];
+    }
+    return PayloadType::invalid;
+}
+
+Int InterfaceCommonFb::payloadTypeToIndex(PayloadType type) const
+{
+    auto it = payloadTypeToIndexMap.find(type.getType());
+    if (it != payloadTypeToIndexMap.end())
+    {
+        return it->second;
+    }
+    return 0;
+}
+
+size_t InterfaceCommonFb::maxPayloadIndex() const
+{
+    return payloadTypeToIndexMap.size() - 1;
 }
 
 END_NAMESPACE_ASAM_CMP_COMMON
