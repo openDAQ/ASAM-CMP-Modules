@@ -1,6 +1,7 @@
 #include <asam_cmp_data_sink/data_sink_fb.h>
 #include <asam_cmp_data_sink/status_fb_impl.h>
 #include <asam_cmp_data_sink/status_handler.h>
+#include <asam_cmp_data_sink/capture_fb.h>
 
 #include <asam_cmp/capture_module_payload.h>
 #include <asam_cmp/interface_payload.h>
@@ -79,6 +80,20 @@ TEST_F(DataSinkFbTest, FunctionBlockType)
     ASSERT_EQ(type.getId(), "AsamCmpDataSink");
     ASSERT_EQ(type.getName(), "AsamCmpDataSink");
     ASSERT_EQ(type.getDescription(), "ASAM CMP Data Sink");
+}
+
+TEST_F(DataSinkFbTest, AvailableFunctionBlockTypes)
+{
+    auto availableTypes = funcBlock.getAvailableFunctionBlockTypes();
+    ASSERT_EQ(availableTypes.getCount(), 1);
+    ASSERT_TRUE(availableTypes.hasKey("AsamCmpCapture"));
+    ASSERT_EQ(availableTypes.get("AsamCmpCapture"), CaptureFb::CreateType());
+}
+
+TEST_F(DataSinkFbTest, OnAddFunctionBlocks)
+{
+    EXPECT_NO_THROW(funcBlock.addFunctionBlock("AsamCmpCapture"));
+    EXPECT_THROW(funcBlock.addFunctionBlock("AsamCmpStream"), daq::NotFoundException);
 }
 
 TEST_F(DataSinkFbTest, AddCaptureModuleFromStatusReadOnly)
