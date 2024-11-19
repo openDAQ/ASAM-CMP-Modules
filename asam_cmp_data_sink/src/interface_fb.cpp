@@ -69,7 +69,7 @@ void InterfaceFb::createFbs()
     payloadType.setMessageType(ASAM::CMP::CmpHeader::MessageType::data);
     payloadType.setRawPayloadType(ifPayload.getInterfaceType());
     if (payloadType.isValid())
-        objPtr.setPropertyValue("PayloadType", asamPayloadTypeToPayloadType.at(payloadType.getType()));
+        objPtr.setPropertyValue("PayloadType", payloadTypeToIndex(payloadType.getType()));
     auto streamIds = ifPayload.getStreamIds();
     for (uint16_t i = 0; i < ifPayload.getStreamIdsCount(); ++i)
     {
