@@ -57,7 +57,7 @@ protected:
 
     void onPacketSendCb(const std::vector<uint8_t>& data)
     {
-        std::scoped_lock lock(packedReceivedSync);
+        std::scoped_lock lock{packedReceivedSync};
         std::cout << "onPacketSend detected\n";
         for (const auto& e : decoder.decode(data.data(), data.size()))
             receivedPackets.push(e);
@@ -153,7 +153,7 @@ void AnalogMessagesTest::testAnalogPackets(bool setScale)
     int receivedSamples = 0;
     auto checker = [&]() -> bool
     {
-        std::scoped_lock lock(packedReceivedSync);
+        std::scoped_lock lock{packedReceivedSync};
         if (receivedPackets.empty())
             return false;
 

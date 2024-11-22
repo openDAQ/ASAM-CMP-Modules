@@ -56,13 +56,13 @@ void RefCANChannelImpl::propChangedInternal()
 
 void RefCANChannelImpl::propChanged()
 {
-    std::scoped_lock lock(sync);
+    auto lock = this->getRecursiveConfigLock();
     propChangedInternal();
 }
 
 void RefCANChannelImpl::collectSamples(std::chrono::microseconds curTime, size_t samplesCount, bool allowCanFdFrames)
 {
-    std::scoped_lock lock(sync);
+    auto lock = this->getRecursiveConfigLock();
     const auto duration = static_cast<int64_t>(curTime.count() - lastCollectTime.count());
 
     if (duration > 0 && valueSignal.getActive())

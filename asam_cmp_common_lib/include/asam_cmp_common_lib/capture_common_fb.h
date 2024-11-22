@@ -166,14 +166,14 @@ FunctionBlockPtr CaptureCommonFbImpl<Interfaces...>::addInterfaceWithParams(uint
 template <typename... Interfaces>
 void CaptureCommonFbImpl<Interfaces...>::addInterface()
 {
-    std::scoped_lock lock{this->sync};
+    auto lock = this->getRecursiveConfigLock();
     addInterfaceInternal();
 }
 
 template <typename... Interfaces>
 void CaptureCommonFbImpl<Interfaces...>::removeInterface(size_t nInd)
 {
-    std::scoped_lock lock{this->sync};
+    auto lock = this->getRecursiveConfigLock();
     removeInterfaceInternal(nInd);
 }
 
@@ -217,7 +217,7 @@ daq::ErrCode CaptureCommonFbImpl<Interfaces...>::beginUpdate()
 template <typename... Interfaces>
 inline daq::ErrCode INTERFACE_FUNC CaptureCommonFbImpl<Interfaces...>::endUpdate()
 {
-    std::scoped_lock lock{this->sync};
+    auto lock = this->getRecursiveConfigLock();
     auto result = FunctionBlockImpl<IFunctionBlock, Interfaces...>::endUpdate();
 
     if (needsPropertyChanged)
@@ -243,7 +243,7 @@ void CaptureCommonFbImpl<Interfaces...>::propertyChangedIfNotUpdating()
 {
     if (!isUpdating)
     {
-        std::scoped_lock lock{this->sync};
+        auto lock = this->getRecursiveConfigLock();
         propertyChanged();
     }
     else

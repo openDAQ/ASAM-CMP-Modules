@@ -77,7 +77,8 @@ void StreamFb::createInputPort()
 
 void StreamFb::updateStreamIdInternal()
 {
-    std::scoped_lock lock(statusSync, sync);
+    auto lock = getRecursiveConfigLock();
+    std::scoped_lock statucLock{statusSync};
 
     streamIdsList.erase(streamId);
     auto oldId = streamId;
@@ -237,7 +238,7 @@ void StreamFb::onDisconnected(const InputPortPtr& inputPort)
 
 void StreamFb::onPacketReceived(const InputPortPtr& port)
 {
-    std::scoped_lock lock{sync};
+    auto lock = this->getAcquisitionLock();
 
     PacketPtr packet;
     const auto connection = inputPort.getConnection();
@@ -517,7 +518,7 @@ void StreamFb::processDataPacket(const DataPacketPtr& packet)
 
 void StreamFb::setPayloadType(ASAM::CMP::PayloadType type)
 {
-    std::scoped_lock lock(sync);
+    auto lock = this->getRecursiveConfigLock();
     asam_cmp_common_lib::StreamCommonFb::setPayloadType(type);
 
     if (payloadType != type)
