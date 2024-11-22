@@ -61,13 +61,13 @@ void InterfaceCommonFb::initProperties()
 
 void InterfaceCommonFb::addStream()
 {
-    std::scoped_lock lock{sync};
+    auto lock = this->getRecursiveConfigLock();
     addStreamInternal();
 }
 
 void InterfaceCommonFb::removeStream(size_t nInd)
 {
-    std::scoped_lock lock{sync};
+    auto lock = this->getRecursiveConfigLock();
     removeStreamInternal(nInd);
 }
 
@@ -124,7 +124,7 @@ daq::ErrCode INTERFACE_FUNC InterfaceCommonFb::beginUpdate()
 
 void InterfaceCommonFb::endApplyProperties(const UpdatingActions& propsAndValues, bool parentUpdating)
 {
-    std::scoped_lock lock{sync};
+    auto lock = this->getRecursiveConfigLock();
     FunctionBlock::endApplyProperties(propsAndValues, parentUpdating);
 
     if (needsPropertyChanged)
@@ -146,7 +146,7 @@ void InterfaceCommonFb::propertyChangedIfNotUpdating()
 {
     if (!isUpdating)
     {
-        std::scoped_lock lock{sync};
+        auto lock = this->getRecursiveConfigLock();
         propertyChanged();
     }
     else

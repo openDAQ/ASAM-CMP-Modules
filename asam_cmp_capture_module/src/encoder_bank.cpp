@@ -12,7 +12,7 @@ void EncoderBank::init(uint16_t deviceId)
 
 std::vector<std::vector<uint8_t>> EncoderBank::encode(uint8_t encoderInd, const ASAM::CMP::Packet& packet, const ASAM::CMP::DataContext& dataContext)
 {
-    std::scoped_lock lock(encoderSyncs[encoderInd]);
+    std::scoped_lock lock{encoderSyncs[encoderInd]};
     return encoders[encoderInd].encode(packet, dataContext);
 }
 

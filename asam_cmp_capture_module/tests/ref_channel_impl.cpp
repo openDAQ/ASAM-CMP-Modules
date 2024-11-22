@@ -44,7 +44,7 @@ namespace daq
 
     void InputChannelStubImpl::initDescriptors()
     {
-        std::scoped_lock lock(sync);
+        auto lock = this->getRecursiveConfigLock();
 
         isDescriptorsInitialized = true;
         buildSignalDescriptors();
@@ -131,7 +131,7 @@ namespace daq
 
     void InputChannelStubImpl::packetSizeChanged()
     {
-        std::scoped_lock lock(sync);
+        auto lock = this->getRecursiveConfigLock();
 
         packetSizeChangedInternal();
     }
@@ -144,7 +144,7 @@ namespace daq
 
     void InputChannelStubImpl::signalTypeChanged()
     {
-        std::scoped_lock lock(sync);
+        auto lock = this->getRecursiveConfigLock();
         signalTypeChangedInternal();
         buildSignalDescriptors();
         updateSamplesGenerated();
@@ -160,7 +160,7 @@ namespace daq
 
     void InputChannelStubImpl::resetCounter()
     {
-        std::scoped_lock lock(sync);
+        auto lock = this->getRecursiveConfigLock();
         counter = 0;
     }
 
@@ -173,7 +173,7 @@ namespace daq
 
     void InputChannelStubImpl::collectSamples(std::chrono::microseconds curTime)
     {
-        std::scoped_lock lock(sync);
+        auto lock = this->getAcquisitionLock();
         if (!isDescriptorsInitialized)
             return;
 
@@ -307,7 +307,7 @@ namespace daq
 
     void InputChannelStubImpl::buildDefaultDescriptors()
     {
-        std::scoped_lock lock(sync);
+        auto lock = this->getRecursiveConfigLock();
 
         isDescriptorsInitialized = false;
 
@@ -347,7 +347,7 @@ namespace daq
 
     void InputChannelStubImpl::globalSampleRateChanged(double newGlobalSampleRate)
     {
-        std::scoped_lock lock(sync);
+        auto lock = this->getRecursiveConfigLock();
 
         globalSampleRate = coerceSampleRate(newGlobalSampleRate);
         signalTypeChangedInternal();

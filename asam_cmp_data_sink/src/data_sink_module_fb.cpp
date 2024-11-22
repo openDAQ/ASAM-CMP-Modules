@@ -66,7 +66,7 @@ void DataSinkModuleFb::createFbs()
 
 void DataSinkModuleFb::startCapture()
 {
-    std::scoped_lock lock{sync};
+    auto lock = this->getRecursiveConfigLock();
 
     stopCapture();
     ethernetWrapper->startCapture([this](pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie)

@@ -60,7 +60,7 @@ protected:
 
     void onPacketSendCb(const std::vector<uint8_t>& data)
     {
-        std::scoped_lock lock(packedReceivedSync);
+        std::scoped_lock lock{packedReceivedSync};
         std::cout << "onPacketSend detected\n";
         lastReceivedPacket = *(decoder.decode(data.data(), data.size()).back().get());
     };
@@ -127,7 +127,7 @@ TEST_F(CaptureFbTest, TestCaptureStatusReceived)
 
     auto checker = [&]()
     {
-        std::scoped_lock lock(packedReceivedSync);
+        std::scoped_lock lock{packedReceivedSync};
 
         if (!lastReceivedPacket.isValid())
             return false;
@@ -309,7 +309,7 @@ TEST_F(CaptureFbTest, TestStatusPacketConsistency)
 
     bool fstPacketReceived = false, sndPacketReceived = false, otherPacketReceived = false;
     auto checker = [&]() {
-        std::scoped_lock lock(packedReceivedSync);
+        std::scoped_lock lock{packedReceivedSync};
 
         if (!lastReceivedPacket.isValid())
             return;

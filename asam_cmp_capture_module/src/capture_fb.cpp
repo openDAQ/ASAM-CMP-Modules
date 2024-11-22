@@ -49,7 +49,7 @@ void CaptureFb::propertyChanged()
 
 void CaptureFb::updateCaptureData()
 {
-    std::scoped_lock lock(statusSync);
+    std::scoped_lock lock{statusSync};
 
     captureStatusPacket.setDeviceId(deviceId);
     static_cast<ASAM::CMP::CaptureModulePayload&>(captureStatusPacket.getPayload())
@@ -77,7 +77,7 @@ void CaptureFb::initStatusPacket()
 }
 
 void CaptureFb::addInterfaceInternal(){
-    std::scoped_lock lock(statusSync);
+    std::scoped_lock lock{statusSync};
 
     auto newId = interfaceIdManager.getFirstUnusedId();
     InterfaceFbInit init{&encoders, captureStatus, statusSync, ethernetWrapper, allowJumboFrames, selectedEthernetDeviceName};
@@ -86,7 +86,7 @@ void CaptureFb::addInterfaceInternal(){
 
 void CaptureFb::removeInterfaceInternal(size_t nInd)
 {
-    std::scoped_lock lock(statusSync);
+    std::scoped_lock lock{statusSync};
 
     int id = functionBlocks.getItems().getItemAt(nInd).getPropertyValue("InterfaceId");
     captureStatus.removeInterfaceById(id);

@@ -27,7 +27,7 @@ FunctionBlockTypePtr DataSinkFb::CreateType()
 
 void DataSinkFb::addCaptureModuleFromStatus(int index)
 {
-    std::scoped_lock lock{sync};
+    auto lock = this->getRecursiveConfigLock();
 
     auto deviceStatus = status.getDeviceStatus(index);
     const StringPtr fbId = getFbId(captureModuleId);
@@ -39,7 +39,7 @@ void DataSinkFb::addCaptureModuleFromStatus(int index)
 
 void DataSinkFb::addCaptureModuleEmpty()
 {
-    std::scoped_lock lock{sync};
+    auto lock = this->getRecursiveConfigLock();
 
     const StringPtr fbId = getFbId(captureModuleId);
     const auto newFb =
@@ -51,7 +51,7 @@ void DataSinkFb::addCaptureModuleEmpty()
 
 void DataSinkFb::removeCaptureModule(int fbIndex)
 {
-    std::scoped_lock lock{sync};
+    auto lock = this->getRecursiveConfigLock();
 
     FunctionBlockPtr captureFb = functionBlocks.getItems().getItemAt(fbIndex);
     uint16_t deviceId = captureFb.getPropertyValue("DeviceId");

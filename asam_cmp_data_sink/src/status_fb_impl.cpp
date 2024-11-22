@@ -18,7 +18,8 @@ FunctionBlockTypePtr StatusFbImpl::CreateType()
 
 void StatusFbImpl::processStatusPacket(const std::shared_ptr<ASAM::CMP::Packet>& packet)
 {
-    std::scoped_lock lock(stMutex, sync);
+    auto lock = this->getRecursiveConfigLock();
+    std::scoped_lock statusLock{stMutex};
 
     status.update(*packet);
 
@@ -63,7 +64,8 @@ void StatusFbImpl::initProperties()
 
 void StatusFbImpl::clear()
 {
-    std::scoped_lock lock{stMutex, sync};
+    auto lock = this->getRecursiveConfigLock();
+    std::scoped_lock stLock{stMutex};
 
     status.clear();
     objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue("CaptureModuleList", List<IString>());

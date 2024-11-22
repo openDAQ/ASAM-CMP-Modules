@@ -30,7 +30,7 @@ InterfaceFb::InterfaceFb(const ContextPtr& ctx,
 
 void InterfaceFb::addStreamInternal()
 {
-    std::scoped_lock lock(statusSync);
+    std::scoped_lock lock{statusSync};
 
     auto newId = streamIdManager.getFirstUnusedId();
     StreamInit internalInit{streamIdsList, statusSync, interfaceId, ethernetWrapper, allowJumboFrames, encoders, [&]() {
@@ -44,7 +44,7 @@ void InterfaceFb::addStreamInternal()
 
 void InterfaceFb::removeStreamInternal(size_t nInd)
 {
-    std::scoped_lock lock(statusSync);
+    std::scoped_lock lock{statusSync};
 
     int id = functionBlocks.getItems().getItemAt(nInd).getPropertyValue("StreamId");
     streamIdsList.erase(id);
@@ -63,7 +63,7 @@ void InterfaceFb::initProperties()
 
 void InterfaceFb::updateInterfaceIdInternal()
 {
-    std::scoped_lock lock(statusSync);
+    std::scoped_lock lock{statusSync};
     auto oldId = interfaceId;
 
     Int newId = objPtr.getPropertyValue("InterfaceId");
@@ -93,7 +93,7 @@ void InterfaceFb::updateInterfaceIdInternal()
 
 void InterfaceFb::updatePayloadTypeInternal()
 {
-    std::scoped_lock lock(statusSync);
+    std::scoped_lock lock{statusSync};
 
     asam_cmp_common_lib::InterfaceCommonFb::updatePayloadTypeInternal();
     updateInterfaceData();

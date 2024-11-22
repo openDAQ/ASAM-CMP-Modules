@@ -47,7 +47,7 @@ std::vector<std::vector<uint8_t>> EncoderBank::encode(uint8_t encoderInd,
                                          ForwardIterator end,
                                          const ASAM::CMP::DataContext& dataContext)
 {
-    std::scoped_lock lock(encoderSyncs[encoderInd]);
+    std::scoped_lock lock{encoderSyncs[encoderInd]};
     return encoders[encoderInd].encode(begin, end, dataContext);
 }
 
