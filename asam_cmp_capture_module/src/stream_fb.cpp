@@ -77,12 +77,7 @@ void StreamFb::createInputPort()
 
 void StreamFb::updateStreamIdInternal()
 {
-    auto lock = getRecursiveConfigLock();
-    std::scoped_lock statucLock{statusSync};
-
-    streamIdsList.erase(streamId);
     auto oldId = streamId;
-
     uint8_t newId = static_cast<Int>(objPtr.getPropertyValue("StreamId"));
 
     if (oldId == newId)
@@ -90,15 +85,17 @@ void StreamFb::updateStreamIdInternal()
         return;
     }
 
+    auto lock = getRecursiveConfigLock();
+    std::scoped_lock statucLock{statusSync};
+
+    streamIdsList.erase(streamId);
     if (streamIdManager->isValidId(newId))
     {
         StreamCommonFbImpl::updateStreamIdInternal();
     }
     else
     {
-        setPropertyValueInternal(
-            String("StreamId").asPtr<IString>(true), BaseObjectPtr(static_cast<Int>(streamId)).asPtr<IBaseObject>(true), false, false, false);
-        throw daq::InvalidPropertyException("Stream Id should be unique");
+        objPtr.setPropertyValue("StreamId", static_cast<int>(streamId));
     }
 
     if (oldId != streamId)

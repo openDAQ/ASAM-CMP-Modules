@@ -63,15 +63,14 @@ void InterfaceFb::initProperties()
 
 void InterfaceFb::updateInterfaceIdInternal()
 {
-    std::scoped_lock lock{statusSync};
     auto oldId = interfaceId;
-
     Int newId = objPtr.getPropertyValue("InterfaceId");
-
     if (oldId == newId)
     {
         return;
     }
+
+    std::scoped_lock lock{statusSync};
 
     if (interfaceIdManager->isValidId(newId))
     {
@@ -79,9 +78,7 @@ void InterfaceFb::updateInterfaceIdInternal()
     }
     else
     {
-        setPropertyValueInternal(
-            String("InterfaceId").asPtr<IString>(true), BaseObjectPtr(interfaceId).asPtr<IBaseObject>(true), false, false, false);
-        throw daq::InvalidPropertyException("Interface Id should be unique");
+        objPtr.setPropertyValue("InterfaceId", interfaceId);
     }
 
     if (oldId != interfaceId)
@@ -93,6 +90,10 @@ void InterfaceFb::updateInterfaceIdInternal()
 
 void InterfaceFb::updatePayloadTypeInternal()
 {
+    if (objPtr.getPropertyValue("PayloadType") == payloadType.getType())
+    {
+        return;
+    }
     std::scoped_lock lock{statusSync};
 
     asam_cmp_common_lib::InterfaceCommonFb::updatePayloadTypeInternal();
