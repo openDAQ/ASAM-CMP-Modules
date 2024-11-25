@@ -86,7 +86,7 @@ namespace
         if (inputDataDescriptorStruct.getCount() != referenceDataDescriptorStruct.getCount())
             return false;
 
-        for (int i = 0; i < inputDataDescriptorStruct.getCount(); ++i)
+        for (SizeT i = 0; i < inputDataDescriptorStruct.getCount(); ++i)
         {
             if (!checkDataDescriptor(inputDataDescriptorStruct.getItemAt(i), referenceDataDescriptorStruct.getItemAt(i)))
                 return false;

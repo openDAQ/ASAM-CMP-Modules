@@ -120,7 +120,7 @@ void CaptureFb::statusLoop()
                 ethernetWrapper->sendPacket(e);
 
            
-            for (int i = 0; i < captureStatus.getInterfaceStatusCount(); ++i)
+            for (SizeT i = 0; i < captureStatus.getInterfaceStatusCount(); ++i)
             {
                 encodedData = encoders.encode(1, captureStatus.getInterfaceStatus(i).getPacket(), encoderContext);
                 for (const auto& e : encodedData)

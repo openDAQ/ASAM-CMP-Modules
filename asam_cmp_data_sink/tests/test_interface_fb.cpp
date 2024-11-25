@@ -49,7 +49,7 @@ TEST_F(InterfaceFbTest, FunctionBlockType)
 TEST_F(InterfaceFbTest, AvailableFunctionBlockTypes)
 {
     auto availableTypes = interfaceFb.getAvailableFunctionBlockTypes();
-    ASSERT_EQ(availableTypes.getCount(), 1);
+    ASSERT_EQ(availableTypes.getCount(), 1u);
     ASSERT_TRUE(availableTypes.hasKey("AsamCmpStream"));
     ASSERT_EQ(availableTypes.get("AsamCmpStream"), modules::asam_cmp_data_sink_module::StreamFb::CreateType());
 }
@@ -71,7 +71,7 @@ TEST_F(InterfaceFbTest, CaptureModuleProperties)
 TEST_F(InterfaceFbTest, InterfaceId)
 {
     captureFb.getPropertyValue("AddInterface").execute();
-    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 2);
+    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 2u);
 
     const auto interfaceFb2 = captureFb.getFunctionBlocks().getItemAt(1);
 
@@ -117,7 +117,7 @@ TEST_F(InterfaceFbTest, AddRemoveStream)
 
     interfaceFb.getPropertyValue("RemoveStream").execute(0);
 
-    ASSERT_EQ(interfaceFb.getFunctionBlocks().getCount(), 1);
+    ASSERT_EQ(interfaceFb.getFunctionBlocks().getCount(), 1u);
 }
 
 TEST_F(InterfaceFbTest, TestBeginUpdateEndUpdate)

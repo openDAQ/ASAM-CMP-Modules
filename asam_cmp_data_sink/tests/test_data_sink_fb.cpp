@@ -85,7 +85,7 @@ TEST_F(DataSinkFbTest, FunctionBlockType)
 TEST_F(DataSinkFbTest, AvailableFunctionBlockTypes)
 {
     auto availableTypes = funcBlock.getAvailableFunctionBlockTypes();
-    ASSERT_EQ(availableTypes.getCount(), 1);
+    ASSERT_EQ(availableTypes.getCount(), 1u);
     ASSERT_TRUE(availableTypes.hasKey("AsamCmpCapture"));
     ASSERT_EQ(availableTypes.get("AsamCmpCapture"), CaptureFb::CreateType());
 }
@@ -110,7 +110,7 @@ TEST_F(DataSinkFbTest, AddCaptureModuleFromStatus)
     ProcedurePtr addCaptureModuleFromStatus = funcBlock.getPropertyValue("AddCaptureModuleFromStatus");
     addCaptureModuleFromStatus(0);
     addCaptureModuleFromStatus(0);
-    ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 2);
+    ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 2u);
     auto captureModule = funcBlock.getFunctionBlocks()[0];
 
     StringPtr propVal = captureModule.getPropertyValue("DeviceDescription");
@@ -130,7 +130,7 @@ TEST_F(DataSinkFbTest, AddCaptureModuleFromStatus)
                  { return arg.hasProperty("InterfaceId") && (arg.getPropertyValue("InterfaceId") == targetInterfaceId); });
     SearchFilterPtr interfaceFilter = search::Custom(isCorrectInterface);
 
-    ASSERT_EQ(captureModule.getFunctionBlocks(interfaceFilter).getCount(), 1);
+    ASSERT_EQ(captureModule.getFunctionBlocks(interfaceFilter).getCount(), 1u);
     auto interfaceFb = captureModule.getFunctionBlocks(interfaceFilter)[0];
 
     int targetStreamId = 1;
@@ -138,7 +138,7 @@ TEST_F(DataSinkFbTest, AddCaptureModuleFromStatus)
                                            { return arg.hasProperty("StreamId") && (arg.getPropertyValue("StreamId") == targetStreamId); });
     SearchFilterPtr streamFilter = search::Custom(isCorrectStream);
 
-    ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1);
+    ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1u);
 
     cmPacket->setDeviceId(3);
     statusHandler->processStatusPacket(cmPacket);
@@ -154,26 +154,26 @@ TEST_F(DataSinkFbTest, AddCaptureModuleFromStatus)
     statusHandler->processStatusPacket(ifPacket);
 
     addCaptureModuleFromStatus(1);
-    ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 3);
+    ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 3u);
     captureModule = funcBlock.getFunctionBlocks()[2];
 
     targetInterfaceId = 22;
-    ASSERT_EQ(captureModule.getFunctionBlocks(interfaceFilter).getCount(), 1);
+    ASSERT_EQ(captureModule.getFunctionBlocks(interfaceFilter).getCount(), 1u);
     interfaceFb = captureModule.getFunctionBlocks(interfaceFilter)[0];
 
     targetStreamId = 1;
-    ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1);
+    ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1u);
 
     targetInterfaceId = 33;
-    ASSERT_EQ(captureModule.getFunctionBlocks(interfaceFilter).getCount(), 1);
+    ASSERT_EQ(captureModule.getFunctionBlocks(interfaceFilter).getCount(), 1u);
     interfaceFb = captureModule.getFunctionBlocks(interfaceFilter)[0];
 
     targetStreamId = 3;
-    ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1);
+    ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1u);
     targetStreamId = 5;
-    ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1);
+    ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1u);
     targetStreamId = 10;
-    ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1);
+    ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1u);
 }
 
 TEST_F(DataSinkFbTest, RemoveCaptureFromStatus)
@@ -200,7 +200,7 @@ TEST_F(DataSinkFbTest, AddCaptureModuleEmpty)
     ProcedurePtr func = funcBlock.getPropertyValue("AddCaptureModuleEmpty");
     func();
     func();
-    ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 2);
+    ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 2u);
 }
 
 TEST_F(DataSinkFbTest, UpdateDeviceInfo)
@@ -229,7 +229,7 @@ TEST_F(DataSinkFbTest, RemoveCaptureModuleReadOnly)
 
 TEST_F(DataSinkFbTest, RemoveCaptureModule)
 {
-    ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 0);
+    ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 0u);
     ProcedurePtr addFunc = funcBlock.getPropertyValue("AddCaptureModuleEmpty");
     addFunc();
     auto captureFb = funcBlock.getFunctionBlocks().getItemAt(0);
@@ -239,8 +239,8 @@ TEST_F(DataSinkFbTest, RemoveCaptureModule)
 
     ProcedurePtr removeFunc = funcBlock.getPropertyValue("RemoveCaptureModule");
     removeFunc(0);
-    ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 0);
-    ASSERT_EQ(publisher.size(), 0);
+    ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 0u);
+    ASSERT_EQ(publisher.size(), 0u);
 }
 
 TEST_F(DataSinkFbTest, DefaultDevicesIds)

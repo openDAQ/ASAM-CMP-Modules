@@ -29,12 +29,10 @@ void NetworkManagerFb::addNetworkAdaptersProperty()
     ListPtr<StringPtr> devicesNames = ethernetWrapper->getEthernetDevicesNamesList();
     ListPtr<StringPtr> devicesDescriptions = ethernetWrapper->getEthernetDevicesDescriptionsList();
 
-    int selectedDeviceInd = 0;
-    for (int i = 0; i < devicesNames.getCount(); ++i)
+    for (SizeT i = 0; i < devicesNames.getCount(); ++i)
     {
         if (ethernetWrapper->setDevice(devicesNames[i]))
         {
-            selectedDeviceInd = i;
             selectedEthernetDeviceName = devicesNames[i];
             break;
         }
@@ -49,9 +47,6 @@ void NetworkManagerFb::addNetworkAdaptersProperty()
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) += [this, propName](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args)
     {
- //       setPropertyValueInternal(
- //           String("InterfaceId").asPtr<IString>(true), BaseObjectPtr(interfaceId).asPtr<IBaseObject>(true), false, false, false);
-
         StringPtr oldName = objPtr.getPropertySelectionValue("NetworkAdaptersNames");
         int oldInd = objPtr.getPropertyValue("NetworkAdaptersNames");
 

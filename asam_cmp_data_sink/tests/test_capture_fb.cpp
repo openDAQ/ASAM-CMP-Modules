@@ -42,7 +42,7 @@ TEST_F(CaptureFbTest, FunctionBlockType)
 TEST_F(CaptureFbTest, AvailableFunctionBlockTypes)
 {
     auto availableTypes = captureFb.getAvailableFunctionBlockTypes();
-    ASSERT_EQ(availableTypes.getCount(), 1);
+    ASSERT_EQ(availableTypes.getCount(), 1u);
     ASSERT_TRUE(availableTypes.hasKey("AsamCmpInterface"));
     ASSERT_EQ(availableTypes.get("AsamCmpInterface"), asam_cmp_common_lib::InterfaceCommonFb::CreateType());
 }
@@ -127,17 +127,17 @@ TEST_F(CaptureFbTest, TestCreateInterface)
 {
     ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
 
-    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 0);
+    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 0u);
     createProc();
     createProc();
-    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 2);
+    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 2u);
 
     int lstId = captureFb.getFunctionBlocks().getItemAt(1).getPropertyValue("InterfaceId");
 
     ProcedurePtr removeProc = captureFb.getPropertyValue("RemoveInterface");
     removeProc(0);
 
-    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 1);
+    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 1u);
     ASSERT_EQ(captureFb.getFunctionBlocks().getItemAt(0).getPropertyValue("InterfaceId"), lstId);
 }
 
