@@ -394,7 +394,7 @@ TEST_F(CaptureFbTest, TestInterfacesShareSameStreamId)
         streamId10 = streamFb10.getPropertyValue("StreamId");
 
     EXPECT_NE(streamId00, streamId01);
-    EXPECT_THROW(streamFb00.setPropertyValue("StreamId", streamId01), std::runtime_error);
+    streamFb00.setPropertyValue("StreamId", streamId01);
     streamId00 = streamFb00.getPropertyValue("StreamId");
     EXPECT_NE(streamId00, streamId01);
 

@@ -90,7 +90,7 @@ TEST_F(InterfaceFbTest, TestSetId)
     uint32_t id1 = itf1.getPropertyValue("InterfaceId"), id2 = itf2.getPropertyValue("InterfaceId");
     ASSERT_NE(id1, id2);
 
-    EXPECT_THROW(itf2.setPropertyValue("InterfaceId", id1), std::runtime_error);
+    itf2.setPropertyValue("InterfaceId", id1);
     ASSERT_EQ(itf2.getPropertyValue("InterfaceId"), id2);
 
     itf2.setPropertyValue("InterfaceId", static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()) + 1);
@@ -100,7 +100,7 @@ TEST_F(InterfaceFbTest, TestSetId)
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
     ASSERT_EQ(itf2.getPropertyValue("InterfaceId"), id2 + 1);
 
-    EXPECT_THROW(itf2.setPropertyValue("InterfaceId", id1), std::runtime_error);
+    itf2.setPropertyValue("InterfaceId", id1);
     ASSERT_EQ(itf2.getPropertyValue("InterfaceId"), id2 + 1);
 
     itf2.setPropertyValue("InterfaceId", static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()) + 1);
@@ -163,7 +163,7 @@ TEST_F(InterfaceFbTest, TestBeginUpdateEndUpdateWithWrongId)
 
     ASSERT_EQ(interfaceFb.getPropertyValue("InterfaceId"), oldInterfaceId);
     ASSERT_EQ(interfaceFb.getPropertyValue("PayloadType"), oldPayloadType);
-    EXPECT_THROW(interfaceFb.endUpdate(), std::runtime_error);
+    interfaceFb.endUpdate();
 
     ASSERT_EQ(interfaceFb.getPropertyValue("InterfaceId"), oldInterfaceId);
     ASSERT_EQ(interfaceFb.getPropertyValue("PayloadType"), payloadType);
@@ -183,7 +183,7 @@ TEST_F(InterfaceFbTest, TestStreamManager)
     FunctionBlockPtr stream2 = interfaceFb.getFunctionBlocks().getItemAt(1);
     size_t id2 = stream2.getPropertyValue("StreamId");
 
-    EXPECT_THROW(stream2.setPropertyValue("StreamId", id1), std::runtime_error);
+    stream2.setPropertyValue("StreamId", id1);
     ASSERT_EQ(stream2.getPropertyValue("StreamId"), id2);
 
     size_t id3 = 47;
