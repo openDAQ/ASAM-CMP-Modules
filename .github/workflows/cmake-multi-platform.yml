@@ -12,88 +12,88 @@ env:
     package_path: ${{ github.workspace }}/build/package/
 
 jobs:
-  build_linux:
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 180
+  # build_linux:
+    # runs-on: ${{ matrix.os }}
+    # timeout-minutes: 180
     
-    strategy:
-      # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
-      fail-fast: false
+    # strategy:
+      # # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
+      # fail-fast: false
 
-      matrix:
-        os: [ubuntu-latest]
-        build_type: [Release]
-        c_compiler: [gcc, clang]
-        include:
-          - os: ubuntu-latest
-            c_compiler: gcc
-            cpp_compiler: g++
-            cpack: tgz
-          - os: ubuntu-latest
-            c_compiler: clang
-            cpp_compiler: clang++
-            cpack: tgz
+      # matrix:
+        # os: [ubuntu-latest]
+        # build_type: [Release]
+        # c_compiler: [gcc, clang]
+        # include:
+          # - os: ubuntu-latest
+            # c_compiler: gcc
+            # cpp_compiler: g++
+            # cpack: tgz
+          # - os: ubuntu-latest
+            # c_compiler: clang
+            # cpp_compiler: clang++
+            # cpack: tgz
 
-    steps:
-    - name: Install basic dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libpcap-dev
+    # steps:
+    # - name: Install basic dependencies
+      # run: |
+        # sudo apt-get update
+        # sudo apt-get install -y libpcap-dev
 
-    - uses: actions/checkout@v4
+    # - uses: actions/checkout@v4
 
-    - name: Set reusable strings
-      # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
-      id: strings
-      shell: bash
-      run: |
-        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+    # - name: Set reusable strings
+      # # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
+      # id: strings
+      # shell: bash
+      # run: |
+        # echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-    - name: Configure CMake
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: >
-        cmake -B ${{ steps.strings.outputs.build-output-dir }}
-        -DASAM_CMP_ENABLE_EXAMPLE=OFF
-        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
-        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        -DCPACK_GENERATOR=${{ matrix.cpack }}
-        -S ${{ github.workspace }}
+    # - name: Configure CMake
+      # # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      # run: >
+        # cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        # -DASAM_CMP_ENABLE_EXAMPLE=OFF
+        # -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+        # -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+        # -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        # -DCPACK_GENERATOR=${{ matrix.cpack }}
+        # -S ${{ github.workspace }}
 
-    - name: Build
-      # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+    # - name: Build
+      # # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+      # run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
-    - name: Test
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest --build-config ${{ matrix.build_type }}
+    # - name: Test
+      # working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      # # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+      # # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      # run: ctest --build-config ${{ matrix.build_type }}
 
-    - name: Upload test results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: Test Results ${{ matrix.os }}-${{ matrix.c_compiler }}
-        path: ${{ steps.strings.outputs.build-output-dir }}/Testing/Temporary/LastTest.log
-        retention-days: 7
+    # - name: Upload test results
+      # if: always()
+      # uses: actions/upload-artifact@v4
+      # with:
+        # name: Test Results ${{ matrix.os }}-${{ matrix.c_compiler }}
+        # path: ${{ steps.strings.outputs.build-output-dir }}/Testing/Temporary/LastTest.log
+        # retention-days: 7
 
-    - name: Package
-      if: always()
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: cpack -C ${{ matrix.build_type }}
+    # - name: Package
+      # if: always()
+      # working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      # run: cpack -C ${{ matrix.build_type }}
 
-    - name: Upload binaries
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: asam-cmp-${{ matrix.os }}-${{ matrix.c_compiler }}
-        path: ${{ env.package_path }}
-        retention-days: 7
+    # - name: Upload binaries
+      # if: always()
+      # uses: actions/upload-artifact@v4
+      # with:
+        # name: asam-cmp-${{ matrix.os }}-${{ matrix.c_compiler }}
+        # path: ${{ env.package_path }}
+        # retention-days: 7
         
   build_windows:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 180
 
     strategy:
@@ -101,15 +101,34 @@ jobs:
       fail-fast: false
 
       matrix:
-        os: [windows-latest]
+        #os: [windows-latest]
         build_type: [Release]
         c_compiler: [cl]
+        # include:
+          # - os: windows-latest
+            # c_compiler: cl
+            # cpp_compiler: cl
+            # cpack: zip
         include:
-          - os: windows-latest
+          - name: Windows VS 2022 x64 Release
+            runner: windows-2022
+            cmake_generator: "Visual Studio 17 2022"
             c_compiler: cl
             cpp_compiler: cl
+            #cmake_generator_platform: x64
+            #cmake_build_type: Release
+            #cmake_defines: -DOPENDAQ_MSVC_SINGLE_PROCESS_BUILD=ON
             cpack: zip
-
+          - name: Windows VS 2019 x64 Release
+            runner: windows-2019
+            cmake_generator: "Visual Studio 16 2019"
+            c_compiler: cl
+            cpp_compiler: cl
+            #cmake_generator_platform: x64
+            #cmake_build_type: Release
+            #cmake_defines: -DOPENDAQ_MSVC_SINGLE_PROCESS_BUILD=ON -DOPENDAQ_GENERATE_PYTHON_BINDINGS=OFF -DOPENDAQ_GENERATE_CSHARP_BINDINGS=OFF
+            cpack: zip
+            
     steps:
     - uses: actions/checkout@v4
 
@@ -124,7 +143,7 @@ jobs:
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: >
-        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        cmake -G "${{ matrix.cmake_generator }}" -B ${{ steps.strings.outputs.build-output-dir }} 
         -DASAM_CMP_ENABLE_EXAMPLE=OFF
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
@@ -146,7 +165,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: Test Results ${{ matrix.os }}-${{ matrix.c_compiler }}
+        name: Test Results ${{ matrix.cmake_generator }}-${{ matrix.c_compiler }}
         path: ${{ steps.strings.outputs.build-output-dir }}/Testing/Temporary/LastTest.log
         retention-days: 7
 
@@ -159,6 +178,6 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: asam-cmp-${{ matrix.os }}-${{ matrix.c_compiler }}
+        name: asam-cmp-${{ matrix.cmake_generator }}-${{ matrix.c_compiler }}
         path: ${{ env.package_path }}
         retention-days: 7
