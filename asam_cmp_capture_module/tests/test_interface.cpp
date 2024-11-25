@@ -249,7 +249,7 @@ TEST_F(InterfaceFbTest, TestInterfaceStatusWithStreamsReceived)
 
         const uint8_t* receivedVendorData = static_cast<ASAM::CMP::InterfacePayload&>(lastReceivedPacket.getPayload()).getVendorData();
 
-        for (int i = 0; i < vendorDataLen; ++i)
+        for (size_t i = 0; i < vendorDataLen; ++i)
         {
             if (vendorData[i] != receivedVendorData[i])
                 return false;

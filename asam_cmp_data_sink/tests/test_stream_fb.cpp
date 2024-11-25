@@ -135,7 +135,7 @@ TEST_F(StreamFbTest, StreamIdMax)
 TEST_F(StreamFbTest, SignalsCount)
 {
     const auto outputSignals = funcBlock.getSignalsRecursive();
-    ASSERT_EQ(outputSignals.getCount(), 1);
+    ASSERT_EQ(outputSignals.getCount(), 1u);
 }
 
 TEST_F(StreamFbTest, SignalName)
@@ -169,9 +169,9 @@ TEST_F(StreamFbTest, DefaultSignalDescriptors)
 TEST_F(StreamFbTest, RemoveStream)
 {
     interfaceFb.getPropertyValue("RemoveStream").execute(0);
-    ASSERT_EQ(interfaceFb.getFunctionBlocks().getCount(), 0);
+    ASSERT_EQ(interfaceFb.getFunctionBlocks().getCount(), 0u);
 
-    ASSERT_EQ(publisher.size(), 0);
+    ASSERT_EQ(publisher.size(), 0u);
 }
 
 TEST_F(StreamFbTest, RemoveAddStream)
@@ -188,9 +188,9 @@ TEST_F(StreamFbTest, RemoveAddStream)
 TEST_F(StreamFbTest, RemoveInterface)
 {
     captureFb.getPropertyValue("RemoveInterface").execute(0);
-    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 0);
+    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 0u);
 
-    ASSERT_EQ(publisher.size(), 0);
+    ASSERT_EQ(publisher.size(), 0u);
 }
 
 class StreamFbCanPayloadTest : public StreamFbTest
@@ -249,12 +249,12 @@ TEST_F(StreamFbCanPayloadTest, ChangeStreamId)
 
     publisher.publish({canPacket->getDeviceId(), canPacket->getInterfaceId(), canPacket->getStreamId()}, canPacket);
     auto samplesCount = waitForSamples(reader);
-    ASSERT_EQ(samplesCount, 0);
+    ASSERT_EQ(samplesCount, 0u);
 
     canPacket->setStreamId(newStreamId);
     publisher.publish({canPacket->getDeviceId(), canPacket->getInterfaceId(), canPacket->getStreamId()}, canPacket);
     samplesCount = waitForSamples(reader);
-    ASSERT_EQ(samplesCount, 1);
+    ASSERT_EQ(samplesCount, 1u);
 }
 
 TEST_F(StreamFbCanPayloadTest, ChangeInterfaceId)
@@ -268,12 +268,12 @@ TEST_F(StreamFbCanPayloadTest, ChangeInterfaceId)
 
     publisher.publish({canPacket->getDeviceId(), canPacket->getInterfaceId(), canPacket->getStreamId()}, canPacket);
     auto samplesCount = waitForSamples(reader);
-    ASSERT_EQ(samplesCount, 0);
+    ASSERT_EQ(samplesCount, 0u);
 
     canPacket->setInterfaceId(newInterfaceId);
     publisher.publish({canPacket->getDeviceId(), canPacket->getInterfaceId(), canPacket->getStreamId()}, canPacket);
     samplesCount = waitForSamples(reader);
-    ASSERT_EQ(samplesCount, 1);
+    ASSERT_EQ(samplesCount, 1u);
 }
 
 TEST_F(StreamFbCanPayloadTest, ChangeDeviceId)
@@ -287,12 +287,12 @@ TEST_F(StreamFbCanPayloadTest, ChangeDeviceId)
 
     publisher.publish({canPacket->getDeviceId(), canPacket->getInterfaceId(), canPacket->getStreamId()}, canPacket);
     auto samplesCount = waitForSamples(reader);
-    ASSERT_EQ(samplesCount, 0);
+    ASSERT_EQ(samplesCount, 0u);
 
     canPacket->setDeviceId(newDeviceId);
     publisher.publish({canPacket->getDeviceId(), canPacket->getInterfaceId(), canPacket->getStreamId()}, canPacket);
     samplesCount = waitForSamples(reader);
-    ASSERT_EQ(samplesCount, 1);
+    ASSERT_EQ(samplesCount, 1u);
 }
 
 TEST_F(StreamFbCanPayloadTest, CanSignalDescriptors)
@@ -338,13 +338,13 @@ TEST_F(StreamFbCanPayloadTest, ReadOutputCanSignal)
 
     publisher.publish({canPacket->getDeviceId(), canPacket->getInterfaceId(), canPacket->getStreamId()}, canPacket);
     const auto samplesCount = waitForSamples(reader);
-    ASSERT_EQ(samplesCount, 1);
+    ASSERT_EQ(samplesCount, 1u);
 
     CANData sample;
     uint64_t domainSample;
     size_t count = 1;
     reader.readWithDomain(&sample, &domainSample, &count);
-    ASSERT_EQ(count, 1);
+    ASSERT_EQ(count, 1u);
     ASSERT_EQ(domainSample, canPacket->getTimestamp());
     ASSERT_EQ(sample.arbId, arbId);
     ASSERT_EQ(sample.length, sizeof(canData));

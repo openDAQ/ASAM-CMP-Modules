@@ -67,7 +67,7 @@ TEST_F(StatusFbTest, FunctionBlockType)
 TEST_F(StatusFbTest, CaptureModuleList)
 {
     ListPtr<IString> cmList = funcBlock.getPropertyValue("CaptureModuleList");
-    ASSERT_EQ(cmList.getCount(), 0);
+    ASSERT_EQ(cmList.getCount(), 0u);
     EXPECT_THROW(funcBlock.setPropertyValue("CaptureModuleList", cmList), daq::AccessDeniedException);
 }
 

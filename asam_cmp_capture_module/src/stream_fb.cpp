@@ -426,7 +426,7 @@ void createAnalogPayloadWithInternalScaling(ASAM::CMP::AnalogPayload& payload,
     payload.setSampleOffset(analogDataOffset);
 
     std::vector<int32_t> scaledData(sampleCount);
-    for (int i = 0; i < sampleCount; ++i)
+    for (size_t i = 0; i < sampleCount; ++i)
     {
         scaledData[i] = std::round((rawData[i] - analogDataOffset) / analogDataScale);
     }

@@ -76,7 +76,7 @@ protected:
     void testAnalogPackets(bool setScale);
 
     template <typename T>
-    bool checkSamples(const ASAM::CMP::AnalogPayload& analogPayload, int& receivedSamples);
+    bool checkSamples(const ASAM::CMP::AnalogPayload& analogPayload, size_t& receivedSamples);
 
 protected:
     TimeStub timeStub;
@@ -97,7 +97,7 @@ protected:
 };
 
 template <typename T>
-bool AnalogMessagesTest::checkSamples(const ASAM::CMP::AnalogPayload& analogPayload, int& receivedSamples)
+bool AnalogMessagesTest::checkSamples(const ASAM::CMP::AnalogPayload& analogPayload, size_t& receivedSamples)
 {
     auto rawData = reinterpret_cast<const T*>(analogPayload.getData());
     auto receivedSamplesCnt = analogPayload.getSamplesCount();
@@ -150,7 +150,7 @@ void AnalogMessagesTest::testAnalogPackets(bool setScale)
     auto chPrivate = analogChannel.asPtr<IInputChannelStub>();
     chPrivate->collectSamples(curTime);
 
-    int receivedSamples = 0;
+    size_t receivedSamples = 0;
     auto checker = [&]() -> bool
     {
         std::scoped_lock lock{packedReceivedSync};
