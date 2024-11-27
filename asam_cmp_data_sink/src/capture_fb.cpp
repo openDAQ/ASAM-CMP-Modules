@@ -92,28 +92,11 @@ void CaptureFb::setDeviceInfoProperties(const ASAM::CMP::Packet& packet)
 {
     auto& cmPayload = static_cast<const ASAM::CMP::CaptureModulePayload&>(packet.getPayload());
 
-    setPropertyValueInternal(String("DeviceDescription").asPtr<IString>(true),
-                             String(cmPayload.getDeviceDescription().data()).asPtr<IString>(true),
-                             false,
-                             true,
-                             false);
-    setPropertyValueInternal(
-        String("SerialNumber").asPtr<IString>(true), String(cmPayload.getSerialNumber().data()).asPtr<IString>(true), false, true, false);
-    setPropertyValueInternal(String("HardwareVersion").asPtr<IString>(true),
-                             String(cmPayload.getHardwareVersion().data()).asPtr<IString>(true),
-                             false,
-                             true,
-                             false);
-    setPropertyValueInternal(String("SoftwareVersion").asPtr<IString>(true),
-                             String(cmPayload.getSoftwareVersion().data()).asPtr<IString>(true),
-                             false,
-                             true,
-                             false);
-    setPropertyValueInternal(String("VendorData").asPtr<IString>(true),
-                             String(std::string(cmPayload.getVendorDataStringView())).asPtr<IString>(true),
-                             false,
-                             true,
-                             false);
+    objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue("DeviceDescription", cmPayload.getDeviceDescription().data());
+    objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue("SerialNumber", cmPayload.getSerialNumber().data());
+    objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue("HardwareVersion", cmPayload.getHardwareVersion().data());
+    objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue("SoftwareVersion", cmPayload.getSoftwareVersion().data());
+    objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue("VendorData", std::string(cmPayload.getVendorDataStringView()));
 }
 
 void CaptureFb::createFbs()
