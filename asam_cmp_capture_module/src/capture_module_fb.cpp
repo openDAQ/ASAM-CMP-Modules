@@ -32,9 +32,4 @@ void CaptureModuleFb::createFbs()
     functionBlocks.addItem(newFb);
 }
 
-void CaptureModuleFb::networkAdapterChangedInternal()
-{
-
-}
-
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

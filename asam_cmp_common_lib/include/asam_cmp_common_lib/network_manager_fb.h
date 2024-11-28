@@ -37,7 +37,7 @@ private:
     void addNetworkAdaptersProperty();
 
 protected:
-    virtual void networkAdapterChangedInternal() = 0;
+    virtual void networkAdapterChangedInternal();
 
 protected:
     std::shared_ptr<EthernetPcppItf> ethernetWrapper;
