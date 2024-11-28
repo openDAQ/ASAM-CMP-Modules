@@ -60,6 +60,9 @@ protected:
     void testProperty(const StringPtr& name, T newValue, bool success = true);
 
 protected:
+    static constexpr std::string_view networkAdapters = "NetworkAdapters";
+
+protected:
     std::shared_ptr<asam_cmp_common_lib::EthernetPcppMock> ethernetWrapper;
     ListPtr<StringPtr> names;
     ListPtr<StringPtr> descriptions;
@@ -98,11 +101,29 @@ void DataSinkModuleFbTest::testProperty(const StringPtr& name, T newValue, bool 
 
 TEST_F(DataSinkModuleFbTest, NetworkAdaptersProperties)
 {
-    constexpr std::string_view networkAdapters = "NetworkAdapters";
     auto propList = funcBlock.getProperty(networkAdapters.data()).getSelectionValues().asPtrOrNull<IList>();
-    int newVal = 0;
-    if (propList.getCount() > 0)
-        newVal = 1;
+    ASSERT_EQ(propList.getCount(), descriptions.getCount());
+    ASSERT_TRUE(std::equal(propList.begin(), propList.end(), descriptions.begin()));
+}
+
+TEST_F(DataSinkModuleFbTest, ChangeNetworkAdapter)
+{
+    auto propList = funcBlock.getProperty(networkAdapters.data()).getSelectionValues().asPtrOrNull<IList>();
+    ASSERT_GT(propList.getCount(), 1);
+    constexpr int newVal = 1;
+    testProperty(networkAdapters.data(), newVal);
+}
+
+TEST_F(DataSinkModuleFbTest, ChangeNetworkAdapterSequenceCall)
+{
+    {
+        InSequence inSeq;
+        EXPECT_CALL(*ethernetWrapper, stopCapture()).Times(Exactly(1));
+        EXPECT_CALL(*ethernetWrapper, setDevice(_)).Times(Exactly(1)).WillRepeatedly(Return(true));
+    }
+
+    ASSERT_GT(descriptions.getCount(), 1);
+    constexpr int newVal = 1;
     testProperty(networkAdapters.data(), newVal);
 }
 

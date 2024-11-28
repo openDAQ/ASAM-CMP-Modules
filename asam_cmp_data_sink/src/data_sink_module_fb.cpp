@@ -43,6 +43,8 @@ ErrCode INTERFACE_FUNC DataSinkModuleFb::remove()
 
 void DataSinkModuleFb::networkAdapterChangedInternal()
 {
+    stopCapture();
+    NetworkManagerFb::networkAdapterChangedInternal();
     startCapture();
 }
 
@@ -68,7 +70,6 @@ void DataSinkModuleFb::startCapture()
 {
     auto lock = this->getRecursiveConfigLock();
 
-    stopCapture();
     ethernetWrapper->startCapture([this](pcpp::RawPacket* packet, pcpp::PcapLiveDevice* dev, void* cookie)
                                   { onPacketArrives(packet, dev, cookie); });
     captureStartedOnThisFb = true;

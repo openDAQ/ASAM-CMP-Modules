@@ -34,8 +34,6 @@ public:
 
 private:
     void createFbs();
-    void networkAdapterChangedInternal() override;
 };
-
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE

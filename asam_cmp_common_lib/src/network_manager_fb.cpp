@@ -1,5 +1,5 @@
-#include <asam_cmp_common_lib/network_manager_fb.h>
 #include <asam_cmp_common_lib/ethernet_pcpp_impl.h>
+#include <asam_cmp_common_lib/network_manager_fb.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_COMMON
 
@@ -45,26 +45,27 @@ void NetworkManagerFb::addNetworkAdaptersProperty()
     propName = "NetworkAdapters";
     prop = SelectionPropertyBuilder(propName, devicesDescriptions, 0).build();
     objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) += [this, propName](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args)
-    {
-        StringPtr oldName = objPtr.getPropertySelectionValue("NetworkAdaptersNames");
-        int oldInd = objPtr.getPropertyValue("NetworkAdaptersNames");
-
-        setPropertyValueInternal(String("NetworkAdaptersNames"), args.getValue(), false, false, false);
-        std::string newName = objPtr.getPropertySelectionValue("NetworkAdaptersNames");
-
-        if (ethernetWrapper->setDevice(newName))
-        {
-            selectedEthernetDeviceName = newName;
-            networkAdapterChangedInternal();
-        }
-        else
-        {
-            setPropertyValueInternal(String("NetworkAdaptersNames"), BaseObjectPtr(oldInd), false, false, false);
-            setPropertyValueInternal(String("NetworkAdapters"), BaseObjectPtr(oldInd), false, false, false);
-        }
-    };
+    objPtr.getOnPropertyValueWrite(propName) +=
+        [this, propName](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { networkAdapterChangedInternal(); };
 }
 
+void NetworkManagerFb::networkAdapterChangedInternal()
+{
+    int oldInd = objPtr.getPropertyValue("NetworkAdaptersNames");
+    int newInd = objPtr.getPropertyValue("NetworkAdapters");
+
+    setPropertyValueInternal(String("NetworkAdaptersNames"), BaseObjectPtr(newInd), false, false, false);
+    StringPtr newName = objPtr.getPropertySelectionValue("NetworkAdaptersNames");
+
+    if (ethernetWrapper->setDevice(newName))
+    {
+        selectedEthernetDeviceName = newName;
+    }
+    else
+    {
+        setPropertyValueInternal(String("NetworkAdaptersNames"), BaseObjectPtr(oldInd), false, false, false);
+        setPropertyValueInternal(String("NetworkAdapters"), BaseObjectPtr(oldInd), false, false, false);
+    }
+}
 
 END_NAMESPACE_ASAM_CMP_COMMON
