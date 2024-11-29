@@ -334,6 +334,9 @@ void StreamFb::processCanPacket(const DataPacketPtr& packet)
     const size_t sampleCount = packet.getSampleCount();
 
     uint64_t* rawTimeBuffer = reinterpret_cast<uint64_t*>(packet.getDomainPacket().getRawData());
+    if (rawTimeBuffer == nullptr)
+        return;
+
     RatioPtr timeResolution = packet.getDomainPacket().getDataDescriptor().getTickResolution();
     size_t timeScale = 1'000'000'000 / timeResolution.getDenominator();
 
