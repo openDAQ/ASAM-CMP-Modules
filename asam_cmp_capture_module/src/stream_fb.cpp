@@ -319,8 +319,16 @@ ASAM::CMP::DataContext StreamFb::createEncoderDataContext() const
     return {minFrameSize, maxFrameSize};
 }
 
+template <typename T>
+constexpr size_t maxCanDataSize = 64;
+template <>
+constexpr size_t maxCanDataSize<ASAM::CMP::CanPayload> = 8;
+
+template <typename CanPayloadType>
 void StreamFb::processCanPacket(const DataPacketPtr& packet)
 {
+    static_assert(std::is_base_of_v<ASAM::CMP::CanPayloadBase, CanPayloadType>);
+
 #pragma pack(push, 1)
     struct CANData
     {
@@ -345,9 +353,9 @@ void StreamFb::processCanPacket(const DataPacketPtr& packet)
 
     for (size_t i = 0; i < sampleCount; i++)
     {
-        if (canData->length <= 8)
+        if (canData->length <= maxCanDataSize<CanPayloadType>)
         {
-            ASAM::CMP::CanPayload payload;
+            CanPayloadType payload{};
             payload.setData(canData->data, canData->length);
             payload.setId(canData->arbId);
 
@@ -356,46 +364,6 @@ void StreamFb::processCanPacket(const DataPacketPtr& packet)
             packets.back().setPayload(payload);
             packets.back().setTimestamp((*rawTimeBuffer) * timeScale);
         }
-        canData++;
-        rawTimeBuffer++;
-    }
-
-    for (auto& rawFrame : encoders->encode(streamId, packets.begin(), packets.end(), dataContext))
-        ethernetWrapper->sendPacket(rawFrame);
-}
-
-void StreamFb::processCanFdPacket(const DataPacketPtr& packet)
-{
-#pragma pack(push, 1)
-    struct CANData
-    {
-        uint32_t arbId;
-        uint8_t length;
-        uint8_t data[64];
-    };
-#pragma pack(pop)
-
-    auto* canData = reinterpret_cast<CANData*>(packet.getData());
-    const size_t sampleCount = packet.getSampleCount();
-
-    uint64_t* rawTimeBuffer = reinterpret_cast<uint64_t*>(packet.getDomainPacket().getRawData());
-    RatioPtr timeResolution = packet.getDomainPacket().getDataDescriptor().getTickResolution();
-    size_t timeScale = 1'000'000'000 / timeResolution.getDenominator();
-
-    std::vector<ASAM::CMP::Packet> packets;
-    packets.reserve(sampleCount);
-
-    for (size_t i = 0; i < sampleCount; i++)
-    {
-        ASAM::CMP::CanFdPayload payload;
-        payload.setData(canData->data, canData->length);
-        payload.setId(canData->arbId);
-
-        packets.emplace_back();
-        packets.back().setInterfaceId(interfaceId);
-        packets.back().setPayload(payload);
-        packets.back().setTimestamp((*rawTimeBuffer) * timeScale);
-
         canData++;
         rawTimeBuffer++;
     }
@@ -505,10 +473,10 @@ void StreamFb::processDataPacket(const DataPacketPtr& packet)
     switch (payloadType.getType())
     {
         case ASAM::CMP::PayloadType::can:
-            processCanPacket(packet);
+            processCanPacket<ASAM::CMP::CanPayload>(packet);
             break;
         case ASAM::CMP::PayloadType::canFd:
-            processCanFdPacket(packet);
+            processCanPacket<ASAM::CMP::CanFdPayload>(packet);
             break;
         case ASAM::CMP::PayloadType::analog:
             processAnalogPacket(packet);
