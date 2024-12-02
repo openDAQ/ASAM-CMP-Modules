@@ -16,13 +16,13 @@
 
 #pragma once
 #include <asam_cmp/encoder.h>
+#include <asam_cmp/payload_type.h>
 #include <asam_cmp_capture_module/common.h>
 #include <asam_cmp_common_lib/id_manager.h>
 #include <asam_cmp_common_lib/stream_common_fb_impl.h>
 #include <asam_cmp_capture_module/encoder_bank.h>
 #include <opendaq/context_factory.h>
 #include <opendaq/function_block_impl.h>
-#include <asam_cmp/payload_type.h>
 #include <opendaq/data_packet_ptr.h>
 #include <opendaq/event_packet_ptr.h>
 
@@ -75,8 +75,8 @@ private:
     void configure();
 
     void processDataPacket(const DataPacketPtr& packet);
+    template <typename CanPayloadType>
     void processCanPacket(const DataPacketPtr& packet);
-    void processCanFdPacket(const DataPacketPtr& packet);
     void processAnalogPacket(const DataPacketPtr& packet);
 
     void processEventPacket(const EventPacketPtr& packet);
