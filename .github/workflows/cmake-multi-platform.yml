@@ -14,7 +14,7 @@ env:
 
 jobs:
   build_linux:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     timeout-minutes: 180
     
     strategy:
@@ -22,15 +22,14 @@ jobs:
       fail-fast: false
 
       matrix:
-        os: [ubuntu-latest]
-        build_type: [Release]
-        c_compiler: [gcc, clang]
         include:
-          - os: ubuntu-latest
+          - os: ubuntu:20.04
+            build_type: Release
             c_compiler: gcc
             cpp_compiler: g++
             cpack: tgz
-          - os: ubuntu-latest
+          - os: ubuntu:20.04
+            build_type: Release
             c_compiler: clang
             cpp_compiler: clang++
             cpack: tgz
@@ -39,7 +38,7 @@ jobs:
     - name: Install basic dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libpcap-dev
+        sudo apt-get install -y libpcap-dev mono-runtime
 
     - uses: actions/checkout@v4
 
@@ -76,7 +75,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: Test Results ${{ matrix.os }}-${{ matrix.c_compiler }}
+        name: Test Results ubuntu-${{ matrix.c_compiler }}
         path: ${{ steps.strings.outputs.build-output-dir }}/Testing/Temporary/LastTest.log
         retention-days: 7
 
@@ -89,7 +88,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: asam-cmp-${{ matrix.os }}-${{ matrix.c_compiler }}
+        name: asam-cmp-ubuntu-${{ matrix.c_compiler }}
         path: ${{ env.package_path }}
         retention-days: 7
         
