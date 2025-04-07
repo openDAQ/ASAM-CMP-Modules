@@ -14,6 +14,8 @@
 #include <opendaq/signal_factory.h>
 #include "include/ref_can_channel_impl.h"
 
+#include <chrono>
+
 #define PI 3.141592653589793
 
 namespace daq {

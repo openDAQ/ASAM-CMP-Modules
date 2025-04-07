@@ -16,6 +16,8 @@
 #include <asam_cmp_capture_module/dispatch.h>
 #include <opendaq/sample_type_traits.h>
 
+#include <chrono>
+
 namespace daq
 {
 

@@ -3,6 +3,10 @@
 #include <asam_cmp_common_lib/unit_converter.h>
 #include <asam_cmp_data_sink/stream_fb.h>
 
+
+#include <chrono>
+
+
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
 StreamFb::StreamFb(const ContextPtr& ctx,
