@@ -35,6 +35,10 @@ if(UNIX)
     target_compile_options(${PROJECT_NAME} PRIVATE -fPIC)
 endif()
 
+if (MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE /bigobj)
+endif()
+
 target_link_libraries(${PROJECT_NAME} PUBLIC daq::opendaq
                                           Pcap++
                                           asam_cmp
