@@ -139,7 +139,7 @@ void CaptureFb::startStatusLoop()
 void CaptureFb::stopStatusLoop()
 {
     {
-        std::scoped_lock<std::mutex> lock(sync);
+        auto lock2 = getRecursiveConfigLock();
         stopStatusSending = true;
     }
     cv.notify_one();

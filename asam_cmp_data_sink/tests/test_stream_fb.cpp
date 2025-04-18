@@ -15,8 +15,9 @@
 #include <opendaq/scheduler_factory.h>
 #include <opendaq/search_filter_factory.h>
 #include <thread>
+#include <chrono>
 
-using namespace std::chrono_literals;
+using namespace std::literals;
 
 using namespace daq;
 using ASAM::CMP::AnalogPayload;
