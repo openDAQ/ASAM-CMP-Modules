@@ -18,6 +18,6 @@ endif()
 FetchContent_Declare(
     PcapPlusPlus
     GIT_REPOSITORY https://github.com/seladb/PcapPlusPlus.git
-    GIT_TAG v24.09
+    GIT_TAG v25.05
 )
 FetchContent_MakeAvailable(PcapPlusPlus)
