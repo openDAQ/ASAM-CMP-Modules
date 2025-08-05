@@ -3,6 +3,7 @@
 #include <SystemUtils.h>
 #include <EthLayer.h>
 #include <PayloadLayer.h>
+#include <Packet.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_COMMON
 

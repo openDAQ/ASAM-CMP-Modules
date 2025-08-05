@@ -9,6 +9,8 @@
 #include <asam_cmp_data_sink/status_handler.h>
 #include <asam_cmp_data_sink/status_fb_impl.h>
 
+#include <Packet.h>
+
 using namespace daq;
 
 using ASAM::CMP::CaptureModulePayload;
