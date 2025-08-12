@@ -41,6 +41,7 @@ class StreamFb final : public asam_cmp_common_lib::StreamCommonFbImpl<IAsamCmpPa
 private:
     using Packet = ASAM::CMP::Packet;
     using CanPayload = ASAM::CMP::CanPayload;
+    using EthernetPayload = ASAM::CMP::EthernetPayload;
     using AnalogPayload = ASAM::CMP::AnalogPayload;
 
 public:
@@ -72,6 +73,7 @@ private:
     void buildSyncDomainDescriptor(const float sampleInterval);
     void processAsyncData(const std::vector<std::shared_ptr<Packet>>& packets);
     void fillCanData(CANData* const data, const std::shared_ptr<Packet>& packet);
+    void fillEthernetData(CANData* const data, const std::shared_ptr<Packet>& packet);
     void processSyncData(const std::shared_ptr<Packet>& packet);
     bool domainChanged(const AnalogPayload& payload);
     bool dataChanged(const AnalogPayload& payload);

@@ -201,6 +201,8 @@ void StreamFb::processAsyncData(const std::vector<std::shared_ptr<Packet>>& pack
             case PayloadType::canFd:
                 fillCanData(buffer, packet);
                 break;
+            case PayloadType::ethernet:
+                fillEthernetData(buffer, packet);
         }
         *domainBuffer++ = packet->getTimestamp();
         buffer++;
@@ -213,6 +215,15 @@ void StreamFb::processAsyncData(const std::vector<std::shared_ptr<Packet>>& pack
 void StreamFb::fillCanData(CANData* const data, const std::shared_ptr<Packet>& packet)
 {
     auto& payload = static_cast<const CanPayload&>(packet->getPayload());
+
+    data->arbId = payload.getId();
+    data->length = payload.getDataLength();
+    memcpy(data->data, payload.getData(), data->length);
+}
+
+void StreamFb::fillEthernetData(CANData* const data, const std::shared_ptr<Packet>& packet)
+{
+    auto& payload = static_cast<const EthernetPayload&>(packet->getPayload());
 
     data->arbId = payload.getId();
     data->length = payload.getDataLength();
