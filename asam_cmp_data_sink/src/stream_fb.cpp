@@ -63,14 +63,19 @@ void StreamFb::receive(const std::vector<std::shared_ptr<Packet>>& packets)
     if (packets.front()->getPayload().getType() != payloadType)
         return;
 
-    if (payloadType == PayloadType::analog)
+    switch (payloadType.getRawPayloadType())
     {
-        for (auto& packet : packets)
-            processSyncData(packet);
-    }
-    else
-    {
-        processAsyncData(packets);
+        case PayloadType::analog:
+            for (auto& packet : packets)
+                processSyncData(packet);
+            break;
+        case PayloadType::can:
+        case PayloadType::canFd:
+            processCanData(packets);
+            break;
+        case PayloadType::ethernet:
+            processEthernetData(packets);
+            break;
     }
 }
 
@@ -182,7 +187,7 @@ void StreamFb::buildSyncDomainDescriptor(const float sampleInterval)
     analogHeader.setSampleInterval(sampleInterval);
 }
 
-void StreamFb::processAsyncData(const std::vector<std::shared_ptr<Packet>>& packets)
+void StreamFb::processCanData(const std::vector<std::shared_ptr<Packet>>& packets)
 {
     const uint64_t newSamples = packets.size();
     auto timestamp = packets.front()->getTimestamp();
@@ -195,15 +200,11 @@ void StreamFb::processAsyncData(const std::vector<std::shared_ptr<Packet>>& pack
 
     for (auto& packet : packets)
     {
-        switch (payloadType.getType())
-        {
-            case PayloadType::can:
-            case PayloadType::canFd:
-                fillCanData(buffer, packet);
-                break;
-            case PayloadType::ethernet:
-                fillEthernetData(buffer, packet);
-        }
+        auto& payload = static_cast<const CanPayload&>(packet->getPayload());
+        buffer->arbId = payload.getId();
+        buffer->length = payload.getDataLength();
+        memcpy(buffer->data, payload.getData(), buffer->length);
+
         *domainBuffer++ = packet->getTimestamp();
         buffer++;
     }
@@ -212,22 +213,33 @@ void StreamFb::processAsyncData(const std::vector<std::shared_ptr<Packet>>& pack
     domainSignal.sendPacket(domainPacket);
 }
 
-void StreamFb::fillCanData(CANData* const data, const std::shared_ptr<Packet>& packet)
+void StreamFb::processEthernetData(const std::vector<std::shared_ptr<Packet>>& packets)
 {
-    auto& payload = static_cast<const CanPayload&>(packet->getPayload());
+    const uint64_t newSamples = packets.size();
+    auto timestamp = packets.front()->getTimestamp();
 
-    data->arbId = payload.getId();
-    data->length = payload.getDataLength();
-    memcpy(data->data, payload.getData(), data->length);
-}
+    const auto domainPacket = DataPacket(domainSignal.getDescriptor(), newSamples, timestamp);
+    auto domainBuffer = static_cast<uint64_t*>(domainPacket.getRawData());
 
-void StreamFb::fillEthernetData(CANData* const data, const std::shared_ptr<Packet>& packet)
-{
-    auto& payload = static_cast<const EthernetPayload&>(packet->getPayload());
+    const auto dataPacket = DataPacketWithDomain(domainPacket, dataSignal.getDescriptor(), newSamples);
+    auto buffer = static_cast<uint8_t*>(dataPacket.getRawData());
 
-    data->arbId = payload.getId();
-    data->length = payload.getDataLength();
-    memcpy(data->data, payload.getData(), data->length);
+    for (auto& packet : packets)
+    {
+        auto& payload = static_cast<const EthernetPayload&>(packet->getPayload());
+
+        auto ethHeader = reinterpret_cast<EthernetData*>(buffer);
+        auto data = reinterpret_cast<uint8_t*>(buffer) + sizeof(EthernetData);
+        ethHeader->flags = payload.getFlags();
+        ethHeader->length = payload.getLength();
+        memcpy(data, payload.getData(), ethHeader->length);
+
+        *domainBuffer++ = packet->getTimestamp();
+        buffer += sizeof(EthernetData) + ethHeader->length;
+    }
+
+    dataSignal.sendPacket(dataPacket);
+    domainSignal.sendPacket(domainPacket);
 }
 
 void StreamFb::processSyncData(const std::shared_ptr<Packet>& packet)

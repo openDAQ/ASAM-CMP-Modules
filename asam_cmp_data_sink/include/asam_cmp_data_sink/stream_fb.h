@@ -17,6 +17,7 @@
 #pragma once
 #include <asam_cmp/analog_payload.h>
 #include <asam_cmp/can_payload.h>
+#include <asam_cmp/ethernet_payload.h>
 #include <asam_cmp/packet.h>
 #include <opendaq/packet_factory.h>
 
@@ -35,6 +36,16 @@ struct CANData
     uint8_t data[64];
 };
 #pragma pack(pop)
+
+#pragma pack(push, 1)
+struct EthernetData
+{
+    uint16_t flags;
+    uint16_t reserved;
+    uint16_t length;
+};
+#pragma pack(pop)
+
 
 class StreamFb final : public asam_cmp_common_lib::StreamCommonFbImpl<IAsamCmpPacketsSubscriber>
 {
@@ -71,9 +82,8 @@ private:
     void buildAnalogDescriptor(const AnalogPayload& payload);
     void buildAsyncDomainDescriptor();
     void buildSyncDomainDescriptor(const float sampleInterval);
-    void processAsyncData(const std::vector<std::shared_ptr<Packet>>& packets);
-    void fillCanData(CANData* const data, const std::shared_ptr<Packet>& packet);
-    void fillEthernetData(CANData* const data, const std::shared_ptr<Packet>& packet);
+    void processCanData(const std::vector<std::shared_ptr<Packet>>& packets);
+    void processEthernetData(const std::vector<std::shared_ptr<Packet>>& packets);
     void processSyncData(const std::shared_ptr<Packet>& packet);
     bool domainChanged(const AnalogPayload& payload);
     bool dataChanged(const AnalogPayload& payload);
