@@ -30,15 +30,15 @@ StreamFb::StreamFb(const ContextPtr& ctx,
                    const asam_cmp_common_lib::StreamCommonInit& init,
                    const StreamInit& internalInit)
     : asam_cmp_common_lib::StreamCommonFb(ctx, parent, localId, init)
+    , interfaceId(internalInit.interfaceId)
     , streamIdsList(internalInit.streamIdsList)
     , statusSync(internalInit.statusSync)
-    , interfaceId(internalInit.interfaceId)
-    , ethernetWrapper(internalInit.ethernetWrapper)
-    , dataContext(createEncoderDataContext())
-    , allowJumboFrames(internalInit.allowJumboFrames)
     , encoders(internalInit.encoderBank)
     , parentInterfaceUpdater(internalInit.parentInterfaceUpdater)
     , isConfigured(false)
+    , ethernetWrapper(internalInit.ethernetWrapper)
+    , allowJumboFrames(internalInit.allowJumboFrames)
+    , dataContext(createEncoderDataContext())
 {
     createInputPort();
     initStatuses();

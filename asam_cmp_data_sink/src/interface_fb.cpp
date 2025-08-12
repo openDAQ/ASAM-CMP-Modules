@@ -12,8 +12,8 @@ InterfaceFb::InterfaceFb(const ContextPtr& ctx,
                          const uint16_t& deviceId,
                          DataPacketsPublisher& publisher)
     : InterfaceCommonFb(ctx, parent, localId, init)
-    , deviceId(deviceId)
     , publisher(publisher)
+    , deviceId(deviceId)
 {
 }
 
@@ -26,8 +26,8 @@ InterfaceFb::InterfaceFb(const ContextPtr& ctx,
                          ASAM::CMP::InterfaceStatus&& ifStatus)
     : InterfaceCommonFb(ctx, parent, localId, init)
     , interfaceStatus(std::move(ifStatus))
-    , deviceId(deviceId)
     , publisher(publisher)
+    , deviceId(deviceId)
 {
     createFbs();
 }

@@ -29,8 +29,8 @@ class StatusMt final
 {
 public:
     StatusMt(const ASAM::CMP::Status& st, std::mutex& mt)
-        : statusRef(st)
-        , mtRef(mt)
+        : mtRef(mt)
+        , statusRef(st)
     {
     }
 
