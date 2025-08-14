@@ -2,6 +2,7 @@
 
 #include <asam_cmp_common_lib/unit_converter.h>
 #include <asam_cmp_data_sink/stream_fb.h>
+#include <opendaq/binary_data_packet_factory.h>
 
 
 #include <chrono>
@@ -109,6 +110,9 @@ void StreamFb::buildDataDescriptor()
             break;
         case PayloadType::analog:
             break;
+        case PayloadType::ethernet:
+            buildEthernetDescriptor();
+            break;
     }
 }
 
@@ -129,6 +133,19 @@ void StreamFb::buildCanDescriptor()
                                       .setStructFields(List<IDataDescriptor>(arbIdDescriptor, lengthDescriptor, dataDescriptor))
                                       .setName("CAN")
                                       .build();
+
+    dataSignal.setDescriptor(canMsgDescriptor);
+}
+
+void StreamFb::buildEthernetDescriptor()
+{
+    auto metadata = Dict<IString, IString>();
+    metadata["DataType"] = "Ethernet";
+    const auto canMsgDescriptor =
+        DataDescriptorBuilder()
+        .setSampleType(SampleType::Binary)
+        .setMetadata(metadata)
+        .build();
 
     dataSignal.setDescriptor(canMsgDescriptor);
 }
@@ -215,31 +232,23 @@ void StreamFb::processCanData(const std::vector<std::shared_ptr<Packet>>& packet
 
 void StreamFb::processEthernetData(const std::vector<std::shared_ptr<Packet>>& packets)
 {
-    const uint64_t newSamples = packets.size();
-    auto timestamp = packets.front()->getTimestamp();
-
-    const auto domainPacket = DataPacket(domainSignal.getDescriptor(), newSamples, timestamp);
-    auto domainBuffer = static_cast<uint64_t*>(domainPacket.getRawData());
-
-    const auto dataPacket = DataPacketWithDomain(domainPacket, dataSignal.getDescriptor(), newSamples);
-    auto buffer = static_cast<uint8_t*>(dataPacket.getRawData());
-
     for (auto& packet : packets)
     {
+        auto timestamp = packet->getTimestamp();
+
+        const auto domainPacket = DataPacket(domainSignal.getDescriptor(), 1, timestamp);
+        auto domainBuffer = static_cast<uint64_t*>(domainPacket.getRawData());
+
         auto& payload = static_cast<const EthernetPayload&>(packet->getPayload());
 
-        auto ethHeader = reinterpret_cast<EthernetData*>(buffer);
-        auto data = reinterpret_cast<uint8_t*>(buffer) + sizeof(EthernetData);
-        ethHeader->flags = payload.getFlags();
-        ethHeader->length = payload.getLength();
-        memcpy(data, payload.getData(), ethHeader->length);
+        const auto dataPacket = BinaryDataPacket(domainPacket, dataSignal.getDescriptor(), payload.getLength());
+        auto buffer = static_cast<uint8_t*>(dataPacket.getRawData());
+        memcpy(buffer, payload.getData(), payload.getLength());
+        *domainBuffer = packet->getTimestamp();
 
-        *domainBuffer++ = packet->getTimestamp();
-        buffer += sizeof(EthernetData) + ethHeader->length;
+        dataSignal.sendPacket(dataPacket);
+        domainSignal.sendPacket(domainPacket);
     }
-
-    dataSignal.sendPacket(dataPacket);
-    domainSignal.sendPacket(domainPacket);
 }
 
 void StreamFb::processSyncData(const std::shared_ptr<Packet>& packet)

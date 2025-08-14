@@ -79,6 +79,7 @@ private:
     void createSignals();
     void buildDataDescriptor();
     void buildCanDescriptor();
+    void buildEthernetDescriptor();
     void buildAnalogDescriptor(const AnalogPayload& payload);
     void buildAsyncDomainDescriptor();
     void buildSyncDomainDescriptor(const float sampleInterval);
