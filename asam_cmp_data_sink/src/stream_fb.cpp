@@ -64,7 +64,7 @@ void StreamFb::receive(const std::vector<std::shared_ptr<Packet>>& packets)
     if (packets.front()->getPayload().getType() != payloadType)
         return;
 
-    switch (payloadType.getRawPayloadType())
+    switch (payloadType.getType())
     {
         case PayloadType::analog:
             for (auto& packet : packets)
@@ -141,13 +141,13 @@ void StreamFb::buildEthernetDescriptor()
 {
     auto metadata = Dict<IString, IString>();
     metadata["DataType"] = "Ethernet";
-    const auto canMsgDescriptor =
+    const auto ethernetMsgDescriptor =
         DataDescriptorBuilder()
         .setSampleType(SampleType::Binary)
         .setMetadata(metadata)
         .build();
 
-    dataSignal.setDescriptor(canMsgDescriptor);
+    dataSignal.setDescriptor(ethernetMsgDescriptor);
 }
 
 void StreamFb::buildAnalogDescriptor(const AnalogPayload& payload)
@@ -232,6 +232,7 @@ void StreamFb::processCanData(const std::vector<std::shared_ptr<Packet>>& packet
 
 void StreamFb::processEthernetData(const std::vector<std::shared_ptr<Packet>>& packets)
 {
+    static constexpr int analogMessagePayloadSize{6};
     for (auto& packet : packets)
     {
         auto timestamp = packet->getTimestamp();
@@ -240,10 +241,11 @@ void StreamFb::processEthernetData(const std::vector<std::shared_ptr<Packet>>& p
         auto domainBuffer = static_cast<uint64_t*>(domainPacket.getRawData());
 
         auto& payload = static_cast<const EthernetPayload&>(packet->getPayload());
+        auto payloadLen = payload.getLength() - analogMessagePayloadSize;
 
-        const auto dataPacket = BinaryDataPacket(domainPacket, dataSignal.getDescriptor(), payload.getLength());
+        const auto dataPacket = BinaryDataPacket(domainPacket, dataSignal.getDescriptor(), payloadLen);
         auto buffer = static_cast<uint8_t*>(dataPacket.getRawData());
-        memcpy(buffer, payload.getData(), payload.getLength());
+        memcpy(buffer, payload.getData(), payloadLen);
         *domainBuffer = packet->getTimestamp();
 
         dataSignal.sendPacket(dataPacket);

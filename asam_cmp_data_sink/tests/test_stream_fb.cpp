@@ -7,6 +7,7 @@
 #include <asam_cmp/analog_payload.h>
 #include <asam_cmp/can_payload.h>
 #include <asam_cmp/packet.h>
+#include <asam_cmp/ethernet_payload.h>
 #include <gtest/gtest.h>
 #include <opendaq/context_factory.h>
 #include <opendaq/event_packet_ids.h>
@@ -14,6 +15,7 @@
 #include <opendaq/reader_factory.h>
 #include <opendaq/scheduler_factory.h>
 #include <opendaq/search_filter_factory.h>
+#include <opendaq/data_packet_ptr.h>
 #include <thread>
 #include <chrono>
 
@@ -22,6 +24,7 @@ using namespace std::literals;
 using namespace daq;
 using ASAM::CMP::AnalogPayload;
 using ASAM::CMP::CanPayload;
+using ASAM::CMP::EthernetPayload;
 using ASAM::CMP::Packet;
 using daq::modules::asam_cmp_data_sink_module::CapturePacketsPublisher;
 using daq::modules::asam_cmp_data_sink_module::DataPacketsPublisher;
@@ -74,6 +77,7 @@ protected:
 
     static constexpr int canPayloadType = 1;
     static constexpr int analogPayloadType = 3;
+    static constexpr int ethernetPayloadType = 4;
 
 protected:
     DataPacketsPublisher publisher;
@@ -630,4 +634,76 @@ TYPED_TEST(StreamFbAnalogPayloadTest, PostScalingChanged)
 
     ASSERT_EQ(descriptor.getPostScaling(), LinearScaling(newSampleScalar, newSampleOffset, rawSampleType));
     ASSERT_EQ(descriptor.getValueRange(), Range(minValue, maxValue));
+}
+
+class StreamFbEthernetPayloadTest : public StreamFbTest
+{
+protected:
+    void SetUp() override
+    {
+        StreamFbTest::SetUp();
+
+        createEthernetPacket();
+    }
+
+    std::shared_ptr<Packet> createEthernetPacket()
+    {
+        EthernetPayload ethernetPayload;
+        ethernetPayload.setData(binaryData.data(), binaryData.size());
+
+        ethernetPacket = std::make_shared<Packet>();
+        ethernetPacket->setPayload(ethernetPayload);
+        auto timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        ethernetPacket->setTimestamp(timestamp);
+        ethernetPacket->setDeviceId(deviceId);
+        ethernetPacket->setInterfaceId(interfaceId);
+        ethernetPacket->setStreamId(streamId);
+
+        return ethernetPacket;
+    }
+
+protected:
+    std::shared_ptr<Packet> ethernetPacket;
+    // clang-format off
+    // Data size 16
+    std::vector<uint8_t> binaryData = {
+        // unused header of the payload
+        //0x00, 0x00, 0x00, 0x00, 0x3A, 0x00, // 6 bytes generated
+        // actual payload start
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x08, 0x00,
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x11, 0xFF, 0xFF, 0xC0, 0xA8,
+        0x0B, 0x04, 0xEF, 0x00, 0x00, 0x0B, 0xC7, 0x43, 0xC3, 0x5B, 0xFF, 0xFF, 0xFF, 0xFF, // 42
+        // data
+        0xAA, 0x00, 0x00, 0x02, 0x11, 0x22, 0xBB, 0x00, 0x00, 0x04, 0x33, 0x44, 0x55, 0x66, 0xFF, 0xFF // 16
+
+    };
+    // clang-format on
+
+    static constexpr std::size_t payloadHeaderSize{6};
+};
+
+TEST_F(StreamFbEthernetPayloadTest, ReadOutputEthernetSignal)
+{
+    interfaceFb.setPropertyValue("PayloadType", ethernetPayloadType);
+    const auto outputSignal = funcBlock.getSignalsRecursive()[0];
+
+    auto inputPort = InputPort(interfaceFb.getContext(), nullptr, "testinput");
+    inputPort.connect(outputSignal);
+    publisher.publish({ethernetPacket->getDeviceId(), ethernetPacket->getInterfaceId(), ethernetPacket->getStreamId()}, ethernetPacket);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    auto connection = inputPort.getConnection();
+    auto packet = connection.dequeue();
+
+    auto checkData = [&](DataPacketPtr packet) {
+        ASSERT_EQ(packet.getDataDescriptor().getSampleType(), SampleType::Binary);
+
+        ASSERT_EQ(packet.getDataSize(), binaryData.size());
+        auto receivedData = reinterpret_cast<uint8_t*>(packet.getRawData());
+        std::vector<uint8_t> receivedDataAsVector(receivedData, receivedData + binaryData.size());
+
+        ASSERT_EQ(receivedDataAsVector, binaryData);
+    };
+
+    checkData(connection.dequeue());
 }
