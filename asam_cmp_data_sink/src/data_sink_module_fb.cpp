@@ -8,6 +8,7 @@
 
 #include <SystemUtils.h>
 #include <asam_cmp_common_lib/ethernet_pcpp_impl.h>
+#include <Packet.h>
 
 #include <iostream>
 

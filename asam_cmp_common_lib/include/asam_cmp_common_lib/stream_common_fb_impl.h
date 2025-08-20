@@ -70,9 +70,9 @@ StreamCommonFbImpl<Interfaces...>::StreamCommonFbImpl(const ContextPtr& ctx,
                                                       const StringPtr& localId,
                                                       const StreamCommonInit& init)
     : FunctionBlockImpl<IFunctionBlock, IStreamCommon, Interfaces...>(CreateType(), ctx, parent, localId)
-    , streamIdManager(init.streamIdManager)
     , streamId(init.id)
     , payloadType(init.payloadType)
+    , streamIdManager(init.streamIdManager)
 {
     initProperties();
 }

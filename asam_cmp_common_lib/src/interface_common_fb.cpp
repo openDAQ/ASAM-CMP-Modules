@@ -42,7 +42,7 @@ void InterfaceCommonFb::initProperties()
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 
     propName = "PayloadType";
-    ListPtr<StringPtr> payloadTypes{"Undefined", "CAN", "CAN FD", "Analog"};
+    ListPtr<StringPtr> payloadTypes{"Undefined", "CAN", "CAN FD", "Analog", "Ethernet"};
     prop = SelectionPropertyBuilder(propName, payloadTypes, 0).build();
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) +=
@@ -172,7 +172,7 @@ FunctionBlockPtr InterfaceCommonFb::onAddFunctionBlock(const StringPtr& typeId, 
 }
 
 const static std::unordered_map<uint32_t, Int> payloadTypeToIndexMap = {
-    {PayloadType::invalid, 0}, {PayloadType::can, 1}, {PayloadType::canFd, 2}, {PayloadType::analog, 3}};
+    {PayloadType::invalid, 0}, {PayloadType::can, 1}, {PayloadType::canFd, 2}, {PayloadType::analog, 3}, {PayloadType::ethernet, 4}};
 
 const std::vector<uint32_t> indexToPayloadTypeMap = []() {
     std::vector<uint32_t> vec;

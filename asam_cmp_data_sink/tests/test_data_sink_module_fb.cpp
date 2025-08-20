@@ -11,6 +11,8 @@
 #include <asam_cmp_data_sink/data_sink_module_fb.h>
 #include <asam_cmp_data_sink/module_dll.h>
 
+#include <Packet.h>
+
 using namespace daq;
 using daq::asam_cmp_common_lib::PcppPacketReceivedCallbackType;
 

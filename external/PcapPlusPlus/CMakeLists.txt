@@ -15,9 +15,27 @@ if(WIN32)
     SET(PCAP_ROOT ${npcapsdk_SOURCE_DIR})
 endif()
 
+
+set(_OLD_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+set(_OLD_CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+
+if (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4505 /wd26444")
+    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   /wd4505 /wd26444")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-implicit-fallthrough -Wno-unused-function")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-implicit-fallthrough -Wno-unused-function")
+endif()
+
 FetchContent_Declare(
     PcapPlusPlus
     GIT_REPOSITORY https://github.com/seladb/PcapPlusPlus.git
-    GIT_TAG v24.09
+    GIT_TAG v25.05
 )
+if(WIN32)
+    set(PCAP_LINKS_SOLO ON)
+endif()
 FetchContent_MakeAvailable(PcapPlusPlus)
+ 
+set(CMAKE_CXX_FLAGS "${_OLD_CMAKE_CXX_FLAGS}")
+set(CMAKE_C_FLAGS "${_OLD_CMAKE_C_FLAGS}")
