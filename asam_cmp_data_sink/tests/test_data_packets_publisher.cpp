@@ -2,6 +2,7 @@
 #include <gmock/gmock.h>
 
 #include <asam_cmp_data_sink/data_packets_publisher.h>
+#include <Packet.h>
 
 using namespace daq;
 

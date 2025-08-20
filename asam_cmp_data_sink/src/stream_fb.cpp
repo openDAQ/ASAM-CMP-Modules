@@ -2,6 +2,7 @@
 
 #include <asam_cmp_common_lib/unit_converter.h>
 #include <asam_cmp_data_sink/stream_fb.h>
+#include <opendaq/binary_data_packet_factory.h>
 
 
 #include <chrono>
@@ -63,14 +64,19 @@ void StreamFb::receive(const std::vector<std::shared_ptr<Packet>>& packets)
     if (packets.front()->getPayload().getType() != payloadType)
         return;
 
-    if (payloadType == PayloadType::analog)
+    switch (payloadType.getType())
     {
-        for (auto& packet : packets)
-            processSyncData(packet);
-    }
-    else
-    {
-        processAsyncData(packets);
+        case PayloadType::analog:
+            for (auto& packet : packets)
+                processSyncData(packet);
+            break;
+        case PayloadType::can:
+        case PayloadType::canFd:
+            processCanData(packets);
+            break;
+        case PayloadType::ethernet:
+            processEthernetData(packets);
+            break;
     }
 }
 
@@ -104,6 +110,9 @@ void StreamFb::buildDataDescriptor()
             break;
         case PayloadType::analog:
             break;
+        case PayloadType::ethernet:
+            buildEthernetDescriptor();
+            break;
     }
 }
 
@@ -126,6 +135,19 @@ void StreamFb::buildCanDescriptor()
                                       .build();
 
     dataSignal.setDescriptor(canMsgDescriptor);
+}
+
+void StreamFb::buildEthernetDescriptor()
+{
+    auto metadata = Dict<IString, IString>();
+    metadata["DataType"] = "Ethernet";
+    const auto ethernetMsgDescriptor =
+        DataDescriptorBuilder()
+        .setSampleType(SampleType::Binary)
+        .setMetadata(metadata)
+        .build();
+
+    dataSignal.setDescriptor(ethernetMsgDescriptor);
 }
 
 void StreamFb::buildAnalogDescriptor(const AnalogPayload& payload)
@@ -182,7 +204,7 @@ void StreamFb::buildSyncDomainDescriptor(const float sampleInterval)
     analogHeader.setSampleInterval(sampleInterval);
 }
 
-void StreamFb::processAsyncData(const std::vector<std::shared_ptr<Packet>>& packets)
+void StreamFb::processCanData(const std::vector<std::shared_ptr<Packet>>& packets)
 {
     const uint64_t newSamples = packets.size();
     auto timestamp = packets.front()->getTimestamp();
@@ -195,13 +217,11 @@ void StreamFb::processAsyncData(const std::vector<std::shared_ptr<Packet>>& pack
 
     for (auto& packet : packets)
     {
-        switch (payloadType.getType())
-        {
-            case PayloadType::can:
-            case PayloadType::canFd:
-                fillCanData(buffer, packet);
-                break;
-        }
+        auto& payload = static_cast<const CanPayload&>(packet->getPayload());
+        buffer->arbId = payload.getId();
+        buffer->length = payload.getDataLength();
+        memcpy(buffer->data, payload.getData(), buffer->length);
+
         *domainBuffer++ = packet->getTimestamp();
         buffer++;
     }
@@ -210,13 +230,27 @@ void StreamFb::processAsyncData(const std::vector<std::shared_ptr<Packet>>& pack
     domainSignal.sendPacket(domainPacket);
 }
 
-void StreamFb::fillCanData(CANData* const data, const std::shared_ptr<Packet>& packet)
+void StreamFb::processEthernetData(const std::vector<std::shared_ptr<Packet>>& packets)
 {
-    auto& payload = static_cast<const CanPayload&>(packet->getPayload());
+    static constexpr size_t analogMessagePayloadSize{6};
+    for (auto& packet : packets)
+    {
+        auto timestamp = packet->getTimestamp();
 
-    data->arbId = payload.getId();
-    data->length = payload.getDataLength();
-    memcpy(data->data, payload.getData(), data->length);
+        const auto domainPacket = DataPacket(domainSignal.getDescriptor(), 1, timestamp);
+        auto domainBuffer = static_cast<uint64_t*>(domainPacket.getRawData());
+
+        auto& payload = static_cast<const EthernetPayload&>(packet->getPayload());
+        auto payloadLen = payload.getLength() - analogMessagePayloadSize;
+
+        const auto dataPacket = BinaryDataPacket(domainPacket, dataSignal.getDescriptor(), payloadLen);
+        auto buffer = static_cast<uint8_t*>(dataPacket.getRawData());
+        memcpy(buffer, payload.getData(), payloadLen);
+        *domainBuffer = packet->getTimestamp();
+
+        dataSignal.sendPacket(dataPacket);
+        domainSignal.sendPacket(domainPacket);
+    }
 }
 
 void StreamFb::processSyncData(const std::shared_ptr<Packet>& packet)

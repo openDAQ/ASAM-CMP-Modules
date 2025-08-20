@@ -24,9 +24,9 @@ CaptureFb::CaptureFb(const ContextPtr& ctx,
                      CapturePacketsPublisher& capturePacketsPublisher,
                      ASAM::CMP::DeviceStatus&& deviceStatus)
     : CaptureCommonFbImpl(ctx, parent, localId)
+    , deviceStatus(std::move(deviceStatus))
     , dataPacketsPublisher(dataPacketsPublisher)
     , capturePacketsPublisher(capturePacketsPublisher)
-    , deviceStatus(std::move(deviceStatus))
 {
     initDeviceInfoProperties(true);
     setProperties();

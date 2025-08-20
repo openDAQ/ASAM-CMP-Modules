@@ -15,9 +15,9 @@ InterfaceFb::InterfaceFb(const ContextPtr& ctx,
                          const asam_cmp_common_lib::InterfaceCommonInit& init,
                          const InterfaceFbInit& internalInit)
     : InterfaceCommonFb(ctx, parent, localId, init)
+    , statusSync(internalInit.statusSync)
     , encoders(internalInit.encoders)
     , deviceStatus(internalInit.deviceStatus)
-    , statusSync(internalInit.statusSync)
     , vendorDataAsString("")
     , ethernetWrapper(internalInit.ethernetWrapper)
     , allowJumboFrames(internalInit.allowJumboFrames)
