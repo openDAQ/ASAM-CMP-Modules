@@ -649,7 +649,7 @@ protected:
     std::shared_ptr<Packet> createEthernetPacket()
     {
         EthernetPayload ethernetPayload;
-        ethernetPayload.setData(binaryData.data(), binaryData.size());
+        ethernetPayload.setData(binaryData.data(), (uint16_t)binaryData.size());
 
         ethernetPacket = std::make_shared<Packet>();
         ethernetPacket->setPayload(ethernetPayload);

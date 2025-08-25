@@ -19,6 +19,7 @@ set(TEST_HEADERS
 
 if (MSVC)
     add_compile_options(/bigobj)
+    add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:/wd4459>)
 endif()
 
 

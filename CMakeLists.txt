@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.25)
 set(REPO_NAME asam_cmp_modules)
 set(REPO_OPTION_PREFIX ASAM_CMP)
 
+if (MSVC)
+    add_compile_options(/bigobj)
+endif()
+
 project(${REPO_NAME} VERSION 1.0.0)
 
 if (POLICY CMP0135)

@@ -12,6 +12,7 @@ set(TEST_SOURCES test_app.cpp
 
 if (MSVC)
     add_compile_options(/bigobj)
+    add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:/wd4459>)
 endif()
 
 add_executable(${TEST_APP} ${TEST_SOURCES}
