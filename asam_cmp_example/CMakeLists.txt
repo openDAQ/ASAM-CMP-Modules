@@ -1,5 +1,9 @@
 add_executable(asam_cmp_modules_example main.cpp)
 
+if (MSVC)
+    add_compile_options(/bigobj)
+endif()
+
 target_link_libraries(asam_cmp_modules_example PRIVATE
     daq::opendaq
 )
