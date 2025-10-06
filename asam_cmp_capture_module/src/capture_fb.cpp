@@ -114,17 +114,11 @@ void CaptureFb::statusLoop()
                     ethernetWrapper->sendPacket(e);
             };
 
-
-            auto encodedData = encoders.encode(1, captureStatus.getPacket(), encoderContext);
-            for (const auto& e : encodedData)
-                ethernetWrapper->sendPacket(e);
-
-           
+            encodeAndSend(captureStatus.getPacket());
+          
             for (SizeT i = 0; i < captureStatus.getInterfaceStatusCount(); ++i)
             {
-                encodedData = encoders.encode(1, captureStatus.getInterfaceStatus(i).getPacket(), encoderContext);
-                for (const auto& e : encodedData)
-                    ethernetWrapper->sendPacket(e);
+                encodeAndSend(captureStatus.getInterfaceStatus(i).getPacket());
             }
         }
     }
