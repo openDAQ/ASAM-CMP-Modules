@@ -50,7 +50,7 @@ void setFilters(pcpp::PcapLiveDevice* device)
 
 pcpp::PcapLiveDevice* EthernetPcppImpl::getPcapLiveDevice(const StringPtr& deviceName) const
 {
-    auto pcapLiveDevice = pcapDeviceList.getPcapLiveDeviceByName(deviceName);
+    auto pcapLiveDevice = pcapDeviceList.getDeviceByName(deviceName);
     if (!pcapLiveDevice)
     {
         std::string err = fmt::format("Can't find device {}", deviceName);
@@ -115,7 +115,7 @@ void EthernetPcppImpl::sendPacket(const std::vector<uint8_t>& data)
     pcpp::PayloadLayer payloadLayer(data.data(), data.size());
     // create a packet with initial capacity of 100 bytes (will grow automatically if needed)
     pcpp::Packet newPacket(100);
-    bool res = newPacket.addLayer(&newEthernetLayer);
+    [[maybe_unused]] bool res = newPacket.addLayer(&newEthernetLayer);
     assert(res);
     res = newPacket.addLayer(&payloadLayer);
     assert(res);
