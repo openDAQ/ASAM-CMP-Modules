@@ -4,7 +4,7 @@ BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
 void EncoderBank::init(uint16_t deviceId)
 {
-    for (int i = 0; i < encodersCount; ++i){
+    for (size_t i = 0; i < encodersCount; ++i){
         encoders[i].setDeviceId(deviceId);
         encoders[i].setStreamId(i);
     }
