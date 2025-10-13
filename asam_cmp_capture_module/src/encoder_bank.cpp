@@ -6,7 +6,7 @@ void EncoderBank::init(uint16_t deviceId)
 {
     for (size_t i = 0; i < encodersCount; ++i){
         encoders[i].setDeviceId(deviceId);
-        encoders[i].setStreamId(i);
+        encoders[i].setStreamId(static_cast<uint8_t>(i));
     }
 }
 
