@@ -28,7 +28,8 @@ BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 class DataSinkFb final : public FunctionBlock
 {
 public:
-    explicit DataSinkFb(const ContextPtr& ctx,
+    explicit DataSinkFb(const ModuleInfoPtr& moduleInfo,
+                        const ContextPtr& ctx,
                         const ComponentPtr& parent,
                         const StringPtr& localId,
                         StatusMt statusMt,
@@ -36,7 +37,7 @@ public:
                         CapturePacketsPublisher& capturePacketsPublisher);
     ~DataSinkFb() override = default;
 
-    static FunctionBlockTypePtr CreateType();
+    static FunctionBlockTypePtr CreateType(const ModuleInfoPtr& moduleInfo);
 
     DictPtr<IString, IFunctionBlockType> onGetAvailableFunctionBlockTypes() override;
     FunctionBlockPtr onAddFunctionBlock(const StringPtr& typeId, const PropertyObjectPtr& config) override;

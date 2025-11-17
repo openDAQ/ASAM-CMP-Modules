@@ -18,6 +18,7 @@
 #include <coreobjects/argument_info_factory.h>
 #include <coreobjects/callable_info_factory.h>
 #include <opendaq/function_block_impl.h>
+#include <opendaq/component_type_private.h>
 
 #include <asam_cmp_common_lib/common.h>
 #include <asam_cmp_common_lib/id_manager.h>
@@ -29,10 +30,13 @@ template <typename... Interfaces>
 class CaptureCommonFbImpl : public FunctionBlockImpl<IFunctionBlock, Interfaces...>
 {
 public:
-    explicit CaptureCommonFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
+    explicit CaptureCommonFbImpl(const ModuleInfoPtr& moduleInfo,
+                                 const ContextPtr& ctx,
+                                 const ComponentPtr& parent,
+                                 const StringPtr& localId);
     ~CaptureCommonFbImpl() override = default;
 
-    static FunctionBlockTypePtr CreateType();
+    static FunctionBlockTypePtr CreateType(const ModuleInfoPtr& moduleInfo);
 
     DictPtr<IString, IFunctionBlockType> onGetAvailableFunctionBlockTypes() override;
     FunctionBlockPtr onAddFunctionBlock(const StringPtr& typeId, const PropertyObjectPtr& config) override;
@@ -77,16 +81,21 @@ private:
 using CaptureCommonFb = CaptureCommonFbImpl<>;
 
 template <typename... Interfaces>
-CaptureCommonFbImpl<Interfaces...>::CaptureCommonFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId)
-    : FunctionBlockImpl<IFunctionBlock, Interfaces...>(CreateType(), ctx, parent, localId)
+CaptureCommonFbImpl<Interfaces...>::CaptureCommonFbImpl(const ModuleInfoPtr& moduleInfo,
+                                                        const ContextPtr& ctx,
+                                                        const ComponentPtr& parent,
+                                                        const StringPtr& localId)
+    : FunctionBlockImpl<IFunctionBlock, Interfaces...>(CreateType(moduleInfo), ctx, parent, localId)
 {
     initProperties();
 }
 
 template <typename... Interfaces>
-FunctionBlockTypePtr CaptureCommonFbImpl<Interfaces...>::CreateType()
+FunctionBlockTypePtr CaptureCommonFbImpl<Interfaces...>::CreateType(const ModuleInfoPtr& moduleInfo)
 {
-    return FunctionBlockType("AsamCmpCapture", "AsamCmpCapture", "ASAM CMP Capture");
+    auto fbType =  FunctionBlockType("AsamCmpCapture", "AsamCmpCapture", "ASAM CMP Capture");
+    checkErrorInfo(fbType.asPtr<IComponentTypePrivate>(true)->setModuleInfo(moduleInfo));
+    return fbType;
 }
 
 template <typename... Interfaces>
@@ -156,7 +165,7 @@ FunctionBlockPtr CaptureCommonFbImpl<Interfaces...>::addInterfaceWithParams(uint
 
     StringPtr fbName = fmt::format("Interface {}", createdInterfaces);
     StringPtr fbId = fmt::format("Interface_{}", createdInterfaces++);
-    auto newFb = createWithImplementation<IFunctionBlock, Impl>(this->context, this->functionBlocks, fbId, init, std::forward<Params>(params)...);
+    auto newFb = createWithImplementation<IFunctionBlock, Impl>(this->type.getModuleInfo(), this->context, this->functionBlocks, fbId, init, std::forward<Params>(params)...);
     newFb.setName(fbName);
     interfaceIdManager.addId(interfaceId);
     this->addNestedFunctionBlock(newFb);
@@ -253,14 +262,14 @@ void CaptureCommonFbImpl<Interfaces...>::propertyChangedIfNotUpdating()
 template <typename... Interfaces>
 DictPtr<IString, IFunctionBlockType> CaptureCommonFbImpl<Interfaces...>::onGetAvailableFunctionBlockTypes()
 {
-    auto type = InterfaceCommonFb::CreateType();
-    return Dict<IString, IFunctionBlockType>({{type.getId(), type}});
+    auto itfType = InterfaceCommonFb::CreateType(this->type.getModuleInfo());
+    return Dict<IString, IFunctionBlockType>({{itfType.getId(), itfType}});
 }
 
 template <typename... Interfaces>
 FunctionBlockPtr CaptureCommonFbImpl<Interfaces...>::onAddFunctionBlock(const StringPtr& typeId, const PropertyObjectPtr& config)
 {
-    if (typeId == InterfaceCommonFb::CreateType().getId())
+    if (typeId == InterfaceCommonFb::CreateType(type.getModuleInfo()).getId())
     {
         addInterface();
         auto interfaceFb = this->functionBlocks.getItems().getItemAt(this->functionBlocks.getItems().getCount() - 1);

@@ -1,6 +1,7 @@
 #include <coreobjects/argument_info_factory.h>
 #include <coreobjects/callable_info_factory.h>
 #include <coretypes/listobject_factory.h>
+#include <opendaq/component_type_private.h>
 
 #include <asam_cmp_common_lib/interface_common_fb.h>
 #include <asam_cmp_common_lib/stream_common_fb_impl.h>
@@ -10,11 +11,12 @@ BEGIN_NAMESPACE_ASAM_CMP_COMMON
 
 using ASAM::CMP::PayloadType;
 
-InterfaceCommonFb::InterfaceCommonFb(const ContextPtr& ctx,
+InterfaceCommonFb::InterfaceCommonFb(const ModuleInfoPtr& moduleInfo,
+                                     const ContextPtr& ctx,
                                      const ComponentPtr& parent,
                                      const StringPtr& localId,
                                      const InterfaceCommonInit& init)
-    : FunctionBlock(CreateType(), ctx, parent, localId)
+    : FunctionBlock(CreateType(moduleInfo), ctx, parent, localId)
     , interfaceIdManager(init.interfaceIdManager)
     , interfaceId(init.id)
     , payloadType(0)
@@ -25,9 +27,11 @@ InterfaceCommonFb::InterfaceCommonFb(const ContextPtr& ctx,
     initProperties();
 }
 
-FunctionBlockTypePtr InterfaceCommonFb::CreateType()
+FunctionBlockTypePtr InterfaceCommonFb::CreateType(const ModuleInfoPtr& moduleInfo)
 {
-    return FunctionBlockType("AsamCmpInterface", "AsamCmpInterface", "ASAM CMP Interface");
+    auto fbType =  FunctionBlockType("AsamCmpInterface", "AsamCmpInterface", "ASAM CMP Interface");
+    checkErrorInfo(fbType.asPtr<IComponentTypePrivate>(true)->setModuleInfo(moduleInfo));
+    return fbType;
 }
 
 void InterfaceCommonFb::initProperties()
@@ -155,13 +159,13 @@ void InterfaceCommonFb::propertyChangedIfNotUpdating()
 
 DictPtr<IString, IFunctionBlockType> InterfaceCommonFb::onGetAvailableFunctionBlockTypes()
 {
-    auto type = StreamCommonFb::CreateType();
-    return Dict<IString, IFunctionBlockType>({{type.getId(), type}});
+    auto streamType = StreamCommonFb::CreateType(this->type.getModuleInfo());
+    return Dict<IString, IFunctionBlockType>({ {streamType.getId(), streamType} });
 }
 
 FunctionBlockPtr InterfaceCommonFb::onAddFunctionBlock(const StringPtr& typeId, const PropertyObjectPtr& config)
 {
-    if (typeId == StreamCommonFb::CreateType().getId())
+    if (typeId == StreamCommonFb::CreateType(this->type.getModuleInfo()).getId())
     {
         addStream();
         auto streamFb = this->functionBlocks.getItems().getItemAt(this->functionBlocks.getItems().getCount() - 1);

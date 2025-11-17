@@ -26,7 +26,7 @@ protected:
     {
         auto logger = Logger();
         funcBlock = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::StatusFbImpl>(
-            Context(Scheduler(logger), logger, TypeManager(), nullptr), nullptr, "asam_cmp_status");
+            moduleInfo, Context(Scheduler(logger), logger, TypeManager(), nullptr), nullptr, "asam_cmp_status");
 
         statusMt = std::make_unique<StatusMt>(funcBlock.asPtr<IStatusHandler>(true)->getStatusMt());
         cmPayload.setData(deviceDescr, "", "", "", {});
@@ -42,6 +42,7 @@ protected:
     bool checkDescription(const StringPtr& description, std::string_view deviceDescr, const uint16_t deviceId, size_t interfacesCount);
 
 protected:
+    ModuleInfoPtr moduleInfo{};
     FunctionBlockPtr funcBlock;
 
     CaptureModulePayload cmPayload;

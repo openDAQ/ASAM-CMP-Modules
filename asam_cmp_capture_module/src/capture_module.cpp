@@ -18,7 +18,7 @@ DictPtr<IString, IFunctionBlockType> CaptureModule::onGetAvailableFunctionBlockT
 {
     auto types = Dict<IString, IFunctionBlockType>();
 
-    auto typeCaptureModule = CaptureModuleFb::CreateType();
+    auto typeCaptureModule = CaptureModuleFb::CreateType(moduleInfo);
     types.set(typeCaptureModule.getId(), typeCaptureModule);
 
     return types;
@@ -29,9 +29,9 @@ FunctionBlockPtr CaptureModule::onCreateFunctionBlock(const StringPtr& id,
                                                              const StringPtr& localId,
                                                              const PropertyObjectPtr& config)
 {
-    if (id == CaptureModuleFb::CreateType().getId())
+    if (id == CaptureModuleFb::CreateType(moduleInfo).getId())
     {
-        FunctionBlockPtr fb = CaptureModuleFb::create(context, parent, localId);
+        FunctionBlockPtr fb = CaptureModuleFb::create(moduleInfo,context, parent, localId);
         return fb;
     }
 

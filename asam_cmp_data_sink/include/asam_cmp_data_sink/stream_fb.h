@@ -56,7 +56,8 @@ private:
     using AnalogPayload = ASAM::CMP::AnalogPayload;
 
 public:
-    explicit StreamFb(const ContextPtr& ctx,
+    explicit StreamFb(const ModuleInfoPtr& moduleInfo,
+                      const ContextPtr& ctx,
                       const ComponentPtr& parent,
                       const StringPtr& localId,
                       const asam_cmp_common_lib::StreamCommonInit& init,

@@ -24,11 +24,12 @@ protected:
         auto logger = Logger();
         context = Context(Scheduler(logger), logger, TypeManager(), nullptr);
         statusFb =
-            createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::StatusFbImpl>(context, nullptr, "asam_cmp_status");
+            createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::StatusFbImpl>(
+                moduleInfo, context, nullptr, "asam_cmp_status");
         statusHandler = statusFb.asPtrOrNull<IStatusHandler>();
 
         funcBlock = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::DataSinkFb>(
-            context, nullptr, "asam_cmp_data_sink", statusHandler->getStatusMt(), publisher, capturePacketPublisher);
+            moduleInfo, context, nullptr, "asam_cmp_data_sink", statusHandler->getStatusMt(), publisher, capturePacketPublisher);
 
         CaptureModulePayload cmPayload;
         std::vector<uint8_t> vendorData = std::vector<uint8_t>(begin(vendorDataAsString), end(vendorDataAsString));
@@ -60,6 +61,7 @@ protected:
     modules::asam_cmp_data_sink_module::DataPacketsPublisher publisher;
     modules::asam_cmp_data_sink_module::CapturePacketsPublisher capturePacketPublisher;
     ContextPtr context;
+    ModuleInfoPtr moduleInfo{};
     FunctionBlockPtr funcBlock;
     FunctionBlockPtr statusFb;
     IStatusHandler* statusHandler;
@@ -87,7 +89,10 @@ TEST_F(DataSinkFbTest, AvailableFunctionBlockTypes)
     auto availableTypes = funcBlock.getAvailableFunctionBlockTypes();
     ASSERT_EQ(availableTypes.getCount(), 1u);
     ASSERT_TRUE(availableTypes.hasKey("AsamCmpCapture"));
-    ASSERT_EQ(availableTypes.get("AsamCmpCapture"), CaptureFb::CreateType());
+    ASSERT_EQ(
+        availableTypes.get("AsamCmpCapture"),
+        CaptureFb::CreateType(funcBlock.getFunctionBlockType().getModuleInfo())
+    );
 }
 
 TEST_F(DataSinkFbTest, OnAddFunctionBlocks)

@@ -57,7 +57,7 @@ protected:
     {
         auto logger = Logger();
         captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
-            Context(Scheduler(logger), logger, TypeManager(), nullptr), nullptr, "capture_module_0", publisher, capturePacketsPublisher);
+            moduleInfo, Context(Scheduler(logger), logger, TypeManager(), nullptr), nullptr, "capture_module_0", publisher, capturePacketsPublisher);
 
         captureFb.getPropertyValue("AddInterface").execute();
         interfaceFb = captureFb.getFunctionBlocks().getItemAt(0);
@@ -80,6 +80,7 @@ protected:
     static constexpr int ethernetPayloadType = 4;
 
 protected:
+    ModuleInfoPtr moduleInfo{};
     DataPacketsPublisher publisher;
     CapturePacketsPublisher capturePacketsPublisher;
     FunctionBlockPtr captureFb;

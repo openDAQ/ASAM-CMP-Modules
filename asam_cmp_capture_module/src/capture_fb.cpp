@@ -9,8 +9,12 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-CaptureFb::CaptureFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, const CaptureFbInit& init)
-    : asam_cmp_common_lib::CaptureCommonFb(ctx, parent, localId)
+CaptureFb::CaptureFb(const ModuleInfoPtr& moduleInfo,
+                     const ContextPtr& ctx,
+                     const ComponentPtr& parent,
+                     const StringPtr& localId,
+                     const CaptureFbInit& init)
+    : asam_cmp_common_lib::CaptureCommonFb(moduleInfo, ctx, parent, localId)
     , allowJumboFrames(false)
     , ethernetWrapper(init.ethernetWrapper)
     , selectedEthernetDeviceName(init.selectedDeviceName)

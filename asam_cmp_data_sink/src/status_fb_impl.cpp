@@ -1,19 +1,24 @@
 #include <asam_cmp/capture_module_payload.h>
 #include <coreobjects/callable_info_factory.h>
-
+#include <opendaq/component_type_private.h>
 #include <asam_cmp_data_sink/status_fb_impl.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-StatusFbImpl::StatusFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId)
-    : FunctionBlockImpl(CreateType(), ctx, parent, localId)
+StatusFbImpl::StatusFbImpl(const ModuleInfoPtr& moduleInfo,
+                           const ContextPtr& ctx,
+                           const ComponentPtr& parent,
+                           const StringPtr& localId)
+    : FunctionBlockImpl(CreateType(moduleInfo), ctx, parent, localId)
 {
     initProperties();
 }
 
-FunctionBlockTypePtr StatusFbImpl::CreateType()
+FunctionBlockTypePtr StatusFbImpl::CreateType(const ModuleInfoPtr& moduleInfo)
 {
-    return FunctionBlockType("AsamCmpStatus", "AsamCmpStatus", "ASAM CMP Status");
+    auto fbType = FunctionBlockType("AsamCmpStatus", "AsamCmpStatus", "ASAM CMP Status");
+    checkErrorInfo(fbType.asPtr<IComponentTypePrivate>(true)->setModuleInfo(moduleInfo));
+    return fbType;
 }
 
 void StatusFbImpl::processStatusPacket(const std::shared_ptr<ASAM::CMP::Packet>& packet)

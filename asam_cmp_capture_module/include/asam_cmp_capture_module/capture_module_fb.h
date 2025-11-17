@@ -26,11 +26,18 @@ BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 class CaptureModuleFb final : public asam_cmp_common_lib::NetworkManagerFb
 {
 public:
-    explicit CaptureModuleFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, const std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf>& ethernetWrapper);
+    explicit CaptureModuleFb(const ModuleInfoPtr& moduleInfo,
+                             const ContextPtr& ctx,
+                             const ComponentPtr& parent,
+                             const StringPtr& localId,
+                             const std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf>& ethernetWrapper);
     ~CaptureModuleFb() override = default;
 
-    static FunctionBlockTypePtr CreateType();
-    static FunctionBlockPtr create(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
+    static FunctionBlockTypePtr CreateType(const ModuleInfoPtr& moduleInfo);
+    static FunctionBlockPtr create(const ModuleInfoPtr& moduleInfo,
+                                   const ContextPtr& ctx,
+                                   const ComponentPtr& parent,
+                                   const StringPtr& localId);
 
 private:
     void createFbs();

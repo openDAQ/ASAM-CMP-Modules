@@ -5,26 +5,28 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-InterfaceFb::InterfaceFb(const ContextPtr& ctx,
+InterfaceFb::InterfaceFb(const ModuleInfoPtr& moduleInfo,
+                         const ContextPtr& ctx,
                          const ComponentPtr& parent,
                          const StringPtr& localId,
                          const asam_cmp_common_lib::InterfaceCommonInit& init,
                          const uint16_t& deviceId,
                          DataPacketsPublisher& publisher)
-    : InterfaceCommonFb(ctx, parent, localId, init)
+    : InterfaceCommonFb(moduleInfo, ctx, parent, localId, init)
     , publisher(publisher)
     , deviceId(deviceId)
 {
 }
 
-InterfaceFb::InterfaceFb(const ContextPtr& ctx,
+InterfaceFb::InterfaceFb(const ModuleInfoPtr& moduleInfo,
+                         const ContextPtr& ctx,
                          const ComponentPtr& parent,
                          const StringPtr& localId,
                          const asam_cmp_common_lib::InterfaceCommonInit& init,
                          const uint16_t& deviceId,
                          DataPacketsPublisher& publisher,
                          ASAM::CMP::InterfaceStatus&& ifStatus)
-    : InterfaceCommonFb(ctx, parent, localId, init)
+    : InterfaceCommonFb(moduleInfo, ctx, parent, localId, init)
     , interfaceStatus(std::move(ifStatus))
     , publisher(publisher)
     , deviceId(deviceId)

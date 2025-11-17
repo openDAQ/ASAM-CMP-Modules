@@ -45,13 +45,13 @@ struct InterfaceFbInit
 class InterfaceFb final : public asam_cmp_common_lib::InterfaceCommonFb
 {
 public:
-    explicit InterfaceFb(const ContextPtr& ctx,
-                                    const ComponentPtr& parent,
-                                    const StringPtr& localId,
-                                    const asam_cmp_common_lib::InterfaceCommonInit& commonInit,
-                                    const InterfaceFbInit& internalInit);
+    explicit InterfaceFb(const ModuleInfoPtr& modulenifo,
+                         const ContextPtr& ctx,
+                         const ComponentPtr& parent,
+                         const StringPtr& localId,
+                         const asam_cmp_common_lib::InterfaceCommonInit& commonInit,
+                        const InterfaceFbInit& internalInit);
     ~InterfaceFb() override = default;
-    static FunctionBlockTypePtr CreateType();
 
 private:
     void initProperties();

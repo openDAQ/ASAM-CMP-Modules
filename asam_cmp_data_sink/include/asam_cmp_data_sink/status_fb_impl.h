@@ -26,10 +26,10 @@ BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 class StatusFbImpl final : public FunctionBlockImpl<IFunctionBlock, IStatusHandler>
 {
 public:
-    explicit StatusFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
+    explicit StatusFbImpl(const ModuleInfoPtr& moduleInfo, const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
     ~StatusFbImpl() override = default;
 
-    static FunctionBlockTypePtr CreateType();
+    static FunctionBlockTypePtr CreateType(const ModuleInfoPtr& moduleInfo);
 
 public:
     void processStatusPacket(const std::shared_ptr<ASAM::CMP::Packet>& packet) override;

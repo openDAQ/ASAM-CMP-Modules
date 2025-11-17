@@ -24,12 +24,13 @@ constexpr std::string_view InputInvalid{"Invalid"};
 constexpr std::string_view IsClientScaling{"$IsConnectedAnalogSignal == true && $IsClientPostScaling == false"};
 constexpr std::string_view IsClientRange{"$IsConnectedAnalogSignal == true && $IsClientPostScaling == true"};
 
-StreamFb::StreamFb(const ContextPtr& ctx,
+StreamFb::StreamFb(const ModuleInfoPtr& moduleInfo,
+                   const ContextPtr& ctx,
                    const ComponentPtr& parent,
                    const StringPtr& localId,
                    const asam_cmp_common_lib::StreamCommonInit& init,
                    const StreamInit& internalInit)
-    : asam_cmp_common_lib::StreamCommonFb(ctx, parent, localId, init)
+    : asam_cmp_common_lib::StreamCommonFb(moduleInfo, ctx, parent, localId, init)
     , interfaceId(internalInit.interfaceId)
     , streamIdsList(internalInit.streamIdsList)
     , statusSync(internalInit.statusSync)

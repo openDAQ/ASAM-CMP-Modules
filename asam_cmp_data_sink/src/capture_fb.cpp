@@ -5,25 +5,27 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-CaptureFb::CaptureFb(const ContextPtr& ctx,
+CaptureFb::CaptureFb(const ModuleInfoPtr& moduleInfo,
+                     const ContextPtr& ctx,
                      const ComponentPtr& parent,
                      const StringPtr& localId,
                      DataPacketsPublisher& dataPacketsPublisher,
                      CapturePacketsPublisher& capturePacketsPublisher)
-    : CaptureCommonFbImpl(ctx, parent, localId)
+    : CaptureCommonFbImpl(moduleInfo, ctx, parent, localId)
     , dataPacketsPublisher(dataPacketsPublisher)
     , capturePacketsPublisher(capturePacketsPublisher)
 {
     initDeviceInfoProperties(true);
 }
 
-CaptureFb::CaptureFb(const ContextPtr& ctx,
+CaptureFb::CaptureFb(const ModuleInfoPtr& moduleInfo,
+                     const ContextPtr& ctx,
                      const ComponentPtr& parent,
                      const StringPtr& localId,
                      DataPacketsPublisher& dataPacketsPublisher,
                      CapturePacketsPublisher& capturePacketsPublisher,
                      ASAM::CMP::DeviceStatus&& deviceStatus)
-    : CaptureCommonFbImpl(ctx, parent, localId)
+    : CaptureCommonFbImpl(moduleInfo, ctx, parent, localId)
     , deviceStatus(std::move(deviceStatus))
     , dataPacketsPublisher(dataPacketsPublisher)
     , capturePacketsPublisher(capturePacketsPublisher)

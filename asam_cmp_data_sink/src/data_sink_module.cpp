@@ -18,20 +18,20 @@ DictPtr<IString, IFunctionBlockType> DataSinkModule::onGetAvailableFunctionBlock
 {
     auto types = Dict<IString, IFunctionBlockType>();
 
-    auto typeStatistics = DataSinkModuleFb::CreateType();
+    auto typeStatistics = DataSinkModuleFb::CreateType(moduleInfo);
     types.set(typeStatistics.getId(), typeStatistics);
 
     return types;
 }
 
 FunctionBlockPtr DataSinkModule::onCreateFunctionBlock(const StringPtr& id,
-                                                              const ComponentPtr& parent,
-                                                              const StringPtr& localId,
-                                                              const PropertyObjectPtr& config)
+                                                       const ComponentPtr& parent,
+                                                       const StringPtr& localId,
+                                                       const PropertyObjectPtr& config)
 {
-    if (id == DataSinkModuleFb::CreateType().getId())
+    if (id == DataSinkModuleFb::CreateType(moduleInfo).getId())
     {
-        FunctionBlockPtr fb = DataSinkModuleFb::create(context, parent, localId);
+        FunctionBlockPtr fb = DataSinkModuleFb::create(moduleInfo, context, parent, localId);
         return fb;
     }
 

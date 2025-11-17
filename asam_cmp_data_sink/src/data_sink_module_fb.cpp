@@ -1,6 +1,7 @@
 #include <EthLayer.h>
 #include <asam_cmp/cmp_header.h>
 #include <coreobjects/callable_info_factory.h>
+#include <opendaq/component_type_private.h>
 
 #include <asam_cmp_data_sink/data_sink_fb.h>
 #include <asam_cmp_data_sink/data_sink_module_fb.h>
@@ -14,20 +15,24 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-DataSinkModuleFb::DataSinkModuleFb(const ContextPtr& ctx,
+DataSinkModuleFb::DataSinkModuleFb(const ModuleInfoPtr& moduleInfo,
+                                   const ContextPtr& ctx,
                                    const ComponentPtr& parent,
                                    const StringPtr& localId,
                                    const std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf>& ethernetWrapper)
-    : asam_cmp_common_lib::NetworkManagerFb(CreateType(), ctx, parent, localId, ethernetWrapper)
+    : asam_cmp_common_lib::NetworkManagerFb(CreateType(moduleInfo), ctx, parent, localId, ethernetWrapper)
 {
     createFbs();
     startCapture();
 }
 
-FunctionBlockPtr DataSinkModuleFb::create(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId)
+FunctionBlockPtr DataSinkModuleFb::create(const ModuleInfoPtr& moduleInfo,
+                                          const ContextPtr& ctx,
+                                          const ComponentPtr& parent,
+                                          const StringPtr& localId)
 {
     std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf> ptr = std::make_shared<asam_cmp_common_lib::EthernetPcppImpl>();
-    auto fb = createWithImplementation<IFunctionBlock, DataSinkModuleFb>(ctx, parent, localId, ptr);
+    auto fb = createWithImplementation<IFunctionBlock, DataSinkModuleFb>(moduleInfo, ctx, parent, localId, ptr);
     return fb;
 }
 
@@ -49,21 +54,24 @@ void DataSinkModuleFb::networkAdapterChangedInternal()
     startCapture();
 }
 
-FunctionBlockTypePtr DataSinkModuleFb::CreateType()
+FunctionBlockTypePtr DataSinkModuleFb::CreateType(const ModuleInfoPtr& moduleInfo)
 {
-    return FunctionBlockType("AsamCmpDataSinkModule", "AsamCmpDataSinkModule", "ASAM CMP Data Sink Module");
+    auto fbType = FunctionBlockType("AsamCmpDataSinkModule", "AsamCmpDataSinkModule", "ASAM CMP Data Sink Module");
+    checkErrorInfo(fbType.asPtr<IComponentTypePrivate>(true)->setModuleInfo(moduleInfo));
+    return fbType;
 }
 
 void DataSinkModuleFb::createFbs()
 {
     const StringPtr statusId = "Status";
-    auto newFb = createWithImplementation<IFunctionBlock, StatusFbImpl>(context, functionBlocks, statusId);
+    auto newFb = createWithImplementation<IFunctionBlock, StatusFbImpl>(
+        this->type.getModuleInfo(), context, functionBlocks, statusId);
     functionBlocks.addItem(newFb);
     auto statusMt = functionBlocks.getItems()[0].asPtr<IStatusHandler>(true)->getStatusMt();
 
     const StringPtr dataSinkId = "DataSink";
     newFb = createWithImplementation<IFunctionBlock, DataSinkFb>(
-        context, functionBlocks, dataSinkId, statusMt, dataPacketsPublisher, capturePacketsPublisher);
+        this->type.getModuleInfo(), context, functionBlocks, dataSinkId, statusMt, dataPacketsPublisher, capturePacketsPublisher);
     functionBlocks.addItem(newFb);
 }
 

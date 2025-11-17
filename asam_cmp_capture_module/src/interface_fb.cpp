@@ -9,12 +9,13 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
-InterfaceFb::InterfaceFb(const ContextPtr& ctx,
+InterfaceFb::InterfaceFb(const ModuleInfoPtr& moduleInfo,
+                         const ContextPtr& ctx,
                          const ComponentPtr& parent,
                          const StringPtr& localId,
                          const asam_cmp_common_lib::InterfaceCommonInit& init,
                          const InterfaceFbInit& internalInit)
-    : InterfaceCommonFb(ctx, parent, localId, init)
+    : InterfaceCommonFb(moduleInfo, ctx, parent, localId, init)
     , statusSync(internalInit.statusSync)
     , encoders(internalInit.encoders)
     , deviceStatus(internalInit.deviceStatus)

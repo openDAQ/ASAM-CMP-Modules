@@ -28,14 +28,15 @@ BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 class DataSinkModuleFb final : public asam_cmp_common_lib::NetworkManagerFb
 {
 public:
-    explicit DataSinkModuleFb(const ContextPtr& ctx,
+    explicit DataSinkModuleFb(const ModuleInfoPtr& moduleInfo,
+                              const ContextPtr& ctx,
                               const ComponentPtr& parent,
                               const StringPtr& localId,
                               const std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf>& ethernetWrapper);
     ~DataSinkModuleFb() override;
 
-    static FunctionBlockTypePtr CreateType();
-    static FunctionBlockPtr create(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
+    static FunctionBlockTypePtr CreateType(const ModuleInfoPtr& moduleInfo);
+    static FunctionBlockPtr create(const ModuleInfoPtr& moduleInfo, const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
     ErrCode INTERFACE_FUNC remove() override;
 
 private:
