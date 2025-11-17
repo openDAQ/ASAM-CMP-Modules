@@ -4,7 +4,8 @@ project(asam_cmp_capture_module
 
 set(LIB_NAME asam_cmp_capture_module)
 
-set(SRC_Cpp module_dll.cpp
+set(SRC_Cpp 
+    module_dll.cpp
     capture_module_fb.cpp
     capture_module.cpp
     interface_fb.cpp
@@ -14,7 +15,8 @@ set(SRC_Cpp module_dll.cpp
     encoder_bank.cpp
 )
 
-set(SRC_PublicHeaders module_dll.h
+set(SRC_PublicHeaders 
+    module_dll.h
     capture_module_fb.h
     capture_module.h
     interface_fb.h
@@ -26,6 +28,12 @@ set(SRC_PrivateHeaders
     encoder_bank.h
     input_descriptors_validator.h
     dispatch.h
+)
+
+source_group("module" FILES
+    ${SRC_Cpp}
+    ${SRC_PublicHeaders}
+    ${SRC_PrivateHeaders}
 )
 
 if (MSVC)

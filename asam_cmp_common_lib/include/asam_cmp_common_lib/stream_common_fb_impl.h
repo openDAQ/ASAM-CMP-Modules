@@ -18,6 +18,7 @@
 #include <asam_cmp/payload_type.h>
 #include <opendaq/context_factory.h>
 #include <opendaq/function_block_impl.h>
+#include <opendaq/component_type_private.h>
 
 #include <asam_cmp_common_lib/id_manager.h>
 
@@ -42,9 +43,13 @@ protected:
     using PayloadType = ASAM::CMP::PayloadType;
 
 public:
-    explicit StreamCommonFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, const StreamCommonInit& init);
+    explicit StreamCommonFbImpl(const ModuleInfoPtr& moduleInfo,
+                                const ContextPtr& ctx,
+                                const ComponentPtr& parent,
+                                const StringPtr& localId,
+                                const StreamCommonInit& init);
     ~StreamCommonFbImpl() override = default;
-    static FunctionBlockTypePtr CreateType();
+    static FunctionBlockTypePtr CreateType(const ModuleInfoPtr& moduleInfo);
 
 public:  // IStreamCommon
     void setPayloadType(PayloadType type) override;
@@ -56,6 +61,7 @@ private:
     void initProperties();
 
 protected:
+    ModuleInfoPtr moduleInfo;
     uint8_t streamId;
     PayloadType payloadType{0};
 
@@ -65,11 +71,12 @@ protected:
 using StreamCommonFb = StreamCommonFbImpl<>;
 
 template <typename... Interfaces>
-StreamCommonFbImpl<Interfaces...>::StreamCommonFbImpl(const ContextPtr& ctx,
+StreamCommonFbImpl<Interfaces...>::StreamCommonFbImpl(const ModuleInfoPtr& moduleInfo,
+                                                      const ContextPtr& ctx,
                                                       const ComponentPtr& parent,
                                                       const StringPtr& localId,
                                                       const StreamCommonInit& init)
-    : FunctionBlockImpl<IFunctionBlock, IStreamCommon, Interfaces...>(CreateType(), ctx, parent, localId)
+    : FunctionBlockImpl<IFunctionBlock, IStreamCommon, Interfaces...>(CreateType(moduleInfo), ctx, parent, localId)
     , streamId(init.id)
     , payloadType(init.payloadType)
     , streamIdManager(init.streamIdManager)
@@ -78,9 +85,11 @@ StreamCommonFbImpl<Interfaces...>::StreamCommonFbImpl(const ContextPtr& ctx,
 }
 
 template <typename... Interfaces>
-FunctionBlockTypePtr StreamCommonFbImpl<Interfaces...>::CreateType()
+FunctionBlockTypePtr StreamCommonFbImpl<Interfaces...>::CreateType(const ModuleInfoPtr& moduleInfo)
 {
-    return FunctionBlockType("AsamCmpStream", "AsamCmpStream", "ASAM CMP Stream");
+    auto fbType = FunctionBlockType("AsamCmpStream", "AsamCmpStream", "ASAM CMP Stream");
+    checkErrorInfo(fbType.asPtr<IComponentTypePrivate>(true)->setModuleInfo(moduleInfo));
+    return fbType;
 }
 
 template <typename... Interfaces>

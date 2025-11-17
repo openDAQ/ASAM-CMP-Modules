@@ -37,12 +37,13 @@ private:
     using PayloadType = ASAM::CMP::PayloadType;
 
 public:
-    explicit InterfaceCommonFb(const ContextPtr& ctx,
+    explicit InterfaceCommonFb(const ModuleInfoPtr& moduleInfo,
+                               const ContextPtr& ctx,
                                const ComponentPtr& parent,
                                const StringPtr& localId,
                                const InterfaceCommonInit& init);
     ~InterfaceCommonFb() override = default;
-    static FunctionBlockTypePtr CreateType();
+    static FunctionBlockTypePtr CreateType(const ModuleInfoPtr& moduleInfo);
 
     DictPtr<IString, IFunctionBlockType> onGetAvailableFunctionBlockTypes() override;
     FunctionBlockPtr onAddFunctionBlock(const StringPtr& typeId, const PropertyObjectPtr& config) override;
@@ -92,7 +93,7 @@ FunctionBlockPtr InterfaceCommonFb::addStreamWithParams(uint8_t streamId, Params
 
     StringPtr fbName = fmt::format("Stream {}", createdStreams);
     StringPtr fbId = fmt::format("Stream_{}", createdStreams++);
-    auto newFb = createWithImplementation<IFunctionBlock, Impl>(context, functionBlocks, fbId, init, std::forward<Params>(params)...);
+    auto newFb = createWithImplementation<IFunctionBlock, Impl>(this->type.getModuleInfo(), context, functionBlocks, fbId, init, std::forward<Params>(params)...);
     newFb.setName(fbName);
     streamIdManager.addId(streamId);
     this->addNestedFunctionBlock(newFb);

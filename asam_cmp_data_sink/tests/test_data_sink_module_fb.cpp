@@ -5,6 +5,7 @@
 #include <opendaq/packet_factory.h>
 #include <opendaq/reader_factory.h>
 #include <opendaq/scheduler_factory.h>
+#include <opendaq/module_info_factory.h>
 
 #include <asam_cmp_common_lib/ethernet_pcpp_mock.h>
 #include <asam_cmp_common_lib/network_manager_fb.h>
@@ -53,8 +54,9 @@ protected:
         auto logger = Logger();
         context = Context(Scheduler(logger), logger, TypeManager(), nullptr);
 
+        moduleInfo = ModuleInfo(VersionInfo(1, 2, 3), "", "");
         funcBlock = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::DataSinkModuleFb>(
-            context, nullptr, "id", ethernetWrapper);
+            moduleInfo, context, nullptr, "id", ethernetWrapper);
     }
 
 protected:
@@ -69,6 +71,7 @@ protected:
     ListPtr<StringPtr> names;
     ListPtr<StringPtr> descriptions;
 
+    ModuleInfoPtr moduleInfo{};
     ContextPtr context;
     FunctionBlockPtr funcBlock;
 
@@ -88,6 +91,26 @@ TEST_F(DataSinkModuleFbTest, FunctionBlockType)
     ASSERT_EQ(type.getId(), "AsamCmpDataSinkModule");
     ASSERT_EQ(type.getName(), "AsamCmpDataSinkModule");
     ASSERT_EQ(type.getDescription(), "ASAM CMP Data Sink Module");
+}
+
+TEST_F(DataSinkModuleFbTest, VersionScaling)
+{
+    ASSERT_EQ(funcBlock.getFunctionBlockType().getModuleInfo().getVersionInfo(), moduleInfo.getVersionInfo());
+
+    auto statusFb = funcBlock.getFunctionBlocks().getItemAt(0);
+    ASSERT_EQ(statusFb.getFunctionBlockType().getModuleInfo().getVersionInfo(), moduleInfo.getVersionInfo());
+
+    auto datasinkFb = funcBlock.getFunctionBlocks().getItemAt(1);
+    ASSERT_EQ(datasinkFb.getFunctionBlockType().getModuleInfo().getVersionInfo(), moduleInfo.getVersionInfo());
+
+    auto captureFb = datasinkFb.addFunctionBlock("AsamCmpCapture");
+    ASSERT_EQ(captureFb.getFunctionBlockType().getModuleInfo().getVersionInfo(), moduleInfo.getVersionInfo());
+
+    auto itfFB = captureFb.addFunctionBlock("AsamCmpInterface");
+    ASSERT_EQ(itfFB.getFunctionBlockType().getModuleInfo().getVersionInfo(), moduleInfo.getVersionInfo());
+
+    auto streamFb = itfFB.addFunctionBlock("AsamCmpStream");
+    ASSERT_EQ(itfFB.getFunctionBlockType().getModuleInfo().getVersionInfo(), moduleInfo.getVersionInfo());
 }
 
 template <typename T>
@@ -111,7 +134,7 @@ TEST_F(DataSinkModuleFbTest, NetworkAdaptersProperties)
 TEST_F(DataSinkModuleFbTest, ChangeNetworkAdapter)
 {
     auto propList = funcBlock.getProperty(networkAdapters.data()).getSelectionValues().asPtrOrNull<IList>();
-    ASSERT_GT(propList.getCount(), 1);
+    ASSERT_GT(propList.getCount(), daq::SizeT(1));
     constexpr int newVal = 1;
     testProperty(networkAdapters.data(), newVal);
 }
@@ -124,7 +147,7 @@ TEST_F(DataSinkModuleFbTest, ChangeNetworkAdapterSequenceCall)
         EXPECT_CALL(*ethernetWrapper, setDevice(_)).Times(Exactly(1)).WillRepeatedly(Return(true));
     }
 
-    ASSERT_GT(descriptions.getCount(), 1);
+    ASSERT_GT(descriptions.getCount(), daq::SizeT(1));
     constexpr int newVal = 1;
     testProperty(networkAdapters.data(), newVal);
 }

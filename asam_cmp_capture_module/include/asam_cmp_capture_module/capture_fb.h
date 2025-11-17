@@ -41,10 +41,12 @@ struct CaptureFbInit
 class CaptureFb final : public daq::asam_cmp_common_lib::CaptureCommonFb
 {
 public:
-    explicit CaptureFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, const CaptureFbInit& init);
+    explicit CaptureFb(const ModuleInfoPtr& moduleInfo,
+                       const ContextPtr & ctx,
+                       const ComponentPtr& parent,
+                       const StringPtr& localId,
+                       const CaptureFbInit& init);
     ~CaptureFb() override;
-
-    static FunctionBlockTypePtr CreateType();
 
 private:
     void initProperties();

@@ -6,13 +6,14 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-DataSinkFb::DataSinkFb(const ContextPtr& ctx,
+DataSinkFb::DataSinkFb(const ModuleInfoPtr& moduleInfo,
+                       const ContextPtr& ctx,
                        const ComponentPtr& parent,
                        const StringPtr& localId,
                        StatusMt statusMt,
                        DataPacketsPublisher& dataPacketsPublisher,
                        CapturePacketsPublisher& capturePacketsPublisher)
-    : FunctionBlock(CreateType(), ctx, parent, localId)
+    : FunctionBlock(CreateType(moduleInfo), ctx, parent, localId)
     , status(statusMt)
     , dataPacketsPublisher(dataPacketsPublisher)
     , capturePacketsPublisher(capturePacketsPublisher)
@@ -20,9 +21,11 @@ DataSinkFb::DataSinkFb(const ContextPtr& ctx,
     initProperties();
 }
 
-FunctionBlockTypePtr DataSinkFb::CreateType()
+FunctionBlockTypePtr DataSinkFb::CreateType(const ModuleInfoPtr& moduleInfo)
 {
-    return FunctionBlockType("AsamCmpDataSink", "AsamCmpDataSink", "ASAM CMP Data Sink");
+    auto fbType =  FunctionBlockType("AsamCmpDataSink", "AsamCmpDataSink", "ASAM CMP Data Sink");
+    checkErrorInfo(fbType.asPtr<IComponentTypePrivate>(true)->setModuleInfo(moduleInfo));
+    return fbType;
 }
 
 void DataSinkFb::addCaptureModuleFromStatus(int index)
@@ -32,7 +35,7 @@ void DataSinkFb::addCaptureModuleFromStatus(int index)
     auto deviceStatus = status.getDeviceStatus(index);
     const StringPtr fbId = getFbId(captureModuleId);
     const auto newFb = createWithImplementation<IFunctionBlock, CaptureFb>(
-        context, functionBlocks, fbId, dataPacketsPublisher, capturePacketsPublisher, std::move(deviceStatus));
+        this->type.getModuleInfo(), context, functionBlocks, fbId, dataPacketsPublisher, capturePacketsPublisher, std::move(deviceStatus));
     this->addNestedFunctionBlock(newFb);
     ++captureModuleId;
 }
@@ -42,8 +45,8 @@ void DataSinkFb::addCaptureModuleEmpty()
     auto lock = this->getRecursiveConfigLock();
 
     const StringPtr fbId = getFbId(captureModuleId);
-    const auto newFb =
-        createWithImplementation<IFunctionBlock, CaptureFb>(context, functionBlocks, fbId, dataPacketsPublisher, capturePacketsPublisher);
+    const auto newFb = createWithImplementation<IFunctionBlock, CaptureFb>(
+            this->type.getModuleInfo(), context, functionBlocks, fbId, dataPacketsPublisher, capturePacketsPublisher);
     this->addNestedFunctionBlock(newFb);
     capturePacketsPublisher.subscribe(newFb.getPropertyValue("DeviceId"), newFb.as<IAsamCmpPacketsSubscriber>(true));
     ++captureModuleId;
@@ -102,13 +105,13 @@ void DataSinkFb::initProperties()
 
 DictPtr<IString, IFunctionBlockType> DataSinkFb::onGetAvailableFunctionBlockTypes()
 {
-    auto type = CaptureFb::CreateType();
-    return Dict<IString, IFunctionBlockType>({{type.getId(), type}});
+    auto captureType = CaptureFb::CreateType(this->type.getModuleInfo());
+    return Dict<IString, IFunctionBlockType>({{captureType.getId(), captureType}});
 }
 
 FunctionBlockPtr DataSinkFb::onAddFunctionBlock(const StringPtr& typeId, const PropertyObjectPtr& config)
 {
-    if (typeId == CaptureFb::CreateType().getId())
+    if (typeId == CaptureFb::CreateType(this->type.getModuleInfo()).getId())
     {
         addCaptureModuleEmpty();
         auto captureFb = this->functionBlocks.getItems().getItemAt(this->functionBlocks.getItems().getCount() - 1);

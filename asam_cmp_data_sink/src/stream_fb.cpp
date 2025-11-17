@@ -10,14 +10,15 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-StreamFb::StreamFb(const ContextPtr& ctx,
+StreamFb::StreamFb(const ModuleInfoPtr& moduleInfo,
+                   const ContextPtr& ctx,
                    const ComponentPtr& parent,
                    const StringPtr& localId,
                    const asam_cmp_common_lib::StreamCommonInit& init,
                    DataPacketsPublisher& publisher,
                    const uint16_t& deviceId,
                    const uint32_t& interfaceId)
-    : StreamCommonFbImpl(ctx, parent, localId, init)
+    : StreamCommonFbImpl(moduleInfo, ctx, parent, localId, init)
     , deviceId(deviceId)
     , interfaceId(interfaceId)
     , publisher(publisher)

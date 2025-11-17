@@ -25,13 +25,15 @@ BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 class InterfaceFb final : public asam_cmp_common_lib::InterfaceCommonFb
 {
 public:
-    explicit InterfaceFb(const ContextPtr& ctx,
+    explicit InterfaceFb(const ModuleInfoPtr& moduleInfo,
+                         const ContextPtr& ctx,
                          const ComponentPtr& parent,
                          const StringPtr& localId,
                          const asam_cmp_common_lib::InterfaceCommonInit& init,
                          const uint16_t& deviceId,
                          DataPacketsPublisher& publisher);
-    explicit InterfaceFb(const ContextPtr& ctx,
+    explicit InterfaceFb(const ModuleInfoPtr& moduleInfo,
+                         const ContextPtr& ctx,
                          const ComponentPtr& parent,
                          const StringPtr& localId,
                          const asam_cmp_common_lib::InterfaceCommonInit& init,

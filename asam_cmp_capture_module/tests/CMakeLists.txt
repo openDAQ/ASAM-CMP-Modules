@@ -1,6 +1,7 @@
 set(TEST_APP test_capture_module)
 
 set(TEST_SOURCES
+                 test_capture_module_fb.cpp
                  test_interface.cpp
                  test_stream.cpp
                  test_capture_fb.cpp

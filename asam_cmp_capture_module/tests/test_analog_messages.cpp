@@ -46,8 +46,8 @@ protected:
         const StringPtr captureModuleId = "asam_cmp_capture_fb";
         selectedDevice = "device1";
         modules::asam_cmp_capture_module::CaptureFbInit init = {ethernetWrapper, selectedDevice};
-        captureFb =
-            createWithImplementation<IFunctionBlock, modules::asam_cmp_capture_module::CaptureFb>(context, nullptr, captureModuleId, init);
+        captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_capture_module::CaptureFb>(
+            moduleInfo, context, nullptr, captureModuleId, init);
 
         ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
         createProc();
@@ -86,6 +86,7 @@ protected:
     StringPtr selectedDevice;
 
     ContextPtr context;
+    ModuleInfoPtr moduleInfo;
     FunctionBlockPtr captureFb;
     FunctionBlockPtr interfaceFb;
 

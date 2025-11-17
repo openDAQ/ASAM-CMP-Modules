@@ -30,12 +30,14 @@ BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 class CaptureFb final : public asam_cmp_common_lib::CaptureCommonFbImpl<IAsamCmpPacketsSubscriber>
 {
 public:
-    explicit CaptureFb(const ContextPtr& ctx,
+    explicit CaptureFb(const ModuleInfoPtr& moduleInfo,
+                       const ContextPtr& ctx,
                        const ComponentPtr& parent,
                        const StringPtr& localId,
                        DataPacketsPublisher& publisher,
                        CapturePacketsPublisher& capturePacketsPublisher);
-    explicit CaptureFb(const ContextPtr& ctx,
+    explicit CaptureFb(const ModuleInfoPtr& moduleInfo,
+                       const ContextPtr& ctx,
                        const ComponentPtr& parent,
                        const StringPtr& localId,
                        DataPacketsPublisher& publisher,

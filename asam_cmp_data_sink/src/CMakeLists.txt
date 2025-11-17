@@ -29,6 +29,12 @@ set(SRC_PublicHeaders module_dll.h
 set(SRC_PrivateHeaders
 )
 
+source_group("module" FILES
+    ${SRC_Cpp}
+    ${SRC_PublicHeaders}
+    ${SRC_PrivateHeaders}
+)
+
 if (MSVC)
     add_compile_options(/bigobj)
 endif()

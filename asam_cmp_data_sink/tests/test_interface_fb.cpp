@@ -20,13 +20,14 @@ protected:
     {
         auto logger = Logger();
         captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
-            Context(Scheduler(logger), logger, TypeManager(), nullptr), nullptr, "capture_module_0", publisher, capturePacketsPublisher);
+            moduleInfo, Context(Scheduler(logger), logger, TypeManager(), nullptr), nullptr, "capture_module_0", publisher, capturePacketsPublisher);
 
         captureFb.getPropertyValue("AddInterface").execute();
         interfaceFb = captureFb.getFunctionBlocks().getItemAt(0);
     }
 
 protected:
+    ModuleInfoPtr moduleInfo{};
     FunctionBlockPtr captureFb;
     FunctionBlockPtr interfaceFb;
     modules::asam_cmp_data_sink_module::DataPacketsPublisher publisher;
@@ -51,7 +52,10 @@ TEST_F(InterfaceFbTest, AvailableFunctionBlockTypes)
     auto availableTypes = interfaceFb.getAvailableFunctionBlockTypes();
     ASSERT_EQ(availableTypes.getCount(), 1u);
     ASSERT_TRUE(availableTypes.hasKey("AsamCmpStream"));
-    ASSERT_EQ(availableTypes.get("AsamCmpStream"), modules::asam_cmp_data_sink_module::StreamFb::CreateType());
+    ASSERT_EQ(
+        availableTypes.get("AsamCmpStream"),
+        modules::asam_cmp_data_sink_module::StreamFb::CreateType(interfaceFb.getFunctionBlockType().getModuleInfo())
+    );
 }
 
 TEST_F(InterfaceFbTest, OnAddFunctionBlocks)
