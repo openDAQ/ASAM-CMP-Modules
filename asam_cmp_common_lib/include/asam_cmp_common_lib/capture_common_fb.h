@@ -269,7 +269,7 @@ DictPtr<IString, IFunctionBlockType> CaptureCommonFbImpl<Interfaces...>::onGetAv
 template <typename... Interfaces>
 FunctionBlockPtr CaptureCommonFbImpl<Interfaces...>::onAddFunctionBlock(const StringPtr& typeId, const PropertyObjectPtr& config)
 {
-    if (typeId == InterfaceCommonFb::CreateType(type.getModuleInfo()).getId())
+    if (typeId == InterfaceCommonFb::CreateType(this->type.getModuleInfo()).getId())
     {
         addInterface();
         auto interfaceFb = this->functionBlocks.getItems().getItemAt(this->functionBlocks.getItems().getCount() - 1);
