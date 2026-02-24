@@ -1,0 +1,1 @@
+add_subdirectory(asam_cmp_example)

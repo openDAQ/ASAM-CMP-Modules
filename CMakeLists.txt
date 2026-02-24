@@ -39,19 +39,12 @@ if (${REPO_OPTION_PREFIX}_ENABLE_EXAMPLE)
     set(DAQMODULES_REF_DEVICE_MODULE ON)
     set(DAQMODULES_REF_FB_MODULE ON)
 
-    add_subdirectory(asam_cmp_example)
+    add_subdirectory(examples)
 endif()
 
 add_subdirectory(external)
-add_subdirectory(asam_cmp_common_lib)
-
-if (${REPO_OPTION_PREFIX}_BUILD_CAPTURE_MODULE)
-    add_subdirectory(asam_cmp_capture_module)
-endif()
-
-if (${REPO_OPTION_PREFIX}_BUILD_DATA_SINK)
-    add_subdirectory(asam_cmp_data_sink)
-endif()
+add_subdirectory(shared)
+add_subdirectory(modules)
 
 # Set CPack variables
 set(CPACK_COMPONENTS_ALL RUNTIME)
