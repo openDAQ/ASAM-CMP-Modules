@@ -44,52 +44,52 @@ To allow a process to send/receive packets with libpcap in Linux, you must set t
 To connect your OpendaqSignal to the Capture module follow the steps below:
 
    1. Add `asam_cmp_capture_module_fb` function block:  
-   ![image](./assets/asam_cmp_capture_module_fb.png)
+   ![image](./docs/images/asam_cmp_capture_module_fb.png)
 
    2. On the `asam_cmp_capture_module_fb` choose the network adapter among the suggested to send ASAM CMP messages through it:  
-   ![image](./assets/select_network_adapter.png)
+   ![image](./docs/images/select_network_adapter.png)
 
    3. On the `asam_cmp_capture_fb` run *AddInterface* function to add the interface:  
-   ![image](./assets/add_interface_function.png)
+   ![image](./docs/images/add_interface_function.png)
 
    4. On created `asam_cmp_interface` function block choose PayloadType among suggested:  
-   ![image](./assets/select_payload_type.png)
+   ![image](./docs/images/select_payload_type.png)
 
    5. Run *AddStream* function to add stream:  
-   ![image](./assets/add_stream_function.png)
+   ![image](./docs/images/add_stream_function.png)
 
    6. `asam_cmp_stream_fb` has the input port you can connect your signal, capturing data starts immediately:  
-   ![image](./assets/connect_signal_to_stream.png)
+   ![image](./docs/images/connect_signal_to_stream.png)
 
 
 
 To get ASAM CMP packets from the Ethernet follow the steps below:
 
    1. Add `asam_cmp_data_sink_module` function block:  
-   ![image](./assets/asam_cmp_data_sink_module.png)
+   ![image](./docs/images/asam_cmp_data_sink_module.png)
 
    2. On the `asam_cmp_data_sink_module` choose the network adapter you expect to receive ASAM CMP messages:  
-   ![image](./assets/select_network_adapter_for_data_sink.png)
+   ![image](./docs/images/select_network_adapter_for_data_sink.png)
 
    3. There are two ways to configure `asam_cmp_data_sink`:
    - Go to the `asam_cmp_status` FB. In the capture module list you can check the *CaptureModuleList* property which contains list of capture modules whose status messages were captured. Go to the `asam_cmp_data_sink` FB and run *AddCaptureModuleFromStatus*. This function requires index as the parameter, available capture modules are 0-indexed in the *CaptureModuleList* property of `asam_cmp_status`:  
-   ![image](./assets/capture_module_list.png)  
-   ![image](./assets/add_capture_module_from_status.png)  
+   ![image](./docs/images/capture_module_list.png)  
+   ![image](./docs/images/add_capture_module_from_status.png)  
    Selected capture module will be configured into a similar structure (capture module → interface → stream). Stream will contain OpenDaq signal with decoded ASAM CMP message from the Ethernet:  
-   ![image](./assets/open_daq_signal_asam_cmp.png)
+   ![image](./docs/images/open_daq_signal_asam_cmp.png)
 
    - Run *AddCaptureModuleEmpty* function that creates an empty `capture_module_fb` FB. Then repeat steps 3-5 as you do it on the CaptureModule side.
 
    In case data messages with the correct `deviceId`, `interfaceId`, and `streamId` exist and the payloadType is correct, processing of incoming data messages starts immediately:  
-   ![image](./assets/add_empty_capture_module.png)
+   ![image](./docs/images/add_empty_capture_module.png)
 
 
    If you want to remove Interface/Stream on CaptureModule or CaptureModule/Interface/Stream on DataSink, you can use the corresponding *Remove* methods.  
    **⚠️IMPORTANT**: Please remember that you should put an *index* of the object that should be removed, not its id. The picture below demonstrates this:  
-   ![image](./assets/remove_by_index.png)  
-   ![image](./assets/remove_module_example.png)
+   ![image](./docs/images/remove_by_index.png)  
+   ![image](./docs/images/remove_module_example.png)
 
-   You can find a usage example in the `asam_cmp_example` directory.
+   You can find a usage example in the `examples/asam_cmp_example` directory.
 </details>
 
 ## Modules Structure
