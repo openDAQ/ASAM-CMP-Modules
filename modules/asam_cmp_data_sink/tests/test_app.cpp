@@ -3,7 +3,7 @@
 #include <coreobjects/util.h>
 #include <opendaq/context_factory.h>
 #include <opendaq/module_manager_init.h>
-#include <testutils/bb_memcheck_listener.h>
+#include <testutils/daq_memcheck_listener.h>
 #include <testutils/testutils.h>
 
 #include <asam_cmp_data_sink/module_dll.h>
