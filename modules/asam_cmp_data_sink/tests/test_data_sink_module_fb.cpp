@@ -200,8 +200,8 @@ TEST_F(DataSinkModuleFbTest, ProcessAggregatedMessage)
     pcpp::EthLayer newEthernetLayer(pcpp::MacAddress("00:50:43:11:22:33"), pcpp::MacAddress("FF:FF:FF:FF:FF:FF"), asamCmpEtherType);
     pcpp::PayloadLayer payloadLayer(ethData.data(), ethData.size());
     pcpp::Packet newPacket;
-    bool res = newPacket.addLayer(&newEthernetLayer);
-    res = newPacket.addLayer(&payloadLayer);
+    newPacket.addLayer(&newEthernetLayer);
+    newPacket.addLayer(&payloadLayer);
     newPacket.computeCalculateFields();
 
     packetReceivedCallback(newPacket.getRawPacket(), nullptr, nullptr);
