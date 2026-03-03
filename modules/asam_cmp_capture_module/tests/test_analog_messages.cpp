@@ -32,8 +32,6 @@ protected:
         auto startStub = []() {};
         auto stopStub = []() {};
 
-        auto sendPacketStub = [](StringPtr deviceName, const std::vector<uint8_t>& data) {};
-
         ON_CALL(*ethernetWrapper, startCapture(_)).WillByDefault(startStub);
         ON_CALL(*ethernetWrapper, stopCapture()).WillByDefault(stopStub);
         ON_CALL(*ethernetWrapper, getEthernetDevicesNamesList()).WillByDefault(Return(names));

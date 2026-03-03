@@ -26,16 +26,16 @@ namespace daq
                                                const StringPtr& localId,
                                                const InputChannelStubInit& init)
         : ChannelImpl(FunctionBlockType("ref_channel", fmt::format("AI{}", init.index + 1), ""), context, parent, localId)
-        , index(init.index)
         , sampleRate(init.sampleRate)
+        , index(init.index)
         , startTime(init.startTime)
         , microSecondsFromEpochToStartTime(init.microSecondsFromEpochToStartTime)
         , lastCollectTime(0)
         , samplesGenerated(0)
+        , sampleType(SampleType::Int16)
+        , isDescriptorsInitialized(false)
         , needsSignalTypeChanged(false)
         , generateFunc(init.generateFunc)
-        , isDescriptorsInitialized(false)
-        , sampleType(SampleType::Int16)
     {
         initProperties();
         signalTypeChangedInternal();
