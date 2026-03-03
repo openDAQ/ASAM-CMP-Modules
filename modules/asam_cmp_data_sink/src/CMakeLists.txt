@@ -39,8 +39,8 @@ if (MSVC)
     add_compile_options(/bigobj)
 endif()
 
-prepend_include(${TARGET_FOLDER_NAME} SRC_PrivateHeaders)
-prepend_include(${TARGET_FOLDER_NAME} SRC_PublicHeaders)
+opendaq_prepend_include(${TARGET_FOLDER_NAME} SRC_PrivateHeaders)
+opendaq_prepend_include(${TARGET_FOLDER_NAME} SRC_PublicHeaders)
 
 add_library(${PROJECT_NAME} SHARED
     ${SRC_Cpp}
@@ -60,7 +60,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURR
 )
 
 opendaq_set_module_properties(${PROJECT_NAME} ${PROJECT_VERSION_MAJOR})
-create_version_header(${PROJECT_NAME})
+opendaq_generate_version_header(${PROJECT_NAME})
 
 install(TARGETS ${PROJECT_NAME}
         COMPONENT RUNTIME
@@ -91,8 +91,8 @@ if (${REPO_OPTION_PREFIX}_ENABLE_TESTS)
     set(SRC_Lib_PrivateHeaders
     )
 
-    prepend_include(${TARGET_FOLDER_NAME} SRC_Lib_PrivateHeaders)
-    prepend_include(${TARGET_FOLDER_NAME} SRC_Lib_PublicHeaders)
+    opendaq_prepend_include(${TARGET_FOLDER_NAME} SRC_Lib_PrivateHeaders)
+    opendaq_prepend_include(${TARGET_FOLDER_NAME} SRC_Lib_PublicHeaders)
 
     add_library(${PROJECT_NAME}_lib STATIC
         ${SRC_Lib_Cpp}

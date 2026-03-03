@@ -22,8 +22,8 @@ set(SRC_PublicHeaders common.h
 set(SRC_PrivateHeaders
 )
 
-prepend_include(${TARGET_FOLDER_NAME} SRC_PrivateHeaders)
-prepend_include(${TARGET_FOLDER_NAME} SRC_PublicHeaders)
+opendaq_prepend_include(${TARGET_FOLDER_NAME} SRC_PrivateHeaders)
+opendaq_prepend_include(${TARGET_FOLDER_NAME} SRC_PublicHeaders)
 
 add_library(${PROJECT_NAME} STATIC
     ${SRC_Cpp}
