@@ -1,0 +1,111 @@
+{
+    "version": 4,
+    "configurePresets": [
+        {
+            "name": "ci",
+            "hidden": true,
+            "binaryDir": "build/${presetName}",
+            "cacheVariables": {
+                "ASAM_CMP_ENABLE_EXAMPLE": false
+            }
+        },
+        {
+            "name": "ci-build-type-release",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "ci-build-type-debug",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "ci-build-ubuntu-latest-release",
+            "displayName": "CI Ubuntu Release",
+            "inherits": ["ci", "ci-build-type-release"],
+            "generator": "Ninja"
+        },
+        {
+            "name": "ci-generator-msvc",
+            "hidden": true,
+            "generator": "Visual Studio 17 2022",
+            "architecture": "x64"
+        },
+        {
+            "name": "ci-build-windows-latest-release",
+            "displayName": "CI Windows Release",
+            "inherits": ["ci", "ci-generator-msvc"]
+        },
+        {
+            "name": "ci-build-ubuntu-latest-debug",
+            "displayName": "CI Ubuntu Debug",
+            "inherits": ["ci", "ci-build-type-debug"],
+            "generator": "Ninja"
+        },
+        {
+            "name": "ci-build-windows-latest-debug",
+            "displayName": "CI Windows Debug",
+            "inherits": ["ci", "ci-generator-msvc"]
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "ci-build-ubuntu-latest-release",
+            "configurePreset": "ci-build-ubuntu-latest-release",
+            "configuration": "Release"
+        },
+        {
+            "name": "ci-build-windows-latest-release",
+            "configurePreset": "ci-build-windows-latest-release",
+            "configuration": "Release"
+        },
+        {
+            "name": "ci-build-ubuntu-latest-debug",
+            "configurePreset": "ci-build-ubuntu-latest-debug",
+            "configuration": "Debug"
+        },
+        {
+            "name": "ci-build-windows-latest-debug",
+            "configurePreset": "ci-build-windows-latest-debug",
+            "configuration": "Debug"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "ci-test-ubuntu-latest-release",
+            "configurePreset": "ci-build-ubuntu-latest-release",
+            "configuration": "Release",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "ci-test-windows-latest-release",
+            "configurePreset": "ci-build-windows-latest-release",
+            "configuration": "Release",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "ci-test-ubuntu-latest-debug",
+            "configurePreset": "ci-build-ubuntu-latest-debug",
+            "configuration": "Debug",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "ci-test-windows-latest-debug",
+            "configurePreset": "ci-build-windows-latest-debug",
+            "configuration": "Debug",
+            "output": {
+                "outputOnFailure": true
+            }
+        }
+    ]
+}
