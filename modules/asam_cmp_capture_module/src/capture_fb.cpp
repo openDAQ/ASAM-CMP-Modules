@@ -7,13 +7,14 @@
 #include <asam_cmp/cmp_header.h>
 #include <asam_cmp_common_lib/ethernet_pcpp_itf.h>
 
-BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
+#include <chrono>
 
-CaptureFb::CaptureFb(const ModuleInfoPtr& moduleInfo,
-                     const ContextPtr& ctx,
-                     const ComponentPtr& parent,
-                     const StringPtr& localId,
-                     const CaptureFbInit& init)
+BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
+    CaptureFb::CaptureFb(const ModuleInfoPtr& moduleInfo,
+                         const ContextPtr& ctx,
+                         const ComponentPtr& parent,
+                         const StringPtr& localId,
+                         const CaptureFbInit& init)
     : asam_cmp_common_lib::CaptureCommonFb(moduleInfo, ctx, parent, localId)
     , allowJumboFrames(false)
     , ethernetWrapper(init.ethernetWrapper)
@@ -103,6 +104,11 @@ ASAM::CMP::DataContext CaptureFb::createEncoderDataContext() const
     return {64, 1500};
 }
 
+uint64_t CaptureFb::GetCurrentSystemTime()
+{
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
 void CaptureFb::statusLoop()
 {
     auto encoderContext = createEncoderDataContext();
@@ -118,11 +124,16 @@ void CaptureFb::statusLoop()
                     ethernetWrapper->sendPacket(e);
             };
 
+            
+            captureStatus.getPacket().setTimestamp(GetCurrentSystemTime());
             encodeAndSend(captureStatus.getPacket());
+            
           
             for (SizeT i = 0; i < captureStatus.getInterfaceStatusCount(); ++i)
             {
-                encodeAndSend(captureStatus.getInterfaceStatus(i).getPacket());
+                auto packet = captureStatus.getInterfaceStatus(i).getPacket();
+                packet.setTimestamp(GetCurrentSystemTime());
+                encodeAndSend(packet);
             }
         }
     }

@@ -62,6 +62,7 @@ private:
     void startStatusLoop();
     void stopStatusLoop();
     ASAM::CMP::DataContext createEncoderDataContext() const;
+    static uint64_t GetCurrentSystemTime();
 
 private:
     const bool allowJumboFrames;
