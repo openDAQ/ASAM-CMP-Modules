@@ -15,10 +15,11 @@ jobs:
     uses: openDAQ/actions/.github/workflows/reusable-module-ci.yml@jira/TBBAS-3013-resusable-workflow-ci-module
     with:
       opendaq-ref: ${{ github.event.inputs.opendaq-ref || '' }}
+      exclude-configs: '["macos-*"]'
       packages: >
         [
           {
-            "preset-pattern": "ci-build-ubuntu-*",
+            "runners": ["ubuntu-*"],
             "packages": {"apt": ["libpcap-dev"]}
           }
         ]
