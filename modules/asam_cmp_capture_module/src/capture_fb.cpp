@@ -10,7 +10,8 @@
 #include <chrono>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
-    CaptureFb::CaptureFb(const ModuleInfoPtr& moduleInfo,
+
+CaptureFb::CaptureFb(const ModuleInfoPtr& moduleInfo,
                          const ContextPtr& ctx,
                          const ComponentPtr& parent,
                          const StringPtr& localId,
@@ -19,6 +20,7 @@ BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
     , allowJumboFrames(false)
     , ethernetWrapper(init.ethernetWrapper)
     , selectedEthernetDeviceName(init.selectedDeviceName)
+    , parentDevice(FindParentDevice(parent))
 {
     initProperties();
     initEncoders();
@@ -104,9 +106,23 @@ ASAM::CMP::DataContext CaptureFb::createEncoderDataContext() const
     return {64, 1500};
 }
 
-uint64_t CaptureFb::GetCurrentSystemTime()
+uint64_t CaptureFb::getCurrentSystemTime()
 {
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    if (!parentDevice.assigned())
+        return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
+    DeviceDomainPtr domain = parentDevice.getDomain();
+    const auto domainResolution = domain.getTickResolution();
+    return static_cast<Int>(parentDevice.getTicksSinceOrigin()) * (SimplifiedRatioPtr(domainResolution) * NanoTicksPerSec);
+}
+
+DevicePtr CaptureFb::FindParentDevice(const ComponentPtr& parent)
+{
+    auto parentDevice = parent;
+    while (parentDevice.assigned() && !parentDevice.asPtrOrNull<IDevice>().assigned())
+        parentDevice = parentDevice.getParent();
+
+    return parentDevice;
 }
 
 void CaptureFb::statusLoop()
@@ -118,22 +134,22 @@ void CaptureFb::statusLoop()
         cv.wait_for(lock, std::chrono::milliseconds(sendingSyncLoopTime));
         if (!stopStatusSending)
         {
-            auto encodeAndSend = [&](const ASAM::CMP::Packet& packet) {
+            auto time = getCurrentSystemTime();
+            auto encodeAndSend = [&](ASAM::CMP::Packet& packet, uint64_t time) {
+                packet.setTimestamp(time);
                 auto encodedData = encoders.encode(1, packet, encoderContext);
                 for (const auto& e : encodedData)
                     ethernetWrapper->sendPacket(e);
             };
-
             
-            captureStatus.getPacket().setTimestamp(GetCurrentSystemTime());
-            encodeAndSend(captureStatus.getPacket());
+
+            encodeAndSend(captureStatus.getPacket(), time);
             
           
             for (SizeT i = 0; i < captureStatus.getInterfaceStatusCount(); ++i)
             {
                 auto packet = captureStatus.getInterfaceStatus(i).getPacket();
-                packet.setTimestamp(GetCurrentSystemTime());
-                encodeAndSend(packet);
+                encodeAndSend(packet, time);
             }
         }
     }

@@ -62,7 +62,11 @@ private:
     void startStatusLoop();
     void stopStatusLoop();
     ASAM::CMP::DataContext createEncoderDataContext() const;
-    static uint64_t GetCurrentSystemTime();
+    uint64_t getCurrentSystemTime();
+    static DevicePtr FindParentDevice(const ComponentPtr& parent);
+
+private:
+    static constexpr Int NanoTicksPerSec{1000000000};
 
 private:
     const bool allowJumboFrames;
@@ -77,6 +81,7 @@ private:
     bool stopStatusSending;
     std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf> ethernetWrapper;
     const StringPtr& selectedEthernetDeviceName;
+    DevicePtr parentDevice;
 };
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
