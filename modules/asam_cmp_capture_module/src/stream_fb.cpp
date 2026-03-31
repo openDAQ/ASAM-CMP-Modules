@@ -140,14 +140,12 @@ void StreamFb::configureScaledAnalogSignal()
     analogDataSampleDt = postScaling.getInputSampleType() == SampleType::Int16 ? 16 : 32;
     analogDataHasInternalPostScaling = false;
 
-    setPropertyValueInternal(
-        String("Scale").asPtr<IString>(true), BaseObjectPtr(analogDataScale).asPtr<IBaseObject>(true), false, true, false);
-
-    setPropertyValueInternal(
-        String("Offset").asPtr<IString>(true), BaseObjectPtr(analogDataOffset).asPtr<IBaseObject>(true), false, true, false);
-
-    setPropertyValueInternal(
-        String("IsClientPostScaling").asPtr<IString>(true), BaseObjectPtr(true).asPtr<IBaseObject>(true), false, true, false);
+    PropertyObjectProtectedPtr objPtrProtected = objPtr.asPtr<IPropertyObjectProtected>(true);
+    objPtr.beginUpdate();
+    objPtrProtected.setProtectedPropertyValue("Scale", analogDataScale);
+    objPtrProtected.setProtectedPropertyValue("Offset", analogDataOffset);
+    objPtrProtected.setProtectedPropertyValue("IsClientPostScaling", true);
+    objPtr.endUpdate();
 }
 
 void StreamFb::configureMinMaxAnalogSignal()
@@ -189,20 +187,17 @@ void StreamFb::configureMinMaxAnalogSignal()
         analogDataHasInternalPostScaling = true;
     }
 
-    setPropertyValueInternal(
-        String("MinValue").asPtr<IString>(true), BaseObjectPtr(analogDataMin).asPtr<IBaseObject>(true), false, true, false);
-
-    setPropertyValueInternal(
-        String("MaxValue").asPtr<IString>(true), BaseObjectPtr(analogDataMax).asPtr<IBaseObject>(true), false, true, false);
-
-    setPropertyValueInternal(
-        String("IsClientPostScaling").asPtr<IString>(true), BaseObjectPtr(false).asPtr<IBaseObject>(true), false, true, false);
+    PropertyObjectProtectedPtr objPtrProtected = objPtr.asPtr<IPropertyObjectProtected>(true);
+    objPtr.beginUpdate();
+    objPtrProtected.setProtectedPropertyValue("MinValue", analogDataMin);
+    objPtrProtected.setProtectedPropertyValue("MaxValue", analogDataMax);
+    objPtrProtected.setProtectedPropertyValue("IsClientPostScaling", false);
+    objPtr.endUpdate();
 }
 
 void StreamFb::onAnalogSignalConnected()
 {
-    setPropertyValueInternal(
-        String("IsConnectedAnalogSignal").asPtr<IString>(true), BaseObjectPtr(true).asPtr<IBaseObject>(true), false, true, false);
+    objPtr.asPtr<IPropertyObjectProtected>(true).setProtectedPropertyValue("IsConnectedAnalogSignal", true);
 
     constexpr double invertedTickResolution = 1'000'000;
     int64_t delta = inputDomainDataDescriptor.getRule().getParameters().get("delta");
@@ -220,8 +215,7 @@ void StreamFb::onAnalogSignalConnected()
 
 void StreamFb::onAnalogSignalDisconnected()
 {
-    setPropertyValueInternal(
-        String("IsConnectedAnalogSignal").asPtr<IString>(true), BaseObjectPtr(false).asPtr<IBaseObject>(true), false, true, false);
+    objPtr.asPtr<IPropertyObjectProtected>(true).setProtectedPropertyValue("IsConnectedAnalogSignal", false);
 }
 
 void StreamFb::onDisconnected(const InputPortPtr& inputPort)
@@ -236,7 +230,7 @@ void StreamFb::onDisconnected(const InputPortPtr& inputPort)
 
 void StreamFb::onPacketReceived(const InputPortPtr& port)
 {
-    auto lock = this->getAcquisitionLock();
+    auto lock = this->getRecursiveConfigLock2();
 
     PacketPtr packet;
     const auto connection = inputPort.getConnection();

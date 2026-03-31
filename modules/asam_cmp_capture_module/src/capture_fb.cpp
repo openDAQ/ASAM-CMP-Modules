@@ -19,9 +19,9 @@ CaptureFb::CaptureFb(const ModuleInfoPtr& moduleInfo,
     , ethernetWrapper(init.ethernetWrapper)
     , selectedEthernetDeviceName(init.selectedDeviceName)
 {
+    initStatusPacket();
     initProperties();
     initEncoders();
-    initStatusPacket();
     startStatusLoop();
 }
 
@@ -33,14 +33,16 @@ CaptureFb::~CaptureFb()
 void CaptureFb::initProperties()
 {
     initDeviceInfoProperties(false);
+    objPtr.beginUpdate();
     deviceDescription = "DefaultDeviceDescription";
-    setPropertyValueInternal(String("DeviceDescription").asPtr<IString>(true), deviceDescription, false, false, false);
+    objPtr.setPropertyValue("DeviceDescription", deviceDescription);
     serialNumber = "DefaultSerialNumber";
-    setPropertyValueInternal(String("SerialNumber").asPtr<IString>(true), serialNumber, false, false, false);
+    objPtr.setPropertyValue("SerialNumber", serialNumber);
     hardwareVersion = "DefaultHardwareVersion";
-    setPropertyValueInternal(String("HardwareVersion").asPtr<IString>(true), hardwareVersion, false, false, false);
+    objPtr.setPropertyValue("HardwareVersion", hardwareVersion);
     softwareVersion = "DefaultSoftwareVersion";
-    setPropertyValueInternal(String("SoftwareVersion").asPtr<IString>(true), softwareVersion, false, false, false);
+    objPtr.setPropertyValue("SoftwareVersion", softwareVersion);
+    objPtr.endUpdate();
 }
 
 void CaptureFb::propertyChanged()

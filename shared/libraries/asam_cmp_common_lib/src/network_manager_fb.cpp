@@ -54,7 +54,7 @@ void NetworkManagerFb::networkAdapterChangedInternal()
     int oldInd = objPtr.getPropertyValue("NetworkAdaptersNames");
     int newInd = objPtr.getPropertyValue("NetworkAdapters");
 
-    setPropertyValueInternal(String("NetworkAdaptersNames"), BaseObjectPtr(newInd), false, false, false);
+    objPtr.setPropertyValue("NetworkAdaptersNames", newInd);
     StringPtr newName = objPtr.getPropertySelectionValue("NetworkAdaptersNames");
 
     if (ethernetWrapper->setDevice(newName))
@@ -63,8 +63,8 @@ void NetworkManagerFb::networkAdapterChangedInternal()
     }
     else
     {
-        setPropertyValueInternal(String("NetworkAdaptersNames"), BaseObjectPtr(oldInd), false, false, false);
-        setPropertyValueInternal(String("NetworkAdapters"), BaseObjectPtr(oldInd), false, false, false);
+        objPtr.setPropertyValue("NetworkAdaptersNames", oldInd);
+        objPtr.setPropertyValue("NetworkAdapters", oldInd);
     }
 }
 
