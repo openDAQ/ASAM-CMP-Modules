@@ -194,7 +194,7 @@ void AnalogMessagesTest::testAnalogPackets(bool setScale)
 
     size_t timeElapsed = 0;
     auto stTime = std::chrono::steady_clock::now();
-    while (!checker() && timeElapsed < 2500'000'000)
+    while (!checker() && timeElapsed < 60'000)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
         auto curTime1 = std::chrono::steady_clock::now();

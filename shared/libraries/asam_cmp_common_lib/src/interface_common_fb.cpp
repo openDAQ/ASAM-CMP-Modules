@@ -93,11 +93,7 @@ void InterfaceCommonFb::updatePayloadTypeInternal()
 
     if (newType < 0 || static_cast<size_t>(newType) > maxPayloadIndex())
     {
-        setPropertyValueInternal(String("PayloadType").asPtr<IString>(true),
-                                 BaseObjectPtr(payloadTypeToIndex(payloadType.getType())).asPtr<IBaseObject>(true),
-                                 false,
-                                 false,
-                                 false);
+        objPtr.setPropertyValue("PayloadType", payloadTypeToIndex(payloadType.getType()));
     }
     else
     {

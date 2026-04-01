@@ -47,15 +47,12 @@ if (MSVC)
     add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:/wd4100>)
 endif()
 
-add_definitions(-DFMT_HEADER_ONLY)
+add_compile_definitions(FMT_HEADER_ONLY)
 
 if (${REPO_OPTION_PREFIX}_ENABLE_EXAMPLE)
     set(DAQMODULES_REF_DEVICE_MODULE ON)
     set(DAQMODULES_REF_FB_MODULE ON)
 endif()
-
-# TODO: move add_subdirectory(external) after openDAQ SDK fetch once TBBAS-3072 is resolved
-add_subdirectory(external)
 
 if (NOT TARGET "${OPENDAQ_SDK_TARGET_NAMESPACE}::${OPENDAQ_SDK_TARGET_NAME}")
     if (PROJECT_IS_TOP_LEVEL)
@@ -82,6 +79,7 @@ if (NOT TARGET "${OPENDAQ_SDK_TARGET_NAMESPACE}::${OPENDAQ_SDK_TARGET_NAME}")
     endif()
 endif()
 
+add_subdirectory(external)
 add_subdirectory(shared)
 add_subdirectory(modules)
 if (${REPO_OPTION_PREFIX}_ENABLE_EXAMPLE)
