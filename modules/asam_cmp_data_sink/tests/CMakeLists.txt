@@ -24,6 +24,12 @@ target_link_libraries(${TEST_APP} PRIVATE ${OPENDAQ_SDK_TARGET_NAMESPACE}::opend
                                           asam_cmp_data_sink_lib
 )
 
+if (MSVC)
+    target_link_options(${TEST_APP} PRIVATE /DELAYLOAD:wpcap.dll /DELAYLOAD:packet.dll)
+    target_link_libraries(${TEST_APP} PRIVATE delayimp)
+endif()
+
+
 add_test(NAME ${TEST_APP}
          COMMAND $<TARGET_FILE:${TEST_APP}>
 )
