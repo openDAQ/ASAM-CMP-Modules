@@ -18,7 +18,16 @@ jobs:
       packages: >
         [
           {
-            "jobs": ["ubuntu-*"],
+            "match-jobs": ["ubuntu-*"],
             "apt-install": ["libpcap-dev"]
           }
         ]
+      cmake-presets: >
+        [
+          {
+            "match-jobs": ["*"],
+            "configure-preset": "module",
+            "test-preset": "module-test"
+          }
+        ]
+
