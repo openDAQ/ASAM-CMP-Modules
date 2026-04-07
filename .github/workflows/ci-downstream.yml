@@ -1,4 +1,4 @@
-name: Module CI
+name: CI Downstream - ASAM CMP
 
 on:
   workflow_dispatch:
@@ -10,9 +10,9 @@ on:
   pull_request:
 
 jobs:
-  call-opendaq-modules-ci:
-    name: Call module CI
-    uses: openDAQ/actions/.github/workflows/reusable-module-ci.yml@jira/TBBAS-3013-resusable-workflow-ci-module
+  call-opendaq-reusable:
+    name: ASAM CMP
+    uses: openDAQ/openDAQ-CI/.github/workflows/reusable.yml@jira/TBBAS-3031-reusable-ci
     with:
       opendaq-ref: ${{ github.event.inputs.opendaq-ref || '' }}
       packages: >
