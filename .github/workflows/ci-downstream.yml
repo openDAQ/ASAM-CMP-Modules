@@ -1,0 +1,33 @@
+name: CI Downstream - ASAM CMP
+
+on:
+  workflow_dispatch:
+    inputs:
+      opendaq-ref:
+        description: "openDAQ SDK commit, branch or tag"
+        required: false
+        default: ""
+  pull_request:
+
+jobs:
+  call-opendaq-reusable:
+    name: ASAM CMP
+    uses: openDAQ/openDAQ-CI/.github/workflows/reusable.yml@v1
+    with:
+      opendaq-ref: ${{ github.event.inputs.opendaq-ref || '' }}
+      packages: >
+        [
+          {
+            "match-jobs": ["ubuntu-*"],
+            "apt-install": ["libpcap-dev"]
+          }
+        ]
+      cmake-presets: >
+        [
+          {
+            "match-jobs": ["*"],
+            "configure-preset": "module",
+            "test-preset": "module-test"
+          }
+        ]
+

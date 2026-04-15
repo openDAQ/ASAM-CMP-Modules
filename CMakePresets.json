@@ -1,0 +1,20 @@
+{
+    "version": 4,
+    "configurePresets": [
+        {
+            "name": "module",
+            "cacheVariables": {
+                "ASAM_CMP_ENABLE_EXAMPLE": false
+            }
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "module-test",
+            "configurePreset": "module",
+            "output": {
+                "outputOnFailure": true
+            }
+        }
+    ]
+}

@@ -33,6 +33,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 opendaq_common_compile_targets_settings()
 opendaq_setup_compiler_flags(${REPO_OPTION_PREFIX})
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10)
+    add_compile_options(-Wno-unknown-warning-option)
+endif()
+
 if (${REPO_OPTION_PREFIX}_ENABLE_TESTS)
     message(STATUS "Unit tests in ${REPO_NAME} are ENABLED")
     set(OPENDAQ_ENABLE_TEST_UTILS ON CACHE BOOL "Enable testing utils library")
