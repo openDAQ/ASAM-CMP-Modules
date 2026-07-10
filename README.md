@@ -9,12 +9,14 @@ It uses [PcapPlusPlus Library](https://pcapplusplus.github.io/) to transport CMP
 - Support CAN / CAN-FD and Analog signals.
 - Gather information about Capture Modules appearing on the network.
 
+## Prerequisites
+On Windows, [Npcap](https://npcap.com/#download) must be installed with the **"Install Npcap in WinPcap API-compatible Mode"** option enabled. This option makes the packet-capture libraries (`wpcap.dll`, `packet.dll`) available system-wide, so the modules can locate them.
+
 ## Required tools before building
  - [CMake 3.24](https://cmake.org/) or higher
  - [Git](https://git-scm.com/)
  - libpcap
-    - [Npcap](https://npcap.com/#download) for Windows  
-      must be installed in WinPcap API-compatible Mode
+    - [Npcap](https://npcap.com/#download) for Windows (see [Prerequisites](#prerequisites))
     - [libpcap developers pack](https://www.tcpdump.org/#latest-release) for Linux  
       can be installed through a package manager `sudo apt-get install libpcap-dev`
  - Compiler:
