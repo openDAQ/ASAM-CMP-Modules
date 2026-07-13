@@ -10,7 +10,7 @@ It uses [PcapPlusPlus Library](https://pcapplusplus.github.io/) to transport CMP
 - Gather information about Capture Modules appearing on the network.
 
 ## Prerequisites
-On Windows, [Npcap](https://npcap.com/#download) must be installed with the **"Install Npcap in WinPcap API-compatible Mode"** option enabled. This option makes the packet-capture libraries (`wpcap.dll`, `packet.dll`) available system-wide, so the modules can locate them.
+On Windows, [Npcap](https://npcap.com/#download) must be installed with the **"Install Npcap in WinPcap API-compatible Mode"** option enabled. This option makes the packet-capture libraries (`wpcap.dll`, `packet.dll`) available system-wide, so the modules can locate them. If Npcap is already installed without this option, reinstall it with the option enabled.
 
 ## Required tools before building
  - [CMake 3.24](https://cmake.org/) or higher
