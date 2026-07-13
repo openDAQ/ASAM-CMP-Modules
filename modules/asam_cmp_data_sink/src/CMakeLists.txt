@@ -1,4 +1,4 @@
-project(asam_cmp_data_sink LANGUAGES CXX VERSION 1.0.0)
+project(asam_cmp_data_sink LANGUAGES CXX VERSION ${${REPO_OPTION_PREFIX}_VERSION})
 
 set(SRC_Cpp module_dll.cpp
             data_sink_module.cpp
