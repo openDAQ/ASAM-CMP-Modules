@@ -82,6 +82,7 @@ private:
     std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf> ethernetWrapper;
     const StringPtr& selectedEthernetDeviceName;
     DevicePtr parentDevice;
+    bool useParentDomain;
 };
 
 END_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
