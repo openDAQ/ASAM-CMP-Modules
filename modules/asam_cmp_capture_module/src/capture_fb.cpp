@@ -21,6 +21,7 @@ CaptureFb::CaptureFb(const ModuleInfoPtr& moduleInfo,
     , ethernetWrapper(init.ethernetWrapper)
     , selectedEthernetDeviceName(init.selectedDeviceName)
     , parentDevice(FindParentDevice(parent))
+    , useParentDomain(parentDevice.assigned() && parentDevice.getDomain().assigned())
 {
     initStatusPacket();
     initProperties();
@@ -110,20 +111,27 @@ ASAM::CMP::DataContext CaptureFb::createEncoderDataContext() const
 
 uint64_t CaptureFb::getCurrentSystemTime()
 {
-    if (!parentDevice.assigned())
+    if (!useParentDomain)
         return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
     DeviceDomainPtr domain = parentDevice.getDomain();
+
     const auto domainResolution = domain.getTickResolution();
     return static_cast<Int>(parentDevice.getTicksSinceOrigin()) * (SimplifiedRatioPtr(domainResolution) * NanoTicksPerSec);
 }
 
 DevicePtr CaptureFb::FindParentDevice(const ComponentPtr& parent)
 {
-    auto parentDevice = parent;
-    while (parentDevice.assigned() && !parentDevice.asPtrOrNull<IDevice>().assigned())
-        parentDevice = parentDevice.getParent();
+    DevicePtr parentDevice = nullptr;
+    auto parentComponent = parent.asPtrOrNull<IComponent>();
+    while (parentComponent.assigned())
+    {
+        auto tempDevice = parentComponent.asPtrOrNull<IDevice>();
+        if (tempDevice.assigned())
+            parentDevice = std::move(tempDevice);
 
+        parentComponent = parentComponent.getParent();
+    }
     return parentDevice;
 }
 
