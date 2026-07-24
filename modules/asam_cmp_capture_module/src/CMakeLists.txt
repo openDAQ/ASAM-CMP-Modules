@@ -1,5 +1,5 @@
 project(asam_cmp_capture_module
-        VERSION 1.0.0
+        VERSION ${${REPO_OPTION_PREFIX}_VERSION}
         LANGUAGES CXX)
 
 set(LIB_NAME asam_cmp_capture_module)
