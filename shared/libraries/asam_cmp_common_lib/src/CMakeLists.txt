@@ -1,4 +1,4 @@
-project(asam_cmp_common_lib LANGUAGES CXX VERSION 1.0.0)
+project(asam_cmp_common_lib LANGUAGES CXX VERSION ${${REPO_OPTION_PREFIX}_VERSION})
 
 set(SRC_Cpp interface_common_fb.cpp
             ethernet_pcpp_impl.cpp
