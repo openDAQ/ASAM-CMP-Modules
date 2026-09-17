@@ -49,6 +49,9 @@ add_library(${LIB_NAME} SHARED
     ${SRC_PrivateHeaders}
 )
 
+opendaq_target_pch(${LIB_NAME} <opendaq/opendaq.h>)
+opendaq_target_unity_libs(${LIB_NAME} BATCH_SIZE 4)
+
 target_link_libraries(${LIB_NAME} PUBLIC daq::opendaq
                                           Pcap++
                                           asam_cmp
@@ -99,6 +102,9 @@ if (${REPO_OPTION_PREFIX}_ENABLE_TESTS)
         ${SRC_Lib_PublicHeaders}
         ${SRC_Lib_PrivateHeaders}
     )
+
+    opendaq_target_pch(${PROJECT_NAME}_lib <opendaq/opendaq.h>)
+    opendaq_target_unity_libs(${PROJECT_NAME}_lib BATCH_SIZE 4)
 
     target_link_libraries(${PROJECT_NAME}_lib PUBLIC daq::opendaq
                                                      Pcap++

@@ -31,6 +31,9 @@ add_library(${PROJECT_NAME} STATIC
     ${SRC_PrivateHeaders}
 )
 
+opendaq_target_pch(${PROJECT_NAME} <opendaq/opendaq.h>)
+opendaq_target_unity_libs(${PROJECT_NAME} BATCH_SIZE 4)
+
 if(UNIX)
     target_compile_options(${PROJECT_NAME} PRIVATE -fPIC)
 endif()
