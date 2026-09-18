@@ -33,6 +33,12 @@ target_link_libraries(${TEST_APP} PRIVATE ${OPENDAQ_SDK_TARGET_NAMESPACE}::opend
                                           asam_cmp_capture_module_lib
 )
 
+opendaq_target_pch(${TEST_APP} <opendaq/opendaq.h> <gtest/gtest.h>)
+
+# test_app.cpp defines main().
+set_source_files_properties(test_app.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+opendaq_target_unity_tests(${TEST_APP} BATCH_SIZE 4)
+
 if (MSVC)
     target_link_options(${TEST_APP} PRIVATE /DELAYLOAD:wpcap.dll /DELAYLOAD:packet.dll)
     target_link_libraries(${TEST_APP} PRIVATE delayimp)
