@@ -1,0 +1,109 @@
+name: Build ASAM CMP module stagings
+
+on:
+    schedule:
+        - cron: '02**1'
+    workflow_dispatch:
+    
+    
+jobs:
+    resolve:
+        name: Resolv the core commit
+        runs-on: ubuntu-latest
+        outputs:
+            core-ref: ${{steps.core.outputs.ref}}
+            channel: ${{steps.channel.outputs.channel}}
+        steps:
+            - uses: actions/checkout@v4
+            
+            - uses: openDAQ/openDAQ-CI/.github/actions/resolve-channel@v3
+              id: channel
+              
+            - name: Read the pinned core ref
+              id: core
+              shell: bash
+              run: echo "ref=$(cat opendaq_ref)" >> "$GITHUB_OUTPUT"
+              
+    stage:
+        needs: resolve
+        name: ASAM-CMP-Module
+        permissions:
+            contests: read
+            packages: write
+        uses: openDAQ/openDAQ-CI/.github/workflows/stage.yml@v3
+        with:
+            timeout: '[{"timeout-minutes": 180}]'
+            staging-pull: >-
+                [
+                    { "artifact": "core-windows-2022-x86_64-msvs-v143-release",   "packages": [{ "path": "ghcr.io/openDAQ/${{ needs.resolve.outputs.channel }}/staging/opendaq", "tag": "${{ needs.resolve.outputs.core-ref }}", "annotations": { "com.opendaq.custom.platform": "windows",        "com.opendaq.settings.arch": "x86_64" } }] },
+                    { "artifact": "core-windows-2022-x86-msvs-v143-release",      "packages": [{ "path": "ghcr.io/openDAQ/${{ needs.resolve.outputs.channel }}/staging/opendaq", "tag": "${{ needs.resolve.outputs.core-ref }}", "annotations": { "com.opendaq.custom.platform": "windows",        "com.opendaq.settings.arch": "x86"    } }] },
+                    { "artifact": "core-manylinux_2_28-x86_64-ninja-gcc-14-release", "packages": [{ "path": "ghcr.io/openDAQ/${{ needs.resolve.outputs.channel }}/staging/opendaq", "tag": "${{ needs.resolve.outputs.core-ref }}", "annotations": { "com.opendaq.custom.platform": "manylinux_2_28", "com.opendaq.settings.arch": "x86_64" } }] },
+                    { "artifact": "core-manylinux_2_28-armv8-ninja-gcc-14-release",  "packages": [{ "path": "ghcr.io/openDAQ/${{ needs.resolve.outputs.channel }}/staging/opendaq", "tag": "${{ needs.resolve.outputs.core-ref }}", "annotations": { "com.opendaq.custom.platform": "manylinux_2_28", "com.opendaq.settings.arch": "armv8"  } }] },
+                    { "artifact": "core-ubuntu-22.04-x86_64-ninja-gcc-release",   "packages": [{ "path": "ghcr.io/openDAQ/${{ needs.resolve.outputs.channel }}/staging/opendaq", "tag": "${{ needs.resolve.outputs.core-ref }}", "annotations": { "com.opendaq.custom.platform": "linux",          "com.opendaq.settings.arch": "x86_64" } }] },
+                    { "artifact": "core-ubuntu-22.04-armv8-ninja-gcc-release",    "packages": [{ "path": "ghcr.io/openDAQ/${{ needs.resolve.outputs.channel }}/staging/opendaq", "tag": "${{ needs.resolve.outputs.core-ref }}", "annotations": { "com.opendaq.custom.platform": "linux",          "com.opendaq.settings.arch": "armv8"  } }] },
+                    { "artifact": "core-macos-26-x86_64-ninja-appleclang-21-release","packages": [{ "path": "ghcr.io/openDAQ/${{ needs.resolve.outputs.channel }}/staging/opendaq", "tag": "${{ needs.resolve.outputs.core-ref }}", "annotations": { "com.opendaq.custom.platform": "macos",          "com.opendaq.settings.arch": "x86_64" } }] },
+                    { "artifact": "core-macos-26-armv8-ninja-appleclang-21-release", "packages": [{ "path": "ghcr.io/openDAQ/${{ needs.resolve.outputs.channel }}/staging/opendaq", "tag": "${{ needs.resolve.outputs.core-ref }}", "annotations": { "com.opendaq.custom.platform": "macos",          "com.opendaq.settings.arch": "armv8"  } }] }
+                ]
+            include-jobs: >-
+                [
+                    "windows-2022-x86_64-msvs-v143-release",
+                    "windows-2022-x86-msvs-v143-release",
+                    "manylinux_2_28-x86_64-ninja-gcc-14-release",
+                    "manylinux_2_28-armv8-ninja-gcc-14-release",
+                    "ubuntu-22.04-x86_64-ninja-gcc-release",
+                    "ubuntu-22.04-armv8-ninja-gcc-release",
+                    "macos-26-x86_64-ninja-appleclang-21-release",
+                    "macos-26-armv8-ninja-appleclang-21-release"
+                ]
+            packages: >-
+                [
+                    { "match-jobs": ["windows-2022-x86_64-msvs-v143-release"],   "artifacts": [{ "name": "core-windows-2022-x86_64-msvs-v143-release",    "dir": "staging-deps" }] },
+                    { "match-jobs": ["windows-2022-x86-msvs-v143-release"],      "artifacts": [{ "name": "core-windows-2022-x86-msvs-v143-release",       "dir": "staging-deps" }] },
+                    { "match-jobs": ["manylinux_2_28-x86_64-ninja-gcc-14-release"], "artifacts": [{ "name": "core-manylinux_2_28-x86_64-ninja-gcc-14-release",  "dir": "staging-deps" }] },
+                    { "match-jobs": ["manylinux_2_28-armv8-ninja-gcc-14-release"],  "artifacts": [{ "name": "core-manylinux_2_28-armv8-ninja-gcc-14-release",   "dir": "staging-deps" }] },
+                    { "match-jobs": ["ubuntu-22.04-x86_64-ninja-gcc-release"],   "artifacts": [{ "name": "core-ubuntu-22.04-x86_64-ninja-gcc-release",    "dir": "staging-deps" }] },
+                    { "match-jobs": ["ubuntu-22.04-armv8-ninja-gcc-release"],    "artifacts": [{ "name": "core-ubuntu-22.04-armv8-ninja-gcc-release",     "dir": "staging-deps" }] },
+                    { "match-jobs": ["macos-26-x86_64-ninja-appleclang-21-release"],"artifacts": [{ "name": "core-macos-26-x86_64-ninja-appleclang-21-release", "dir": "staging-deps" }] },
+                    { "match-jobs": ["macos-26-armv8-ninja-appleclang-21-release"], "artifacts": [{ "name": "core-macos-26-armv8-ninja-appleclang-21-release",  "dir": "staging-deps" }] },
+                    { "match-jobs": ["ubuntu-*"],        "apt-install": ["libssl-dev"] },
+                    { "match-jobs": ["manylinux*"],      "yum-install": ["openssl-devel"] },
+                    { "match-jobs": ["windows-*-x86-*"], "run": "vcpkg install openssl:x86-windows; Add-Content -Path $env:GITHUB_PATH -Value C:\\vcpkg\\installed\\x86-windows\\bin -Encoding utf8" }
+                ]
+            cmake-presets: >-
+                [
+                    {
+                        "match-jobs": ["*"],
+                        "configure-preset": "stage",
+                        "cache-variables":
+                        {
+                            "CMAKE_PREFIX_PATH": "${sourceDir}/staging-deps;${sourceDir}/staging-deps/opt/opendaq"
+                        }
+                    },
+                    {
+                        "match-jobs": ["macos-*-x86_64-*"],
+                        "cache-variables": {"CMAKE_OSX_DEPLOYMENT_TARGET": "10.15"}
+                    },
+                    {
+                        "match-jobs": ["macos-*-armv8-*"],
+                        "cache-variables": {"CMAKE_OSX_DEPLOYMENT_TARGET": "11.0"}
+                    },
+                    {
+                        "match-jobs": ["windows-*-x86-*"],
+                        "cache-variables": {"OPENSSL_ROOT_DIR": "C:/vcpkg/installed/x86-windows"}
+                    }
+                ]
+            cmake-presets: >-
+                [
+                    {
+                        "match-jobs": ["*"],
+                        "stagings": [{"name": "asam-cmp"}]
+                    }
+                ]
+            staging-push: >-
+                [
+                    {
+                        "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.channel }}/staging/asam-cmp-modules",
+                        "artifacts": ["staging-*/asam-cmp"],
+                        "tags": ["latest"]
+                    }
+                ]

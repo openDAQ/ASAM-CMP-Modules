@@ -1,0 +1,35 @@
+name: Check core staging
+
+on:
+    pull_request:
+        types: [opened, reopened, synchronize, ready_for_review]
+        
+concurrency:
+    group: ${{github.workflow}}-${{github.ref}}
+    cancel-in-progress: true
+    
+jobs:
+    core-staging:
+        name: Core staging
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: read
+        steps:
+            - uses: actions/checkout@v4
+            
+            - uses: openDAQ/openDAQ-CI/.github/actions/resolve-channel@v3
+                id: channel
+                
+            - name: Read the pinned core ref
+                shell: bash
+                run: echo "CORE_REF=$(cat opendaq_ref)" >> "$GITHUB_ENV"
+                
+            - uses: openDAQ/openDAQ-CI/.github/actions/staging-check@v3
+                env:
+                    CHANNEL: ${{steps.channel.outputs.channel}}
+                with:
+                    packages: >-
+                        [
+                            {"path": "ghcr.io/openDAQ/$CHANNEL/staging/opendaq", "tag": "$CORE_REF"}
+                        ]
