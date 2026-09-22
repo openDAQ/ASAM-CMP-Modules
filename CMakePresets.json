@@ -6,6 +6,11 @@
             "cacheVariables": {
                 "ASAM_CMP_ENABLE_EXAMPLE": false
             }
+        },
+        {
+            "name": "stage",
+            "hidden": true,
+            "cacheVariables":{}
         }
     ],
     "testPresets": [
