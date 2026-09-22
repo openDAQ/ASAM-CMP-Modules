@@ -10,7 +10,7 @@
         {
             "name": "stage",
             "hidden": true,
-            "cacheVariables":{}
+            "cacheVariables": {}
         }
     ],
     "testPresets": [
