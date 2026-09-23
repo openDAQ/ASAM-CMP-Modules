@@ -23,7 +23,7 @@ jobs:
                 
             - name: Read the pinned core ref
               shell: bash
-                run: echo "CORE_REF=$(cat opendaq_ref)" >> "$GITHUB_ENV"
+              run: echo "CORE_REF=$(cat opendaq_ref)" >> "$GITHUB_ENV"
                 
             - uses: openDAQ/openDAQ-CI/.github/actions/staging-check@v3
               env:

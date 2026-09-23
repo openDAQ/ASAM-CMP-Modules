@@ -2,7 +2,7 @@ name: Build ASAM CMP module stagings
 
 on:
     push:
-        branches: [other/CIstaging]
+        branches: [other/CIstagings]
         
     schedule:
         - cron: '0 2 * * 1'

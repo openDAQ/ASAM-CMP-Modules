@@ -12,8 +12,8 @@
             "hidden": true,
             "cacheVariables": {
                 "ASAM_CMP_ENABLE_TESTS": "OFF",
-                "ASAM_CMP_ENALBE_EXAMPLE": "OFF",
-                "CPACK_COMPONENETS_ALL": "openDAQ_asam_cmp_capture_module_Runtime;openDAQ_asam_cmp_data_sink_Runtime"
+                "ASAM_CMP_ENABLE_EXAMPLE": "OFF",
+                "CPACK_COMPONENTS_ALL": "openDAQ_asam_cmp_capture_module_Runtime;openDAQ_asam_cmp_data_sink_Runtime"
             }
         }
     ],
