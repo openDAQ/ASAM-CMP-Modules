@@ -2,7 +2,7 @@ name: Clean up stagings
 
 on:
     schedule:
-        - cron: '06**1'
+        - cron: '0 6 * * 1'
     workflow_dispatch:
         inputs:
             dry-run:
@@ -14,7 +14,7 @@ jobs:
     cleanup:
         name: Stagings
         permissions:
-            package: write
+            packages: write
         uses: openDAQ/openDAQ-CI/.github/workflows/staging-cleanup.yml@v3
         with:
             dry-run: ${{inputs.dry-run || false}}

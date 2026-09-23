@@ -114,6 +114,3 @@ elseif (UNIX AND NOT APPLE)
     set(CPACK_SYSTEM_NAME "${DISTRO_ID}${DISTRO_VERSION_ID}")
     set(CPACK_GENERATOR "TGZ")
 endif()
-
-# Include CPack for packaging
-include(CPack)
