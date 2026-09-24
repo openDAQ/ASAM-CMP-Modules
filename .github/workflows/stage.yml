@@ -1,9 +1,6 @@
 name: Build ASAM CMP module stagings
 
 on:
-    push:
-        branches: [other/CIstagings]
-        
     schedule:
         - cron: '0 2 * * 1'
     workflow_dispatch:

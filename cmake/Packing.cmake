@@ -31,7 +31,7 @@ endif()
 ## Composed by opendaq-cmake-utils, the same way core names its packages.
 ##
 
-set(CPACK_OPENDAQ_META_PACKAGE_NAME "asam-cmp-module")
+set(CPACK_OPENDAQ_META_PACKAGE_NAME "asam-cmp-modules")
 
 execute_process(COMMAND git -C "${CMAKE_CURRENT_SOURCE_DIR}" rev-parse --short=7 HEAD
                 OUTPUT_VARIABLE _PACKING_SHORT_SHA
