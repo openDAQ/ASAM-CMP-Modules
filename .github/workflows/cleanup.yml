@@ -1,0 +1,24 @@
+name: Clean up stagings
+
+on:
+    schedule:
+        - cron: '0 6 * * 1'
+    workflow_dispatch:
+        inputs:
+            dry-run:
+                description: "List what would be pruned without deleting."
+                type: boolean
+                default: false
+                
+jobs:
+    cleanup:
+        name: Stagings
+        permissions:
+            packages: write
+        uses: openDAQ/openDAQ-CI/.github/workflows/staging-cleanup.yml@v3
+        with:
+            dry-run: ${{inputs.dry-run || false}}
+            staging-retentions: >-
+                [
+                    {"path": "ghcr.io/openDAQ/dev/staging/asam-cmp-modules", "retentions": {"days": 30}}
+                ]

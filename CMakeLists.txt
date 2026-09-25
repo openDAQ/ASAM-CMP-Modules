@@ -7,6 +7,9 @@ set(REPO_OPTION_PREFIX ASAM_CMP)
 list(APPEND CMAKE_MESSAGE_CONTEXT ${REPO_NAME})
 add_subdirectory(cmake)
 
+# Names the install components of the modules: openDAQ_<module>_Runtime / _Development
+set(SDK_NAME "${OPENDAQ_SDK_NAME}")
+
 opendaq_read_file_contents("${CMAKE_CURRENT_LIST_DIR}/module_version" module_version)
 opendaq_get_version_major_minor_patch("${module_version}" ${REPO_OPTION_PREFIX}_VERSION)
 
@@ -84,6 +87,10 @@ if (NOT TARGET "${OPENDAQ_SDK_TARGET_NAMESPACE}::${OPENDAQ_SDK_TARGET_NAME}")
     endif()
 endif()
 
+if (PROJECT_IS_TOP_LEVEL)
+    include(cmake/Packing.cmake)
+endif()
+
 add_subdirectory(external)
 add_subdirectory(shared)
 add_subdirectory(modules)
@@ -107,6 +114,3 @@ elseif (UNIX AND NOT APPLE)
     set(CPACK_SYSTEM_NAME "${DISTRO_ID}${DISTRO_VERSION_ID}")
     set(CPACK_GENERATOR "TGZ")
 endif()
-
-# Include CPack for packaging
-include(CPack)

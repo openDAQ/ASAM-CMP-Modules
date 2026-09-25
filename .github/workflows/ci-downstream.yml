@@ -12,9 +12,22 @@ on:
 jobs:
   call-opendaq-reusable:
     name: ASAM CMP
-    uses: openDAQ/openDAQ-CI/.github/workflows/reusable.yml@v1
+    uses: openDAQ/openDAQ-CI/.github/workflows/reusable.yml@v3
     with:
       opendaq-ref: ${{ github.event.inputs.opendaq-ref || '' }}
+      include-jobs: >
+        [
+            "windows-2022-x86-msvs-v143-release",
+            "windows-2022-x86_64-msvs-v143-debug",
+            "ubuntu-20.04-x86-ninja-gcc-7-release",
+            "ubuntu-20.04-x86_64-ninja-clang-9-release",
+            "ubuntu-24.04-x86_64-ninja-gcc-14-debug",
+            "ubuntu-24.04-x86_64-ninja-gcc-14-release",
+            "ubuntu-24.04-x86_64-ninja-clang-18-release",
+            "macos-26-x86_64-ninja-appleclang-17-release",
+            "macos-26-x86_64-ninja-appleclang-17-debug",
+            "macos-26-armv8-ninja-appleclang-21-release"
+        ]
       packages: >
         [
           {
