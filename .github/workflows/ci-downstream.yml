@@ -12,7 +12,7 @@ on:
 jobs:
   call-opendaq-reusable:
     name: ASAM CMP
-    uses: openDAQ/openDAQ-CI/.github/workflows/reusable.yml@v3
+    uses: openDAQ/openDAQ-CI/.github/workflows/reusable.yml@v4
     with:
       opendaq-ref: ${{ github.event.inputs.opendaq-ref || '' }}
       include-jobs: >
