@@ -131,6 +131,11 @@ AsamCmpCaptureModule FB
              |  - Offset   - value offset **if scaled signal is connected, read only**
 </pre>
 
+The Capture FB initializes `DeviceDescription` from the root parent device's `model`, using the same device as the status timestamps.
+It also copies `serialNumber`, `hardwareRevision`, and `softwareRevision` into `SerialNumber`, `HardwareVersion`, and `SoftwareVersion`.
+All four fields remain editable. Missing device information leaves the corresponding fields empty.
+`DeviceId` and `VendorData` retain their existing behavior.
+
 ### Capture Module Input Data Format
 Each Stream FB has an input port to which you can connect an openDAQ signal. You should select the type of the input data and output ASAM CMP payload type using the PayloadType property in the Interface FB. If you connect an openDAQ signal with data that is not suitable for the selected Payload Type you connection will not be established with corresponding log record.
 

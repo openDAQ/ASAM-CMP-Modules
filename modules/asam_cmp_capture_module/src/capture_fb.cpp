@@ -2,6 +2,7 @@
 #include <asam_cmp_capture_module/interface_fb.h>
 #include <coreobjects/callable_info_factory.h>
 #include <coreobjects/argument_info_factory.h>
+#include <opendaq/device_info_ptr.h>
 #include <set>
 #include <fmt/format.h>
 #include <asam_cmp/cmp_header.h>
@@ -36,17 +37,31 @@ CaptureFb::~CaptureFb()
 
 void CaptureFb::initProperties()
 {
+    if (parentDevice.assigned())
+    {
+        const auto info = parentDevice.getInfo();
+        if (info.assigned())
+        {
+            const auto model = info.getModel();
+            if (model.assigned())
+                deviceDescription = model;
+
+            const auto deviceSerialNumber = info.getSerialNumber();
+            if (deviceSerialNumber.assigned())
+                serialNumber = deviceSerialNumber;
+
+            const auto deviceHardwareVersion = info.getHardwareRevision();
+            if (deviceHardwareVersion.assigned())
+                hardwareVersion = deviceHardwareVersion;
+
+            const auto deviceSoftwareVersion = info.getSoftwareRevision();
+            if (deviceSoftwareVersion.assigned())
+                softwareVersion = deviceSoftwareVersion;
+        }
+    }
+
     initDeviceInfoProperties(false);
-    objPtr.beginUpdate();
-    deviceDescription = "DefaultDeviceDescription";
-    objPtr.setPropertyValue("DeviceDescription", deviceDescription);
-    serialNumber = "DefaultSerialNumber";
-    objPtr.setPropertyValue("SerialNumber", serialNumber);
-    hardwareVersion = "DefaultHardwareVersion";
-    objPtr.setPropertyValue("HardwareVersion", hardwareVersion);
-    softwareVersion = "DefaultSoftwareVersion";
-    objPtr.setPropertyValue("SoftwareVersion", softwareVersion);
-    objPtr.endUpdate();
+    updateCaptureData();
 }
 
 void CaptureFb::propertyChanged()

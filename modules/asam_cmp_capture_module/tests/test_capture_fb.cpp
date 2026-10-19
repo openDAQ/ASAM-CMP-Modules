@@ -1,6 +1,8 @@
 #include <asam_cmp_capture_module/common.h>
 #include <asam_cmp_capture_module/capture_fb.h>
 #include <opendaq/context_factory.h>
+#include <opendaq/device_impl.h>
+#include <opendaq/folder_factory.h>
 #include <opendaq/module_ptr.h>
 #include <opendaq/scheduler_factory.h>
 #include <gtest/gtest.h>
@@ -10,6 +12,16 @@
 
 using namespace daq;
 using namespace testing;
+
+class CaptureFbParentDevice final : public Device
+{
+public:
+    CaptureFbParentDevice(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, const DeviceInfoPtr& info)
+        : Device(ctx, parent, localId)
+    {
+        deviceInfo = info;
+    }
+};
 
 class CaptureFbTest : public testing::Test
 {
@@ -53,6 +65,13 @@ protected:
     ASAM::CMP::Packet lastReceivedPacket;
     ASAM::CMP::Decoder decoder;
 
+    void createCaptureWithParent(const ComponentPtr& parent)
+    {
+        modules::asam_cmp_capture_module::CaptureFbInit init{ethernetWrapper, selectedDevice};
+        captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_capture_module::CaptureFb>(
+            moduleInfo, context, parent, "capture", init);
+    }
+
     void onPacketSendCb(const std::vector<uint8_t>& data)
     {
         std::scoped_lock lock{packedReceivedSync};
@@ -69,10 +88,10 @@ TEST_F(CaptureFbTest, CreateCaptureModule)
 TEST_F(CaptureFbTest, DefaultPropertiesValues)
 {
     constexpr Int defaultDeviceId = 0;
-    const StringPtr defaultDefaultDeviceDescription = "DefaultDeviceDescription";
-    const StringPtr defaultDefaultSerialNumber = "DefaultSerialNumber";
-    const StringPtr defaultDefaultHardwareVersion = "DefaultHardwareVersion";
-    const StringPtr defaultDefaultSoftwareVersion = "DefaultSoftwareVersion";
+    const StringPtr defaultDefaultDeviceDescription = "";
+    const StringPtr defaultDefaultSerialNumber = "";
+    const StringPtr defaultDefaultHardwareVersion = "";
+    const StringPtr defaultDefaultSoftwareVersion = "";
     const StringPtr defaultDefaultVendorData = "";
 
     const Int id = captureFb.getPropertyValue("DeviceId");
@@ -88,6 +107,86 @@ TEST_F(CaptureFbTest, DefaultPropertiesValues)
     ASSERT_EQ(hardwareVersion, defaultDefaultHardwareVersion);
     ASSERT_EQ(softwareVersion, defaultDefaultSoftwareVersion);
     ASSERT_EQ(vendorData, defaultDefaultVendorData);
+    for (const auto* name : {"DeviceDescription", "SerialNumber", "HardwareVersion", "SoftwareVersion"})
+    {
+        ASSERT_FALSE(captureFb.getProperty(name).getReadOnly());
+        captureFb.setPropertyValue(name, "manual");
+        ASSERT_EQ(captureFb.getPropertyValue(name), String("manual"));
+    }
+}
+
+TEST_F(CaptureFbTest, InheritDeviceProperties)
+{
+    auto info = DeviceInfo("test://device", "Measurement system");
+    info.setManufacturer("Dewesoft");
+    info.setModel("RT Simulator");
+    info.setSerialNumber("DS12345677");
+    info.setHardwareRevision("9999.1.2345");
+    info.setSoftwareRevision("2026.4.2.0");
+    auto device = createWithImplementation<IDevice, CaptureFbParentDevice>(context, nullptr, "device", info);
+    auto folder = Folder(context, device, "capture_folder");
+    createCaptureWithParent(folder);
+
+    ASSERT_EQ(captureFb.getPropertyValue("DeviceDescription"), String("RT Simulator"));
+    ASSERT_EQ(captureFb.getPropertyValue("SerialNumber"), String("DS12345677"));
+    ASSERT_EQ(captureFb.getPropertyValue("HardwareVersion"), String("9999.1.2345"));
+    ASSERT_EQ(captureFb.getPropertyValue("SoftwareVersion"), String("2026.4.2.0"));
+    for (const auto* name : {"DeviceDescription", "SerialNumber", "HardwareVersion", "SoftwareVersion"})
+    {
+        ASSERT_FALSE(captureFb.getProperty(name).getReadOnly());
+        captureFb.setPropertyValue(name, "replacement");
+    }
+
+    ASSERT_FALSE(captureFb.getProperty("DeviceId").getReadOnly());
+    ASSERT_FALSE(captureFb.getProperty("VendorData").getReadOnly());
+    captureFb.setPropertyValue("DeviceId", 42);
+    captureFb.setPropertyValue("VendorData", "vendor data");
+    ASSERT_EQ(captureFb.getPropertyValue("DeviceId"), Integer(42));
+    ASSERT_EQ(captureFb.getPropertyValue("VendorData"), String("vendor data"));
+}
+
+TEST_F(CaptureFbTest, MissingDevicePropertiesRemainEditable)
+{
+    auto info = DeviceInfo("test://device", "Device");
+    info.setModel("Reference device");
+    info.setSerialNumber("DevSer0");
+    auto device = createWithImplementation<IDevice, CaptureFbParentDevice>(context, nullptr, "device", info);
+    createCaptureWithParent(device);
+
+    ASSERT_EQ(captureFb.getPropertyValue("DeviceDescription"), String("Reference device"));
+    ASSERT_FALSE(captureFb.getProperty("DeviceDescription").getReadOnly());
+    ASSERT_FALSE(captureFb.getProperty("SerialNumber").getReadOnly());
+    for (const auto* name : {"HardwareVersion", "SoftwareVersion"})
+    {
+        ASSERT_EQ(captureFb.getPropertyValue(name), String(""));
+        ASSERT_FALSE(captureFb.getProperty(name).getReadOnly());
+        captureFb.setPropertyValue(name, "manual");
+    }
+}
+
+TEST_F(CaptureFbTest, InheritRootDeviceProperties)
+{
+    auto rootInfo = DeviceInfo("test://root", "Root");
+    rootInfo.setModel("Root model");
+    rootInfo.setSerialNumber("Root serial");
+    auto root = createWithImplementation<IDevice, CaptureFbParentDevice>(context, nullptr, "root", rootInfo);
+    auto childInfo = DeviceInfo("test://child", "Child");
+    childInfo.setModel("Child model");
+    childInfo.setSerialNumber("Child serial");
+    auto child = createWithImplementation<IDevice, CaptureFbParentDevice>(context, root, "child", childInfo);
+    auto folder = Folder(context, child, "capture_folder");
+    createCaptureWithParent(folder);
+
+    ASSERT_EQ(captureFb.getPropertyValue("DeviceDescription"), String("Root model"));
+    ASSERT_EQ(captureFb.getPropertyValue("SerialNumber"), String("Root serial"));
+    ASSERT_EQ(captureFb.getPropertyValue("HardwareVersion"), String(""));
+    ASSERT_EQ(captureFb.getPropertyValue("SoftwareVersion"), String(""));
+    for (const auto* name : {"DeviceDescription", "SerialNumber", "HardwareVersion", "SoftwareVersion"})
+    {
+        ASSERT_FALSE(captureFb.getProperty(name).getReadOnly());
+        captureFb.setPropertyValue(name, "manual");
+        ASSERT_EQ(captureFb.getPropertyValue(name), String("manual"));
+    }
 }
 
 TEST_F(CaptureFbTest, TestCreateInterface)

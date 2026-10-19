@@ -125,25 +125,25 @@ template <typename... Interfaces>
 void CaptureCommonFbImpl<Interfaces...>::initDeviceInfoProperties(bool readOnly)
 {
     StringPtr propName = "DeviceDescription";
-    auto prop = StringPropertyBuilder(propName, "").setReadOnly(readOnly).build();
+    auto prop = StringPropertyBuilder(propName, deviceDescription).setReadOnly(readOnly).build();
     this->objPtr.addProperty(prop);
     this->objPtr.getOnPropertyValueWrite(propName) +=
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 
     propName = "SerialNumber";
-    prop = StringPropertyBuilder(propName, "").setReadOnly(readOnly).build();
+    prop = StringPropertyBuilder(propName, serialNumber).setReadOnly(readOnly).build();
     this->objPtr.addProperty(prop);
     this->objPtr.getOnPropertyValueWrite(propName) +=
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 
     propName = "HardwareVersion";
-    prop = StringPropertyBuilder(propName, "").setReadOnly(readOnly).build();
+    prop = StringPropertyBuilder(propName, hardwareVersion).setReadOnly(readOnly).build();
     this->objPtr.addProperty(prop);
     this->objPtr.getOnPropertyValueWrite(propName) +=
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 
     propName = "SoftwareVersion";
-    prop = StringPropertyBuilder(propName, "").setReadOnly(readOnly).build();
+    prop = StringPropertyBuilder(propName, softwareVersion).setReadOnly(readOnly).build();
     this->objPtr.addProperty(prop);
     this->objPtr.getOnPropertyValueWrite(propName) +=
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
