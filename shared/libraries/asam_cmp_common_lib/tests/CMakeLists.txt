@@ -22,6 +22,8 @@ opendaq_target_unity_tests(${TEST_APP} BATCH_SIZE 4)
 add_test(NAME ${TEST_APP}
          COMMAND $<TARGET_FILE:${TEST_APP}>
 )
+# the tests take seconds; a hang fails the test instead of the CI job
+set_tests_properties(${TEST_APP} PROPERTIES TIMEOUT 600)
 
 set_target_properties(${TEST_APP} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:${TEST_APP}>)
 
