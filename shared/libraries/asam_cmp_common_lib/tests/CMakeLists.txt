@@ -19,6 +19,11 @@ opendaq_target_pch(${TEST_APP} <opendaq/opendaq.h> <gtest/gtest.h>)
 set_source_files_properties(test_app.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 opendaq_target_unity_tests(${TEST_APP} BATCH_SIZE 4)
 
+if (MSVC)
+    target_link_options(${TEST_APP} PRIVATE /DELAYLOAD:wpcap.dll /DELAYLOAD:packet.dll)
+    target_link_libraries(${TEST_APP} PRIVATE delayimp)
+endif()
+
 add_test(NAME ${TEST_APP}
          COMMAND $<TARGET_FILE:${TEST_APP}>
 )
