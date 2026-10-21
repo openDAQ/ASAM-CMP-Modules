@@ -14,7 +14,7 @@ env:
 
 jobs:
   build_linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 180
     
     strategy:
@@ -23,13 +23,11 @@ jobs:
 
       matrix:
         include:
-          - os: ubuntu:20.04
-            build_type: Release
+          - build_type: Release
             c_compiler: gcc
             cpp_compiler: g++
             cpack: tgz
-          - os: ubuntu:20.04
-            build_type: Release
+          - build_type: Release
             c_compiler: clang
             cpp_compiler: clang++
             cpack: tgz
