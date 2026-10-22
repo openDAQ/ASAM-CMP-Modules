@@ -37,11 +37,12 @@ FunctionBlockTypePtr InterfaceCommonFb::CreateType(const ModuleInfoPtr& moduleIn
 void InterfaceCommonFb::initProperties()
 {
     StringPtr propName = "InterfaceId";
-    auto prop = IntPropertyBuilder(propName, interfaceId)
+    auto prop = IntPropertyBuilder(propName, 0)
                     .setMinValue(static_cast<Int>(std::numeric_limits<uint32_t>::min()))
                     .setMaxValue(static_cast<Int>(std::numeric_limits<uint32_t>::max()))
                     .build();
     objPtr.addProperty(prop);
+    objPtr.setPropertyValue(propName, static_cast<Int>(interfaceId));
     objPtr.getOnPropertyValueWrite(propName) +=
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 

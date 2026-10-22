@@ -56,8 +56,9 @@ void InterfaceFb::removeStreamInternal(size_t nInd)
 void InterfaceFb::initProperties()
 {
     auto propName = "VendorData";
-    auto prop = StringPropertyBuilder(propName, vendorDataAsString).build();
+    auto prop = StringPropertyBuilder(propName, "").build();
     objPtr.addProperty(prop);
+    objPtr.setPropertyValue(propName, vendorDataAsString);
     objPtr.getOnPropertyValueWrite(propName) +=
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 }
