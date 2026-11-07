@@ -26,6 +26,10 @@ on:
         description: "openDAQ commit, branch or tag. If empty, uses the opendaq_ref file from the repo."
         type: string
         default: ""
+      exclude-jobs:
+        description: "Jobs not built, wildcard patterns, e.g. '[\"manylinux*\"]': their openDAQ stagings not pulled either"
+        type: string
+        default: "[]"
 
 jobs:
   resolve:
@@ -103,9 +107,11 @@ jobs:
           "macos-26-x86_64-ninja-appleclang-21-release",
           "macos-26-armv8-ninja-appleclang-21-release"
         ]
+      exclude-jobs: ${{ inputs.exclude-jobs || '[]' }}
       staging-pull: >-
         [
           {
+            "match-jobs": ["windows-2022-x86_64-msvs-v143-release"],
             "artifact": "opendaq-staging-windows-2022-x86_64-msvs-v143-release",
             "packages": [{
               "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
@@ -116,6 +122,7 @@ jobs:
             }]
           },
           {
+            "match-jobs": ["windows-2022-x86-msvs-v143-release"],
             "artifact": "opendaq-staging-windows-2022-x86-msvs-v143-release",
             "packages": [{
               "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
@@ -126,6 +133,7 @@ jobs:
             }]
           },
           {
+            "match-jobs": ["manylinux_2_28-x86_64-ninja-gcc-14-release"],
             "artifact": "opendaq-staging-manylinux_2_28-x86_64-ninja-gcc-14-release",
             "packages": [{
               "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
@@ -136,6 +144,7 @@ jobs:
             }]
           },
           {
+            "match-jobs": ["manylinux_2_28-armv8-ninja-gcc-14-release"],
             "artifact": "opendaq-staging-manylinux_2_28-armv8-ninja-gcc-14-release",
             "packages": [{
               "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
@@ -146,6 +155,7 @@ jobs:
             }]
           },
           {
+            "match-jobs": ["ubuntu-22.04-x86_64-ninja-gcc-release"],
             "artifact": "opendaq-staging-ubuntu-22.04-x86_64-ninja-gcc-release",
             "packages": [{
               "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
@@ -156,6 +166,7 @@ jobs:
             }]
           },
           {
+            "match-jobs": ["ubuntu-22.04-armv8-ninja-gcc-release"],
             "artifact": "opendaq-staging-ubuntu-22.04-armv8-ninja-gcc-release",
             "packages": [{
               "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
@@ -166,6 +177,7 @@ jobs:
             }]
           },
           {
+            "match-jobs": ["macos-26-x86_64-ninja-appleclang-21-release"],
             "artifact": "opendaq-staging-macos-26-x86_64-ninja-appleclang-21-release",
             "packages": [{
               "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
@@ -176,6 +188,7 @@ jobs:
             }]
           },
           {
+            "match-jobs": ["macos-26-armv8-ninja-appleclang-21-release"],
             "artifact": "opendaq-staging-macos-26-armv8-ninja-appleclang-21-release",
             "packages": [{
               "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
