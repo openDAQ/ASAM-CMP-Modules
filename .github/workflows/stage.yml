@@ -5,81 +5,84 @@ on:
     - cron: '0 2 * * 1'
   workflow_dispatch:
     inputs:
+      ref:
+        description: "The commit to stage: a sha, branch or tag (empty: the head of the branch dispatched on)"
+        default: ""
       opendaq-ref:
         description: "openDAQ commit, branch or tag. If empty, uses the opendaq_ref file from the repo."
         default: ""
-
+      skip-staging-push:
+        description: "Build only, keep the staging as an artifact of the run"
+        type: boolean
+        default: false
+  # from another repository's run (the bundle): staged as an artifact of that run, never pushed
+  workflow_call:
+    inputs:
+      ref:
+        description: "The commit to stage: a sha, branch or tag (empty: the commit this workflow is called at)"
+        type: string
+        default: ""
+      opendaq-ref:
+        description: "openDAQ commit, branch or tag. If empty, uses the opendaq_ref file from the repo."
+        type: string
+        default: ""
+      exclude-jobs:
+        description: "Jobs not built, wildcard patterns, e.g. '[\"manylinux*\"]': their openDAQ stagings not pulled either"
+        type: string
+        default: "[]"
 
 jobs:
   resolve:
-    name: Resolve the core commit
+    name: Resolve the commits
     runs-on: ubuntu-latest
     outputs:
-      opendaq-ref: ${{ steps.core.outputs.ref }}
+      ref: ${{ steps.commits.outputs.ref }}
+      opendaq-ref: ${{ steps.commits.outputs.opendaq-ref }}
+      opendaq-channel: ${{ fromJSON(steps.channel.outputs.depends-channels)['openDAQ/openDAQ'] || 'dev' }}
+      repository: ${{ job.workflow_repository }}
       channel: ${{ steps.channel.outputs.channel }}
-      jobs: ${{ steps.stagings.outputs.jobs }}
-      staging-pull: ${{ steps.stagings.outputs.staging-pull }}
-      opendaq-artifacts: ${{ steps.stagings.outputs.opendaq-artifacts }}
+      skip-staging-push: ${{ inputs.skip-staging-push || job.workflow_ref != github.workflow_ref || (github.event_name == 'schedule' && steps.channel.outputs.released != 'true') }}
     steps:
+      # this repository, also when called from another one
       - uses: actions/checkout@v4
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ inputs.ref || job.workflow_sha }}
 
-      - uses: openDAQ/openDAQ-CI/.github/actions/resolve-channel@v4
-        id: channel
-
-      # the input, or else opendaq_ref; a branch or a tag is resolved to the commit, which is
-      # what the core staging is found by and what this staging records
-      - name: Resolve the core commit
-        id: core
-        shell: bash
-        env:
-          REF: ${{ inputs.opendaq-ref }}
-        run: |
-          ref="${REF:-$(cat opendaq_ref)}"
-          sha="$ref"
-          if ! [[ "$ref" =~ ^[0-9a-f]{40}$ ]]; then
-            sha=$(git ls-remote https://github.com/openDAQ/openDAQ "$ref" "$ref^{}" | sort -k2 | tail -1 | cut -f1)
-          fi
-          [ -n "$sha" ] || { echo "::error::$ref names no openDAQ commit"; exit 1; }
-          echo "core: $ref -> $sha"
-          echo "ref=$sha" >> "$GITHUB_OUTPUT"
-
-      # the jobs to build, and the openDAQ staging each of them builds against
-      - name: Request the openDAQ stagings
-        id: stagings
+      # the commit staged and the core it is built against; a branch or a tag of the core is resolved to the commit,
+      # which is what the core staging is found by and what this staging records
+      - name: Resolve the commits
+        id: commits
         shell: python3 {0}
         env:
-          CHANNEL: ${{ steps.channel.outputs.channel }}
-          OPENDAQ_REF: ${{ steps.core.outputs.ref }}
+          OPENDAQ_REF: ${{ inputs.opendaq-ref }}
         run: |
-          import json, os
+          import os, re, subprocess, sys
 
-          # job -> the openDAQ staging it builds against, by triplet
-          opendaq = {
-              "windows-2022-x86_64-msvs-v143-release":       "x86_64-windows-msvc-143-release",
-              "windows-2022-x86-msvs-v143-release":          "x86-windows-msvc-143-release",
-              "manylinux_2_28-x86_64-ninja-gcc-14-release":  "x86_64-manylinux_2_28-gcc-14-release",
-              "manylinux_2_28-armv8-ninja-gcc-14-release":   "armv8-manylinux_2_28-gcc-14-release",
-              "ubuntu-22.04-x86_64-ninja-gcc-release":       "x86_64-linux-gcc-11-release",
-              "ubuntu-22.04-armv8-ninja-gcc-release":        "armv8-linux-gcc-11-release",
-              "macos-26-x86_64-ninja-appleclang-21-release": "x86_64-macos-apple-clang-21-release",
-              "macos-26-armv8-ninja-appleclang-21-release":  "armv8-macos-apple-clang-21-release",
-          }
+          sha = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
 
-          # each staging, of the resolved commit, as an artifact of its own ...
-          pull = [{"artifact": f"opendaq-{triplet}", "packages": [{
-                      "path": f"ghcr.io/openDAQ/{os.environ['CHANNEL']}/staging/opendaq",
-                      "annotations": {"org.opencontainers.image.revision": os.environ["OPENDAQ_REF"],
-                                      "com.opendaq.package.triplet": triplet}}]}
-                  for triplet in opendaq.values()]
-
-          # ... which its job unpacks into staging-deps
-          artifacts = [{"match-jobs": [job], "artifacts": [{"name": f"opendaq-{triplet}", "dir": "staging-deps"}]}
-                       for job, triplet in opendaq.items()]
+          # the input, or else opendaq_ref
+          core = os.environ["OPENDAQ_REF"] or open("opendaq_ref").read().strip()
+          if not re.fullmatch(r"[0-9a-f]{40}", core):
+              out = subprocess.run(["git", "ls-remote", "https://github.com/openDAQ/openDAQ", core, f"{core}^{{}}"],
+                                   capture_output=True, text=True, check=True).stdout
+              # the peeled tag (X^{}) sorts last, so a tag gives its commit, not the tag object
+              core = sorted(out.splitlines(), key=lambda line: line.split("\t")[1])[-1].split("\t")[0] if out else ""
+          if not core:
+              sys.exit(f"::error::{os.environ['OPENDAQ_REF'] or 'opendaq_ref'} names no openDAQ commit")
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-              f.write(f"jobs={json.dumps(list(opendaq))}\n")
-              f.write(f"staging-pull={json.dumps(pull)}\n")
-              f.write(f"opendaq-artifacts={json.dumps(artifacts)[1:-1]}\n")   # no brackets: it goes inside packages
+              f.write(f"ref={sha}\n")
+              f.write(f"opendaq-ref={core}\n")
+
+      # where each lies picks its channel
+      - uses: openDAQ/openDAQ-CI/.github/actions/resolve-channel@bundle/extract-each-artifact-into-its-dir
+        id: channel
+        with:
+          repository: ${{ job.workflow_repository }}
+          commit: ${{ steps.commits.outputs.ref }}
+          depends: '{"openDAQ/openDAQ": "${{ steps.commits.outputs.opendaq-ref }}"}'
+
 
   stage:
     needs: resolve
@@ -87,17 +90,161 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: openDAQ/openDAQ-CI/.github/workflows/stage.yml@v4
+    uses: openDAQ/openDAQ-CI/.github/workflows/stage.yml@bundle/extract-each-artifact-into-its-dir
     with:
+      repository: ${{ needs.resolve.outputs.repository }}
+      ref: ${{ needs.resolve.outputs.ref }}
+      upload-pattern: asam-cmp-modules-*
       timeout: '[{"timeout-minutes": 180}]'
-      include-jobs: ${{ needs.resolve.outputs.jobs }}
-      staging-pull: ${{ needs.resolve.outputs.staging-pull }}
+      include-jobs: >-
+        [
+          "windows-2022-x86_64-msvs-v143-release",
+          "windows-2022-x86-msvs-v143-release",
+          "manylinux_2_28-x86_64-ninja-gcc-14-release",
+          "manylinux_2_28-armv8-ninja-gcc-14-release",
+          "ubuntu-22.04-x86_64-ninja-gcc-release",
+          "ubuntu-22.04-armv8-ninja-gcc-release",
+          "macos-26-x86_64-ninja-appleclang-21-release",
+          "macos-26-armv8-ninja-appleclang-21-release"
+        ]
+      exclude-jobs: ${{ inputs.exclude-jobs || '[]' }}
+      staging-pull: >-
+        [
+          {
+            "match-jobs": ["windows-2022-x86_64-msvs-v143-release"],
+            "artifact": "opendaq-staging-windows-2022-x86_64-msvs-v143-release",
+            "packages": [{
+              "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
+              "annotations": {
+                "org.opencontainers.image.revision": "${{ needs.resolve.outputs.opendaq-ref }}",
+                "com.opendaq.package.triplet": "x86_64-windows-msvc-143-release"
+              }
+            }]
+          },
+          {
+            "match-jobs": ["windows-2022-x86-msvs-v143-release"],
+            "artifact": "opendaq-staging-windows-2022-x86-msvs-v143-release",
+            "packages": [{
+              "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
+              "annotations": {
+                "org.opencontainers.image.revision": "${{ needs.resolve.outputs.opendaq-ref }}",
+                "com.opendaq.package.triplet": "x86-windows-msvc-143-release"
+              }
+            }]
+          },
+          {
+            "match-jobs": ["manylinux_2_28-x86_64-ninja-gcc-14-release"],
+            "artifact": "opendaq-staging-manylinux_2_28-x86_64-ninja-gcc-14-release",
+            "packages": [{
+              "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
+              "annotations": {
+                "org.opencontainers.image.revision": "${{ needs.resolve.outputs.opendaq-ref }}",
+                "com.opendaq.package.triplet": "x86_64-manylinux_2_28-gcc-14-release"
+              }
+            }]
+          },
+          {
+            "match-jobs": ["manylinux_2_28-armv8-ninja-gcc-14-release"],
+            "artifact": "opendaq-staging-manylinux_2_28-armv8-ninja-gcc-14-release",
+            "packages": [{
+              "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
+              "annotations": {
+                "org.opencontainers.image.revision": "${{ needs.resolve.outputs.opendaq-ref }}",
+                "com.opendaq.package.triplet": "armv8-manylinux_2_28-gcc-14-release"
+              }
+            }]
+          },
+          {
+            "match-jobs": ["ubuntu-22.04-x86_64-ninja-gcc-release"],
+            "artifact": "opendaq-staging-ubuntu-22.04-x86_64-ninja-gcc-release",
+            "packages": [{
+              "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
+              "annotations": {
+                "org.opencontainers.image.revision": "${{ needs.resolve.outputs.opendaq-ref }}",
+                "com.opendaq.package.triplet": "x86_64-linux-gcc-11-release"
+              }
+            }]
+          },
+          {
+            "match-jobs": ["ubuntu-22.04-armv8-ninja-gcc-release"],
+            "artifact": "opendaq-staging-ubuntu-22.04-armv8-ninja-gcc-release",
+            "packages": [{
+              "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
+              "annotations": {
+                "org.opencontainers.image.revision": "${{ needs.resolve.outputs.opendaq-ref }}",
+                "com.opendaq.package.triplet": "armv8-linux-gcc-11-release"
+              }
+            }]
+          },
+          {
+            "match-jobs": ["macos-26-x86_64-ninja-appleclang-21-release"],
+            "artifact": "opendaq-staging-macos-26-x86_64-ninja-appleclang-21-release",
+            "packages": [{
+              "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
+              "annotations": {
+                "org.opencontainers.image.revision": "${{ needs.resolve.outputs.opendaq-ref }}",
+                "com.opendaq.package.triplet": "x86_64-macos-apple-clang-21-release"
+              }
+            }]
+          },
+          {
+            "match-jobs": ["macos-26-armv8-ninja-appleclang-21-release"],
+            "artifact": "opendaq-staging-macos-26-armv8-ninja-appleclang-21-release",
+            "packages": [{
+              "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
+              "annotations": {
+                "org.opencontainers.image.revision": "${{ needs.resolve.outputs.opendaq-ref }}",
+                "com.opendaq.package.triplet": "armv8-macos-apple-clang-21-release"
+              }
+            }]
+          }
+        ]
       packages: >-
         [
-          ${{ needs.resolve.outputs.opendaq-artifacts }},
-          { "match-jobs": ["ubuntu-*"],        "apt-install": ["libpcap-dev"] },
-          { "match-jobs": ["manylinux*"],      "yum-install": ["libpcap-devel"] },
-          { "match-jobs": ["windows-*-x86-*"], "run": "vcpkg install openssl:x86-windows; Add-Content -Path $env:GITHUB_PATH -Value C:\\vcpkg\\installed\\x86-windows\\bin -Encoding utf8" }
+          {
+            "match-jobs": ["windows-2022-x86_64-msvs-v143-release"],
+            "artifacts": [{"name": "opendaq-staging-windows-2022-x86_64-msvs-v143-release", "dir": "staging-deps"}]
+          },
+          {
+            "match-jobs": ["windows-2022-x86-msvs-v143-release"],
+            "artifacts": [{"name": "opendaq-staging-windows-2022-x86-msvs-v143-release", "dir": "staging-deps"}]
+          },
+          {
+            "match-jobs": ["manylinux_2_28-x86_64-ninja-gcc-14-release"],
+            "artifacts": [{"name": "opendaq-staging-manylinux_2_28-x86_64-ninja-gcc-14-release", "dir": "staging-deps"}]
+          },
+          {
+            "match-jobs": ["manylinux_2_28-armv8-ninja-gcc-14-release"],
+            "artifacts": [{"name": "opendaq-staging-manylinux_2_28-armv8-ninja-gcc-14-release", "dir": "staging-deps"}]
+          },
+          {
+            "match-jobs": ["ubuntu-22.04-x86_64-ninja-gcc-release"],
+            "artifacts": [{"name": "opendaq-staging-ubuntu-22.04-x86_64-ninja-gcc-release", "dir": "staging-deps"}]
+          },
+          {
+            "match-jobs": ["ubuntu-22.04-armv8-ninja-gcc-release"],
+            "artifacts": [{"name": "opendaq-staging-ubuntu-22.04-armv8-ninja-gcc-release", "dir": "staging-deps"}]
+          },
+          {
+            "match-jobs": ["macos-26-x86_64-ninja-appleclang-21-release"],
+            "artifacts": [{"name": "opendaq-staging-macos-26-x86_64-ninja-appleclang-21-release", "dir": "staging-deps"}]
+          },
+          {
+            "match-jobs": ["macos-26-armv8-ninja-appleclang-21-release"],
+            "artifacts": [{"name": "opendaq-staging-macos-26-armv8-ninja-appleclang-21-release", "dir": "staging-deps"}]
+          },
+          {
+            "match-jobs": ["ubuntu-*"],
+            "apt-install": ["libpcap-dev"]
+          },
+          {
+            "match-jobs": ["manylinux*"],
+            "yum-install": ["libpcap-devel"]
+          },
+          {
+            "match-jobs": ["windows-*-x86-*"],
+            "run": "vcpkg install openssl:x86-windows; Add-Content -Path $env:GITHUB_PATH -Value C:\\vcpkg\\installed\\x86-windows\\bin -Encoding utf8"
+          }
         ]
       cmake-presets: >-
         [
@@ -126,11 +273,13 @@ jobs:
             "stagings": [{"name": "asam-cmp"}]
           }
         ]
+      skip-staging-push: ${{ needs.resolve.outputs.skip-staging-push == 'true' }}
       staging-push: >-
         [
           {
-            "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.channel }}/staging/asam-cmp-modules",
-            "artifacts": ["staging-*/asam-cmp"],
-            "tags": ["latest"]
+            "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.channel || 'dev' }}/staging/asam-cmp-modules",
+            "artifacts": ["asam-cmp-modules-staging-*/asam-cmp"],
+            "idx-identity": ["org.opencontainers.image.revision", "com.opendaq.dependencies.opendaq.revision"],
+            "pkg-identity": ["org.opencontainers.image.revision", "com.opendaq.dependencies.opendaq.revision", "com.opendaq.package.triplet"]
           }
         ]
