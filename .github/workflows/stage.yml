@@ -38,10 +38,8 @@ jobs:
     outputs:
       ref: ${{ steps.commits.outputs.ref }}
       opendaq-ref: ${{ steps.commits.outputs.opendaq-ref }}
-      opendaq-channel: ${{ fromJSON(steps.channel.outputs.depends-channels)['openDAQ/openDAQ'] || 'dev' }}
       repository: ${{ job.workflow_repository }}
-      channel: ${{ steps.channel.outputs.channel }}
-      skip-staging-push: ${{ inputs.skip-staging-push || job.workflow_ref != github.workflow_ref || (github.event_name == 'schedule' && steps.channel.outputs.released != 'true') }}
+      skip-staging-push: ${{ inputs.skip-staging-push || job.workflow_ref != github.workflow_ref }}
     steps:
       # this repository, also when called from another one
       - uses: actions/checkout@v4
@@ -75,14 +73,6 @@ jobs:
               f.write(f"ref={sha}\n")
               f.write(f"opendaq-ref={core}\n")
 
-      # where each lies picks its channel
-      - uses: openDAQ/openDAQ-CI/.github/actions/resolve-channel@bundle/extract-each-artifact-into-its-dir
-        id: channel
-        with:
-          repository: ${{ job.workflow_repository }}
-          commit: ${{ steps.commits.outputs.ref }}
-          depends: '{"openDAQ/openDAQ": "${{ steps.commits.outputs.opendaq-ref }}"}'
-
 
   stage:
     needs: resolve
@@ -114,7 +104,7 @@ jobs:
             "match-jobs": ["windows-2022-x86_64-msvs-v143-release"],
             "artifact": "opendaq-staging-windows-2022-x86_64-msvs-v143-release",
             "packages": [{
-              "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
+              "path": "ghcr.io/${{ github.repository_owner }}/staging/opendaq",
               "annotations": {
                 "org.opencontainers.image.revision": "${{ needs.resolve.outputs.opendaq-ref }}",
                 "com.opendaq.package.triplet": "x86_64-windows-msvc-143-release"
@@ -125,7 +115,7 @@ jobs:
             "match-jobs": ["windows-2022-x86-msvs-v143-release"],
             "artifact": "opendaq-staging-windows-2022-x86-msvs-v143-release",
             "packages": [{
-              "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
+              "path": "ghcr.io/${{ github.repository_owner }}/staging/opendaq",
               "annotations": {
                 "org.opencontainers.image.revision": "${{ needs.resolve.outputs.opendaq-ref }}",
                 "com.opendaq.package.triplet": "x86-windows-msvc-143-release"
@@ -136,7 +126,7 @@ jobs:
             "match-jobs": ["manylinux_2_28-x86_64-ninja-gcc-14-release"],
             "artifact": "opendaq-staging-manylinux_2_28-x86_64-ninja-gcc-14-release",
             "packages": [{
-              "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
+              "path": "ghcr.io/${{ github.repository_owner }}/staging/opendaq",
               "annotations": {
                 "org.opencontainers.image.revision": "${{ needs.resolve.outputs.opendaq-ref }}",
                 "com.opendaq.package.triplet": "x86_64-manylinux_2_28-gcc-14-release"
@@ -147,7 +137,7 @@ jobs:
             "match-jobs": ["manylinux_2_28-armv8-ninja-gcc-14-release"],
             "artifact": "opendaq-staging-manylinux_2_28-armv8-ninja-gcc-14-release",
             "packages": [{
-              "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
+              "path": "ghcr.io/${{ github.repository_owner }}/staging/opendaq",
               "annotations": {
                 "org.opencontainers.image.revision": "${{ needs.resolve.outputs.opendaq-ref }}",
                 "com.opendaq.package.triplet": "armv8-manylinux_2_28-gcc-14-release"
@@ -158,7 +148,7 @@ jobs:
             "match-jobs": ["ubuntu-22.04-x86_64-ninja-gcc-release"],
             "artifact": "opendaq-staging-ubuntu-22.04-x86_64-ninja-gcc-release",
             "packages": [{
-              "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
+              "path": "ghcr.io/${{ github.repository_owner }}/staging/opendaq",
               "annotations": {
                 "org.opencontainers.image.revision": "${{ needs.resolve.outputs.opendaq-ref }}",
                 "com.opendaq.package.triplet": "x86_64-linux-gcc-11-release"
@@ -169,7 +159,7 @@ jobs:
             "match-jobs": ["ubuntu-22.04-armv8-ninja-gcc-release"],
             "artifact": "opendaq-staging-ubuntu-22.04-armv8-ninja-gcc-release",
             "packages": [{
-              "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
+              "path": "ghcr.io/${{ github.repository_owner }}/staging/opendaq",
               "annotations": {
                 "org.opencontainers.image.revision": "${{ needs.resolve.outputs.opendaq-ref }}",
                 "com.opendaq.package.triplet": "armv8-linux-gcc-11-release"
@@ -180,7 +170,7 @@ jobs:
             "match-jobs": ["macos-26-x86_64-ninja-appleclang-21-release"],
             "artifact": "opendaq-staging-macos-26-x86_64-ninja-appleclang-21-release",
             "packages": [{
-              "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
+              "path": "ghcr.io/${{ github.repository_owner }}/staging/opendaq",
               "annotations": {
                 "org.opencontainers.image.revision": "${{ needs.resolve.outputs.opendaq-ref }}",
                 "com.opendaq.package.triplet": "x86_64-macos-apple-clang-21-release"
@@ -191,7 +181,7 @@ jobs:
             "match-jobs": ["macos-26-armv8-ninja-appleclang-21-release"],
             "artifact": "opendaq-staging-macos-26-armv8-ninja-appleclang-21-release",
             "packages": [{
-              "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.opendaq-channel }}/staging/opendaq",
+              "path": "ghcr.io/${{ github.repository_owner }}/staging/opendaq",
               "annotations": {
                 "org.opencontainers.image.revision": "${{ needs.resolve.outputs.opendaq-ref }}",
                 "com.opendaq.package.triplet": "armv8-macos-apple-clang-21-release"
@@ -277,7 +267,7 @@ jobs:
       staging-push: >-
         [
           {
-            "path": "ghcr.io/${{ github.repository_owner }}/${{ needs.resolve.outputs.channel || 'dev' }}/staging/asam-cmp-modules",
+            "path": "ghcr.io/${{ github.repository_owner }}/staging/asam-cmp-modules",
             "artifacts": ["asam-cmp-modules-staging-*/asam-cmp"],
             "idx-identity": ["org.opencontainers.image.revision", "com.opendaq.dependencies.opendaq.revision"],
             "pkg-identity": ["org.opencontainers.image.revision", "com.opendaq.dependencies.opendaq.revision", "com.opendaq.package.triplet"]
