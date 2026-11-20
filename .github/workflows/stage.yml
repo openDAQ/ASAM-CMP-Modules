@@ -2,14 +2,15 @@ name: Build ASAM CMP module stagings
 
 on:
   schedule:
-    - cron: '0 2 * * 1'
+    # a few hours after the core's (02:00), so the staging of the core's main is published by then
+    - cron: '0 5 * * 1'
   workflow_dispatch:
     inputs:
       ref:
         description: "The commit to stage: a sha, branch or tag (empty: the head of the branch dispatched on)"
         default: ""
       opendaq-ref:
-        description: "openDAQ commit, branch or tag. If empty, uses the opendaq_ref file from the repo."
+        description: "openDAQ commit, branch or tag. If empty, uses the opendaq_ref file from the repo (on schedule: main)."
         default: ""
       skip-staging-push:
         description: "Build only, keep the staging as an artifact of the run"
@@ -54,13 +55,14 @@ jobs:
         shell: python3 {0}
         env:
           OPENDAQ_REF: ${{ inputs.opendaq-ref }}
+          EVENT: ${{ github.event_name }}
         run: |
           import os, re, subprocess, sys
 
           sha = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
 
-          # the input, or else opendaq_ref
-          core = os.environ["OPENDAQ_REF"] or open("opendaq_ref").read().strip()
+          # the input, or else the core's main on schedule, opendaq_ref otherwise
+          core = os.environ["OPENDAQ_REF"] or ("refs/heads/main" if os.environ["EVENT"] == "schedule" else open("opendaq_ref").read().strip())
           if not re.fullmatch(r"[0-9a-f]{40}", core):
               out = subprocess.run(["git", "ls-remote", "https://github.com/openDAQ/openDAQ", core, f"{core}^{{}}"],
                                    capture_output=True, text=True, check=True).stdout
