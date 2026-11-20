@@ -22,7 +22,7 @@ jobs:
         shell: bash
         run: echo "OPENDAQ_REF=$(cat opendaq_ref)" >> "$GITHUB_ENV"
 
-      - uses: openDAQ/openDAQ-CI/.github/actions/staging-check@v4.1.0
+      - uses: openDAQ/openDAQ-CI/.github/actions/staging-check@v4
         with:
           packages: >-
             [
