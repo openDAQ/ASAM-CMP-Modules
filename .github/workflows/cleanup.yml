@@ -20,5 +20,6 @@ jobs:
             dry-run: ${{inputs.dry-run || false}}
             staging-retentions: >-
                 [
-                    {"path": "ghcr.io/openDAQ/dev/staging/asam-cmp-modules", "retentions": {"days": 30}}
+                    {"path": "ghcr.io/openDAQ/staging/asam-cmp-modules",     "retention": {"days": 30}},
+                    {"path": "ghcr.io/openDAQ/dev/staging/asam-cmp-modules", "retention": {"days": 30}}
                 ]
